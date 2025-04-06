@@ -22,6 +22,7 @@ public class PharmacyDbContext : DbContext
     public DbSet<PaymentStatus> PaymentStatus { get; set; }
     public DbSet<PaymentMethod> PaymentMethods { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<EmailVerificationCode> EmailVerificationCodes { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder) 
     {

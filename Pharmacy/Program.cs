@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Pharmacy.BackgroundServices;
 using Pharmacy.Data;
+using Pharmacy.Data.Authorization;
 using Pharmacy.Data.Repositories;
 using Pharmacy.Data.Repositories.Interfaces;
 using Pharmacy.Middleware;
@@ -51,6 +53,11 @@ try
                 // });
             };
         });
+    
+    builder.Services.AddHostedService<EmailVerificationCleanupService>();
+    
+    builder.Services.AddSingleton<PasswordProvider>();
+    builder.Services.AddSingleton<TokenProvider>();
     
     builder.Services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
     builder.Services.AddScoped<IManufacturerService, ManufacturerService>();

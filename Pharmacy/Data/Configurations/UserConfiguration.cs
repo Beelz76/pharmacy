@@ -12,9 +12,16 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.Fullname)
+        builder.Property(x => x.LastName)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(50);
+        
+        builder.Property(x => x.FirstName)
+            .IsRequired()
+            .HasMaxLength(50);
+        
+        builder.Property(x => x.Patronymic)
+            .HasMaxLength(50);
 
         builder.Property(x => x.Phone)
             .HasMaxLength(15);
@@ -26,6 +33,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.PasswordHash)
             .IsRequired()
             .HasMaxLength(255);
+
+        builder.Property(x => x.EmailVerified)
+            .IsRequired();
 
         builder.Property(x => x.CreatedAt)
             .IsRequired()
@@ -40,15 +50,18 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne(x => x.User)
             .HasForeignKey(x => x.UserId);
 
+        builder.HasIndex(x => x.Email).IsUnique();
+        
         builder.HasData(new List<User>
         {
             new User
             {
                 Id = 1,
                 Email = "test@gmail.com",
+                EmailVerified = true,
                 PasswordHash = "123456",
-                Fullname = "Test User",
-                Phone = "1234567890",
+                LastName = "test",
+                FirstName = "test"
             }
         });
     }

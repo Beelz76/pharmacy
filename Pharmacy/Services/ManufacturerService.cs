@@ -26,7 +26,7 @@ public class ManufacturerService : IManufacturerService
             return Result<IEnumerable<ManufacturerDto>>.Failure(HttpStatusCode.NotFound, ErrorTypeEnum.Failure, "Производители не найдены");
         }
 
-        return Result<IEnumerable<ManufacturerDto>>.Success(new List<ManufacturerDto>(manufacturers.Select(m => new ManufacturerDto(m.Name, m.Country))));
+        return Result<IEnumerable<ManufacturerDto>>.Success(new List<ManufacturerDto>(manufacturers.Select(m => new ManufacturerDto(m.Id, m.Name, m.Country))));
     }
 
     public async Task<Result<ManufacturerDto>> GetByIdAsync(int id)
@@ -37,7 +37,7 @@ public class ManufacturerService : IManufacturerService
             return Result<ManufacturerDto>.Failure(HttpStatusCode.NotFound, ErrorTypeEnum.NotFound, "Производитель не найден");
         }
 
-        return Result<ManufacturerDto>.Success(new ManufacturerDto(manufacturer.Name, manufacturer.Country));
+        return Result<ManufacturerDto>.Success(new ManufacturerDto(manufacturer.Id, manufacturer.Name, manufacturer.Country));
     }
 
     public async Task<Result> CreateAsync(CreateManufacturerRequest request)

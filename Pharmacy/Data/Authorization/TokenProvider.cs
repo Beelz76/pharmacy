@@ -3,14 +3,21 @@ using System.Text;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Pharmacy.Models.Entities;
+using Pharmacy.Services.Interfaces;
 
-namespace Pharmacy.Data.Auth;
+namespace Pharmacy.Data.Authorization;
 
-public class TokenProvider(IConfiguration configuration)
+public class TokenProvider
 {
+    private readonly IConfiguration _configuration;
+    public TokenProvider(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
     public string Create(User user)
     {
-        string secretKey = configuration["Jwt:Secret"]!;
+        string secretKey = _configuration["Jwt:Secret"]!;
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
 
@@ -23,10 +30,10 @@ public class TokenProvider(IConfiguration configuration)
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 //new Claim(ClaimTypes.Role, ),
             }),
-            Expires = DateTime.UtcNow.AddHours(configuration.GetValue<int>("Jwt:ExpirationInHours")),
+            Expires = DateTime.UtcNow.AddHours(_configuration.GetValue<int>("Jwt:ExpirationInHours")),
             SigningCredentials = credentials,
-            Issuer = configuration["Jwt:Issuer"],
-            Audience = configuration["Jwt:Audience"],
+            Issuer = _configuration["Jwt:Issuer"],
+            Audience = _configuration["Jwt:Audience"],
         };
         
         var handler = new JsonWebTokenHandler();
