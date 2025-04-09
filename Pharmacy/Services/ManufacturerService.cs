@@ -1,11 +1,9 @@
-﻿using System.Net;
-using Pharmacy.Data.Repositories.Interfaces;
-using Pharmacy.Endpoints.Manufacturer;
-using Pharmacy.Models.Dtos;
-using Pharmacy.Models.Entities;
-using Pharmacy.Models.Enums;
-using Pharmacy.Models.Result;
+﻿using Pharmacy.Database.Entities;
+using Pharmacy.Database.Repositories.Interfaces;
+using Pharmacy.Endpoints.Manufacturers;
 using Pharmacy.Services.Interfaces;
+using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services;
 
@@ -23,10 +21,12 @@ public class ManufacturerService : IManufacturerService
         var manufacturers = (await _repository.GetAllAsync()).ToList();
         if (!manufacturers.Any())
         {
-            return Result<IEnumerable<ManufacturerDto>>.Failure(HttpStatusCode.NotFound, ErrorTypeEnum.Failure, "Производители не найдены");
+            return Result.Failure<IEnumerable<ManufacturerDto>>(Error.NotFound("Производители не найдены"));
         }
 
-        return Result<IEnumerable<ManufacturerDto>>.Success(new List<ManufacturerDto>(manufacturers.Select(m => new ManufacturerDto(m.Id, m.Name, m.Country))));
+        var manufacturersDto = new List<ManufacturerDto>(manufacturers.Select(m => new ManufacturerDto(m.Id, m.Name, m.Country)));
+        
+        return Result.Success<IEnumerable<ManufacturerDto>>(manufacturersDto);
     }
 
     public async Task<Result<ManufacturerDto>> GetByIdAsync(int id)
@@ -34,18 +34,18 @@ public class ManufacturerService : IManufacturerService
         var manufacturer = await _repository.GetByIdAsync(id);
         if (manufacturer is null)
         {
-            return Result<ManufacturerDto>.Failure(HttpStatusCode.NotFound, ErrorTypeEnum.NotFound, "Производитель не найден");
+            return Result.Failure<ManufacturerDto>(Error.NotFound("Производитель не найден"));
         }
 
-        return Result<ManufacturerDto>.Success(new ManufacturerDto(manufacturer.Id, manufacturer.Name, manufacturer.Country));
+        return Result.Success(new ManufacturerDto(manufacturer.Id, manufacturer.Name, manufacturer.Country));
     }
 
     public async Task<Result> CreateAsync(CreateManufacturerRequest request)
     {
-        var manufacturerExists = await _repository.ExistsByNameAsync(request.Name);
-        if (manufacturerExists)
+        var existingManufacturer = await _repository.GetByNameAsync(request.Name);
+        if (existingManufacturer is not null)
         {
-            return Result.Failure(HttpStatusCode.Conflict, ErrorTypeEnum.Conflict, "Производитель с таким названием уже существует");
+            return Result.Failure(Error.Conflict("Производитель с таким названием уже существует"));
         }
 
         var manufacturer = new Manufacturer
@@ -65,15 +65,15 @@ public class ManufacturerService : IManufacturerService
             var manufacturer = await _repository.GetByIdAsync(id);
             if (manufacturer is null)
             {
-                return Result.Failure(HttpStatusCode.NotFound, ErrorTypeEnum.NotFound, "Производитель не найден");
+                return Result.Failure(Error.NotFound("Производитель не найден"));
             }
 
             if (manufacturer.Name != request.Name)
             {
-                var manufacturerExists = await _repository.ExistsByNameAsync(request.Name, id);
-                if (manufacturerExists)
+                var existingManufacturer = await _repository.GetByNameAsync(request.Name, excludeId: id);
+                if (existingManufacturer is not null)
                 {
-                    return Result.Failure(HttpStatusCode.Conflict, ErrorTypeEnum.Conflict, "Производитель с таким названием уже существует");
+                    return Result.Failure(Error.Conflict("Производитель с таким названием уже существует"));
                 }
             }
 
@@ -90,7 +90,7 @@ public class ManufacturerService : IManufacturerService
         var manufacturer = await _repository.GetByIdAsync(id);
         if (manufacturer is null)
         {
-            return Result.Failure(HttpStatusCode.NotFound, ErrorTypeEnum.NotFound, "Производитель не найден");
+            return Result.Failure(Error.NotFound("Производитель не найден"));
         }
 
         await _repository.DeleteAsync(manufacturer);

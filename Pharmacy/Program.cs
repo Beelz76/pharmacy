@@ -2,14 +2,15 @@ using System.Text;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Pharmacy.BackgroundServices;
-using Pharmacy.Data;
-using Pharmacy.Data.Authorization;
-using Pharmacy.Data.Repositories;
-using Pharmacy.Data.Repositories.Interfaces;
+using Pharmacy.Database;
+using Pharmacy.Database.Repositories;
+using Pharmacy.Database.Repositories.Interfaces;
+using Pharmacy.DateTimeProvider;
+using Pharmacy.Endpoints.Users.Authentication;
+using Pharmacy.ExternalServices;
 using Pharmacy.Middleware;
 using Pharmacy.Services;
 using Pharmacy.Services.Interfaces;
@@ -58,9 +59,18 @@ try
     
     builder.Services.AddSingleton<PasswordProvider>();
     builder.Services.AddSingleton<TokenProvider>();
+    builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
     
     builder.Services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
     builder.Services.AddScoped<IManufacturerService, ManufacturerService>();
+    builder.Services.AddScoped<IProductRepository, ProductRepository>();
+    builder.Services.AddScoped<IProductService, ProductService>();
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+    builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<IEmailService, EmailService>();
+    builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
     
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();

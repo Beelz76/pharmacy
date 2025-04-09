@@ -1,6 +1,6 @@
-﻿using Pharmacy.Endpoints.Manufacturer;
-using Pharmacy.Models.Dtos;
-using Pharmacy.Models.Result;
+﻿using Pharmacy.Endpoints.Manufacturers;
+using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services.Interfaces;
 

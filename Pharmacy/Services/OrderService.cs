@@ -1,6 +1,8 @@
-﻿namespace Pharmacy.Services;
+﻿using Pharmacy.Services.Interfaces;
 
-public class OrderService
+namespace Pharmacy.Services;
+
+public class OrderService : IOrderService
 {
     
 }

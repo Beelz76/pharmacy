@@ -1,47 +1,42 @@
 ﻿using System.Net;
-using Pharmacy.Data.Authorization;
-using Pharmacy.Data.Repositories.Interfaces;
-using Pharmacy.Endpoints.Authorization;
-using Pharmacy.Endpoints.User;
-using Pharmacy.Models.Dtos;
-using Pharmacy.Models.Entities;
-using Pharmacy.Models.Enums;
-using Pharmacy.Models.Result;
+using Pharmacy.Database.Entities;
+using Pharmacy.Database.Repositories.Interfaces;
+using Pharmacy.DateTimeProvider;
+using Pharmacy.Endpoints.Users;
 using Pharmacy.Services.Interfaces;
+using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Enums;
+using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services;
 
 public class UserService : IUserService
 {
     private readonly IUserRepository _repository;
-    private readonly PasswordProvider _passwordProvider;
-    public UserService(IUserRepository repository, PasswordProvider passwordProvider)
+    private readonly IDateTimeProvider _dateTimeProvider;
+    public UserService(IUserRepository repository, IDateTimeProvider dateTimeProvider)
     {
         _repository = repository;
-        _passwordProvider = passwordProvider;
+        _dateTimeProvider = dateTimeProvider;
     }
 
-    public async Task<Result> RegisterAsync(RegisterRequest request)
+    public async Task<Result<int>> CreateAsync(CreateUserDto dto)
     {
-        var userExists = await _repository.ExistsByEmailAsync(request.Email);
-        if (userExists)
-        {
-            return Result.Failure(HttpStatusCode.Conflict, ErrorTypeEnum.Conflict, "Пользователь с таким email уже зарегистрирован");
-        }
-        
         var user = new User
         {
-            Email = request.Email,
-            PasswordHash = _passwordProvider.Hash(request.Password),
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Patronymic = request.Patronymic,
-            Phone = request.Phone,
-            EmailVerified = false
+            Email = dto.Email,
+            PasswordHash = dto.PasswordHash,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Patronymic = dto.Patronymic,
+            Phone = dto.Phone,
+            EmailVerified = dto.EmailVerified,
+            CreatedAt = _dateTimeProvider.UtcNow,
+            UpdatedAt = _dateTimeProvider.UtcNow
         };
         
         await _repository.AddAsync(user);
-        return Result.Success();
+        return Result.Success(user.Id);
     }
 
     public async Task<Result> UpdateAsync(int id, UpdateUserRequest request)
@@ -51,15 +46,15 @@ public class UserService : IUserService
             var user = await _repository.GetByIdAsync(id);
             if (user is null)
             {
-                return Result.Failure(HttpStatusCode.NotFound, ErrorTypeEnum.NotFound, "Производитель не найден");
+                return Result.Failure(HttpStatusCode.NotFound, ErrorTypeEnum.NotFound, "Пользователь не найден");
             }
 
             if (user.Email != request.Email)
             {
-                var userExists = await _repository.ExistsByEmailAsync(request.Email, id);
-                if (userExists)
+                var existingUser = await _repository.GetByEmailAsync(request.Email, excludeId: id);
+                if (existingUser is not null)
                 {
-                    return Result.Failure(HttpStatusCode.Conflict, ErrorTypeEnum.Conflict, "Пользователь с таким email уже зарегистрирован");
+                    return Result.Failure(Error.Conflict("Пользователь с таким email уже зарегистрирован"));
                 }
                 
                 //TODO Выслать код на почту
@@ -70,6 +65,7 @@ public class UserService : IUserService
             user.LastName = request.LastName;
             user.Patronymic = request.Patronymic;
             user.Phone = request.Phone;
+            user.UpdatedAt = _dateTimeProvider.UtcNow;
 
             await _repository.UpdateAsync(user);
             return Result.Success();
@@ -81,15 +77,22 @@ public class UserService : IUserService
         var user = await _repository.GetByIdAsync(id);
         if (user is null)
         {
-            return Result<UserDto>.Failure(HttpStatusCode.NotFound, ErrorTypeEnum.NotFound, "Пользователь не найден");
+            return Result.Failure<UserDto>(Error.NotFound("Пользователь не найден"));
         }
 
-        return Result<UserDto>.Success(new UserDto(user.Id, user.Email, user.EmailVerified, user.FirstName,
+        return Result.Success(new UserDto(user.Id, user.Email, user.PasswordHash, user.EmailVerified, user.FirstName,
             user.LastName, user.Patronymic, user.Phone));
     }
-    
-    public async Task<bool> ExistsByEmailAsync(string email)
+
+    public async Task<Result<UserDto>> GetByEmailAsync(string email)
     {
-        return await _repository.ExistsByEmailAsync(email);
+        var user = await _repository.GetByEmailAsync(email);
+        if (user is null)
+        {
+            return Result.Failure<UserDto>(Error.NotFound("Пользователь не найден"));
+        }
+        
+        return Result.Success(new UserDto(user.Id, user.Email, user.PasswordHash, user.EmailVerified, user.FirstName,
+            user.LastName, user.Patronymic, user.Phone));
     }
 }

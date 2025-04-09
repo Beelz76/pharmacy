@@ -1,14 +1,13 @@
-﻿using Pharmacy.Endpoints.Authorization;
-using Pharmacy.Endpoints.User;
-using Pharmacy.Models.Dtos;
-using Pharmacy.Models.Result;
+﻿using Pharmacy.Endpoints.Users;
+using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services.Interfaces;
 
 public interface IUserService
 {
-    Task<Result> RegisterAsync(RegisterRequest request);
+    Task<Result<int>> CreateAsync(CreateUserDto dto);
     Task<Result> UpdateAsync(int id, UpdateUserRequest request);
     Task<Result<UserDto>> GetByIdAsync(int id);
-    Task<bool> ExistsByEmailAsync(string email);
+    Task<Result<UserDto>> GetByEmailAsync(string email);
 }
