@@ -18,6 +18,7 @@ public class UpdateEndpoint : Endpoint<UpdateProductRequest>
         Put("products/{id:int}");
         AllowAnonymous();
         Tags("Products");
+        Summary(s => { s.Summary = "Изменить товар"; }); 
     }
 
     public override async Task HandleAsync(UpdateProductRequest request, CancellationToken ct)

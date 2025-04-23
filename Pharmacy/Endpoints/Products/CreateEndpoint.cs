@@ -18,6 +18,7 @@ public class CreateEndpoint : Endpoint<CreateProductRequest>
         Post("products");
         AllowAnonymous();
         Tags("Products");
+        Summary(s => { s.Summary = "Добавить товар"; }); 
     }
 
     public override async Task HandleAsync(CreateProductRequest request, CancellationToken ct)

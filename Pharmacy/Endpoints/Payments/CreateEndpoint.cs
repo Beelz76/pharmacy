@@ -15,10 +15,10 @@ public class GetByOrderEndpoint : Endpoint<CreatePaymentRequest>
 
     public override void Configure()
     {
-        Post("payments/{orderId:int}");
+        Get("payments/{orderId:int}");
         AllowAnonymous();
         Tags("Payments");
-        Summary(s => { s.Summary = "Получить информацию о платеже"; });
+        Summary(s => { s.Summary = "Получить информацию по оплате заказа"; }); 
     }
 
     public override async Task HandleAsync(CreatePaymentRequest request, CancellationToken ct)

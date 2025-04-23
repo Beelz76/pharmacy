@@ -10,4 +10,8 @@ public interface IUserService
     Task<Result> UpdateAsync(int id, UpdateUserRequest request);
     Task<Result<UserDto>> GetByIdAsync(int id);
     Task<Result<UserDto>> GetByEmailAsync(string email);
+    Task<Result> SetEmailVerifiedAsync(int userId);
+    Task<Result> SetPasswordAsync(int userId, string newPasswordHash);
+    Task<Result> UpdateEmailAsync(int userId, string newEmail);
+    Task<Result> UpdatePasswordAsync(int userId, string currentPassword, string newPassword);
 }

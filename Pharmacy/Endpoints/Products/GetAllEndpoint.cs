@@ -18,6 +18,7 @@ public class GetAllEndpoint : EndpointWithoutRequest
         Get("products");
         AllowAnonymous();
         Tags("Products");
+        Summary(s => { s.Summary = "Получить все товары"; }); 
     }
 
     public override async Task HandleAsync(CancellationToken ct)

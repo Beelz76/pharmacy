@@ -10,6 +10,7 @@ using Pharmacy.Database.Repositories;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Users.Authentication;
+using Pharmacy.Endpoints.Users.Verification;
 using Pharmacy.ExternalServices;
 using Pharmacy.Middleware;
 using Pharmacy.Services;
@@ -37,45 +38,6 @@ try
     builder.Services.AddDbContext<PharmacyDbContext>(options =>
         options.UseNpgsql(connectionString));
     
-    builder.Services.AddFastEndpoints()
-        .SwaggerDocument(options =>
-        {
-            options.EnableJWTBearerAuth = true;
-            options.RemoveEmptyRequestSchema = true;
-            options.DocumentSettings = settings =>
-            {
-                settings.Title = "Pharmacy API";
-                settings.Version = "v1";
-                // settings.AddAuth("Bearer", new()
-                // {
-                //     Type = OpenApiSecuritySchemeType.ApiKey,
-                //     Scheme = JwtBearerDefaults.AuthenticationScheme,
-                //     BearerFormat = "JWT",
-                // });
-            };
-        });
-    
-    builder.Services.AddHostedService<EmailVerificationCleanupService>();
-    
-    builder.Services.AddSingleton<PasswordProvider>();
-    builder.Services.AddSingleton<TokenProvider>();
-    builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-    
-    builder.Services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
-    builder.Services.AddScoped<IManufacturerService, ManufacturerService>();
-    builder.Services.AddScoped<IProductRepository, ProductRepository>();
-    builder.Services.AddScoped<IProductService, ProductService>();
-    builder.Services.AddScoped<IUserRepository, UserRepository>();
-    builder.Services.AddScoped<IUserService, UserService>();
-    builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-    builder.Services.AddScoped<IOrderService, OrderService>();
-    builder.Services.AddScoped<IEmailService, EmailService>();
-    builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
-    
-    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-    builder.Services.AddProblemDetails();
-    
-    builder.Services.AddAuthorization();
     builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -96,6 +58,55 @@ try
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
         };
     });
+    
+    builder.Services.AddAuthorization();
+    
+    // builder.Services.AddCors(options =>
+    // {
+    //     options.AddDefaultPolicy(policy =>
+    //     {
+    //         policy
+    //             .AllowAnyHeader()
+    //             .AllowAnyMethod()
+    //             .AllowCredentials()
+    //             .WithOrigins("http://localhost:"); // Vue frontend
+    //     });
+    // });
+
+    builder.Services.AddFastEndpoints()
+        .SwaggerDocument(options =>
+        {
+            options.EnableJWTBearerAuth = true;
+            options.RemoveEmptyRequestSchema = true;
+            options.DocumentSettings = settings =>
+            {
+                settings.Title = "Pharmacy API";
+                settings.Version = "v1";
+            };
+        });
+    
+    builder.Services.AddHostedService<EmailVerificationCleanupService>();
+    
+    builder.Services.AddSingleton<PasswordProvider>();
+    builder.Services.AddSingleton<TokenProvider>();
+    builder.Services.AddSingleton<CodeGenerator>();
+    builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+    
+    builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
+    builder.Services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
+    builder.Services.AddScoped<IManufacturerService, ManufacturerService>();
+    builder.Services.AddScoped<IProductRepository, ProductRepository>();
+    builder.Services.AddScoped<IProductService, ProductService>();
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+    builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<IEmailService, EmailService>();
+    builder.Services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
+    builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
+    
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    builder.Services.AddProblemDetails();
     
     builder.Services.AddOpenApi();
 

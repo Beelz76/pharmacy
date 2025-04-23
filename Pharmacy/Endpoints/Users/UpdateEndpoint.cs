@@ -18,6 +18,7 @@ public class UpdateEndpoint : Endpoint<UpdateUserRequest>
         Put("users/{id:int}");
         AllowAnonymous();
         Tags("Users");
+        Summary(s => { s.Summary = "Изменить данные пользователя"; });
     }
 
     public override async Task HandleAsync(UpdateUserRequest request, CancellationToken ct)

@@ -3,6 +3,7 @@ using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Users;
+using Pharmacy.Endpoints.Users.Authentication;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Enums;
@@ -14,10 +15,14 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _repository;
     private readonly IDateTimeProvider _dateTimeProvider;
-    public UserService(IUserRepository repository, IDateTimeProvider dateTimeProvider)
+    private readonly PasswordProvider _passwordProvider;
+    private readonly IEmailVerificationService _emailVerificationService;
+    public UserService(IUserRepository repository, IDateTimeProvider dateTimeProvider, PasswordProvider passwordProvider, IEmailVerificationService emailVerificationService)
     {
         _repository = repository;
         _dateTimeProvider = dateTimeProvider;
+        _passwordProvider = passwordProvider;
+        _emailVerificationService = emailVerificationService;
     }
 
     public async Task<Result<int>> CreateAsync(CreateUserDto dto)
@@ -61,6 +66,7 @@ public class UserService : IUserService
             }
 
             user.Email = request.Email;
+            user.PasswordHash = _passwordProvider.Hash(request.Password);
             user.FirstName = request.FirstName;
             user.LastName = request.LastName;
             user.Patronymic = request.Patronymic;
@@ -94,5 +100,62 @@ public class UserService : IUserService
         
         return Result.Success(new UserDto(user.Id, user.Email, user.PasswordHash, user.EmailVerified, user.FirstName,
             user.LastName, user.Patronymic, user.Phone));
+    }
+    
+    public async Task<Result> SetEmailVerifiedAsync(int userId)
+    {
+        var user = await _repository.GetByIdAsync(userId);
+        if (user is null)
+        {
+            return Result.Failure(Error.NotFound("Пользователь не найден"));
+        }
+
+        user.EmailVerified = true;
+        await _repository.UpdateAsync(user);
+        return Result.Success();
+    }
+    
+    public async Task<Result> SetPasswordAsync(int userId, string newPasswordHash)
+    {
+        var user = await _repository.GetByIdAsync(userId);
+        if (user is null)
+        {
+            return Result.Failure(Error.NotFound("Пользователь не найден"));
+        }
+
+        user.PasswordHash = newPasswordHash;
+        await _repository.UpdateAsync(user);
+        return Result.Success();
+    }
+    
+    public async Task<Result> UpdateEmailAsync(int userId, string newEmail)
+    {
+        var user = await _repository.GetByEmailAsync(newEmail);
+        if (user is not null)
+        {
+            return Result.Failure(Error.Conflict("Пользователь с таким email уже зарегистрирован"));
+        }
+        
+        return await _emailVerificationService.GenerateVerificationCodeAsync(userId, newEmail, VerificationPurposeEnum.EmailChange);
+    }
+    
+    public async Task<Result> UpdatePasswordAsync(int userId, string currentPassword, string newPassword)
+    {
+        var user = await _repository.GetByIdAsync(userId);
+        if (user is null)
+        {
+            return Result.Failure(Error.NotFound("Пользователь не найден"));
+        }
+
+        if (!_passwordProvider.Verify(currentPassword, user.PasswordHash))
+        {
+            return Result.Failure(Error.Failure("Неверный текущий пароль"));
+        }
+
+        user.PasswordHash = _passwordProvider.Hash(newPassword);
+        user.UpdatedAt = _dateTimeProvider.UtcNow;
+
+        await _repository.UpdateAsync(user);
+        return Result.Success();
     }
 }

@@ -36,5 +36,8 @@ public class EmailVerificationCodeConfiguration : IEntityTypeConfiguration<Email
         builder.HasOne(x => x.User)
             .WithMany(x => x.EmailVerificationCodes)
             .HasForeignKey(x => x.UserId);
+        
+        builder.HasIndex(x => new { x.Email, x.Code, x.Purpose });
+        builder.HasIndex(x => x.ExpiresAt);
     }
 }

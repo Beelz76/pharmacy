@@ -12,14 +12,14 @@ public class LoginEndpoint : Endpoint<LoginRequest>
     {
         _logger = logger;
         _authorizationService = authorizationService;
-        ;
     }
 
     public override void Configure()
     {
-        Post("users/login");
+        Post("authorization/login");
         AllowAnonymous();
-        Tags("Users");
+        Tags("Authorization");
+        Summary(s => { s.Summary = "Вход"; });
     }
 
     public override async Task HandleAsync(LoginRequest request, CancellationToken ct)
@@ -28,7 +28,7 @@ public class LoginEndpoint : Endpoint<LoginRequest>
 
         if (result.IsSuccess)
         {
-            await SendOkAsync(result.Value, cancellation: ct);
+            await SendStringAsync(result.Value, cancellation: ct);
         }
         else
         {

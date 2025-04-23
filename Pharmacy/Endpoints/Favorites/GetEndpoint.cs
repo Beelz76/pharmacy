@@ -15,7 +15,7 @@ public class GetEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("favorites");
+        Get("favorites/{userId:int}");
         AllowAnonymous();
         Tags("Favorites");
         Summary(s => { s.Summary = "Получить избранное пользователя"; });

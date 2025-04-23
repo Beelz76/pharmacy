@@ -1,15 +1,14 @@
 ﻿using FastEndpoints;
 using FluentValidation;
-using Pharmacy.Endpoints.Users.Authorization;
 using Pharmacy.Services.Interfaces;
 
-namespace Pharmacy.Endpoints.Users;
+namespace Pharmacy.Endpoints.Users.Authorization;
 
 public class RegisterEndpoint : Endpoint<RegisterRequest>
 {
-    private readonly ILogger<LoginEndpoint> _logger;
+    private readonly ILogger<RegisterEndpoint> _logger;
     private readonly IAuthorizationService _authorizationService;
-    public RegisterEndpoint(ILogger<LoginEndpoint> logger, IAuthorizationService authorizationService)
+    public RegisterEndpoint(ILogger<RegisterEndpoint> logger, IAuthorizationService authorizationService)
     {
         _logger = logger;
         _authorizationService = authorizationService;
@@ -17,9 +16,10 @@ public class RegisterEndpoint : Endpoint<RegisterRequest>
 
     public override void Configure()
     {
-        Post("users/register-initial");
+        Post("authorization/register-initial");
         AllowAnonymous();
-        Tags("Users");
+        Tags("Authorization");
+        Summary(s => { s.Summary = "Регистрация"; });
     }
 
     public override async Task HandleAsync(RegisterRequest request, CancellationToken ct)

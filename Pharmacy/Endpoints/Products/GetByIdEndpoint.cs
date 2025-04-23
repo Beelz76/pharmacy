@@ -18,6 +18,7 @@ public class GetByIdEndpoint : EndpointWithoutRequest
         Get("products/{id:int}");
         AllowAnonymous();
         Tags("Products");
+        Summary(s => { s.Summary = "Получить товар по id"; }); 
     }
 
     public override async Task HandleAsync(CancellationToken ct)

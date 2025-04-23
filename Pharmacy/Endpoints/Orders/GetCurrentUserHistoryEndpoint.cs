@@ -5,11 +5,11 @@ using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.Orders;
 
-public class GetHistoryEndpoint : EndpointWithoutRequest
+public class GetCurrentUserHistoryEndpoint : EndpointWithoutRequest
 {
-    private readonly ILogger<GetHistoryEndpoint> _logger;
+    private readonly ILogger<GetCurrentUserHistoryEndpoint> _logger;
     private readonly IProductService _productService;
-    public GetHistoryEndpoint(ILogger<GetHistoryEndpoint> logger, IProductService productService)
+    public GetCurrentUserHistoryEndpoint(ILogger<GetCurrentUserHistoryEndpoint> logger, IProductService productService)
     {
         _logger = logger;
         _productService = productService;
