@@ -26,8 +26,7 @@ public class UpdateEmailEndpoint : Endpoint<UpdateEmailRequest>
     public override async Task HandleAsync(UpdateEmailRequest request, CancellationToken ct)
     {
         var userId = User.GetUserId();
-        
-        var result = await _userService.UpdateEmailAsync(userId, request.NewEmail);
+        var result = await _userService.UpdateEmailRequestAsync(userId, request.NewEmail);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);

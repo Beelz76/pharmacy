@@ -15,7 +15,7 @@ public class DeleteEndpoint : EndpointWithoutRequest
     public override void Configure()
     {
         Delete("manufacturers/{id:int}");
-        AllowAnonymous();
+        Roles("Admin");
         Tags("Manufacturer");
         Summary(s => { s.Summary = "Удалить производителя"; });
     }

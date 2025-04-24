@@ -25,23 +25,23 @@ public class EmailVerificationCodeRepository : BaseRepository, IEmailVerificatio
                 x.ExpiresAt > now);
     }
 
-    public async Task<List<EmailVerificationCode>> GetAllActiveAsync(string email, VerificationPurposeEnum purpose, DateTime now)
+    public async Task<List<EmailVerificationCode>> GetAllActiveAsync(int userId, VerificationPurposeEnum purpose, DateTime now)
     {
         return await _context.EmailVerificationCodes
-            .Where(x => x.Email == email
-                        && x.Purpose == purpose
-                        && !x.IsUsed
-                        && x.ExpiresAt > now)
+            .Where(x => x.UserId == userId && 
+                        x.Purpose == purpose && 
+                        !x.IsUsed && 
+                        x.ExpiresAt > now)
             .ToListAsync();
     }
 
     
-    public async Task<EmailVerificationCode?> GetLatestUsedAsync(string email, VerificationPurposeEnum purpose, DateTime now)
+    public async Task<EmailVerificationCode?> GetLatestUsedAsync(int userId, VerificationPurposeEnum purpose, DateTime now)
     {
         return await _context.EmailVerificationCodes
             .OrderByDescending(x => x.Id)
             .FirstOrDefaultAsync(x =>
-                x.Email == email &&
+                x.UserId == userId &&
                 x.Purpose == purpose &&
                 x.IsUsed &&
                 x.ExpiresAt > now);

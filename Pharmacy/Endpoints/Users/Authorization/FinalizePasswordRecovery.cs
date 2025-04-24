@@ -24,12 +24,6 @@ public class FinalizePasswordRecovery : Endpoint<RecoveryPasswordRequest>
 
     public override async Task HandleAsync(RecoveryPasswordRequest request, CancellationToken ct)
     {
-        // if (request.NewPassword != request.ConfirmPassword)
-        // {
-        //     await SendAsync("Пароли не совпадают", 400, ct);
-        //     return;
-        // }
-        
         var result = await _emailVerificationService.RecoverPasswordAsync(request.Email, request.NewPassword);
         if (result.IsSuccess)
         {
@@ -52,6 +46,9 @@ public class SendCodeRequestValidator : Validator<RecoveryPasswordRequest>
         RuleFor(x => x.Email)
             .NotEmpty()
             .EmailAddress();
+
+        RuleFor(x => x.NewPassword)
+            .NotEmpty();
         
         RuleFor(x => x.ConfirmPassword)
             .NotEmpty()

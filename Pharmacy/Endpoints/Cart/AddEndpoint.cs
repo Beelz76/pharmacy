@@ -16,7 +16,7 @@ public class AddEndpoint : Endpoint<AddToCartRequest>
     public override void Configure()
     {
         Post("cart");
-        AllowAnonymous();
+        Roles("User");
         Tags("Cart");
         Summary(s => { s.Summary = "Добавить товар в корзину"; });
     }

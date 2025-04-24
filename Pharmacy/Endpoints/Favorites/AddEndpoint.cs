@@ -16,7 +16,7 @@ public class AddEndpoint : Endpoint<AddToFavoritesRequest>
     public override void Configure()
     {
         Post("favorites");
-        AllowAnonymous();
+        Roles("User");
         Tags("Favorites");
         Summary(s => { s.Summary = "Добавить товар в избранное"; });
     }

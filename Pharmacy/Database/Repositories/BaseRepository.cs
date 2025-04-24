@@ -1,6 +1,4 @@
-﻿using System.Net;
-using Pharmacy.Shared.Enums;
-using Pharmacy.Shared.Result;
+﻿using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Database.Repositories;
 

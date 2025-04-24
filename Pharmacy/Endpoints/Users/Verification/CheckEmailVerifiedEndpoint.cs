@@ -17,7 +17,7 @@ public class CheckEmailVerifiedEndpoint : Endpoint<CheckEmailVerifiedRequest>
     public override void Configure()
     {
         Get("verifications/check-email");
-        AllowAnonymous();
+        Roles("Admin");
         Tags("Verifications");
         Summary(s => { s.Summary = "Проверить статус подтверждения почты"; });
     }

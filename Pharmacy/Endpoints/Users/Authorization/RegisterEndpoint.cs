@@ -56,9 +56,20 @@ public class RegisterRequestValidator : Validator<RegisterRequest>
             .NotEmpty();
         
         RuleFor(x => x.FirstName)
-            .NotEmpty();
+            .NotEmpty()
+            .MaximumLength(50);
         
         RuleFor(x => x.LastName)
-            .NotEmpty();
+            .NotEmpty()
+            .MaximumLength(50);
+        
+        RuleFor(x => x.Patronymic)
+            .MaximumLength(50);
+        
+        RuleFor(x => x.Phone)
+            .MaximumLength(12)
+            .Matches(@"^\+7\d{10}$")
+            .When(x => !string.IsNullOrWhiteSpace(x.Phone))
+            .WithMessage("Введите номер в формате +7XXXXXXXXXX");
     }
 }

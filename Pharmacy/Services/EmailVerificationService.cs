@@ -15,19 +15,19 @@ public class EmailVerificationService : IEmailVerificationService
 {
     private readonly TokenProvider _tokenProvider;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IUserService _userService;
+    private readonly IUserRepository _userRepository;
     private readonly PasswordProvider _passwordProvider;
     private readonly IEmailVerificationCodeRepository _repository;
     private readonly CodeGenerator _codeGenerator;
     
     private const int CodeLength = 6;
-    private const int ExpirationMinutes = 1;
+    private const int ExpirationMinutes = 5;
 
-    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserService userService, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator)
+    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserRepository userRepository, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator)
     {
         _tokenProvider = tokenProvider;
         _dateTimeProvider = dateTimeProvider;
-        _userService = userService;
+        _userRepository = userRepository;
         _passwordProvider = passwordProvider;
         _repository = repository;
         _codeGenerator = codeGenerator;
@@ -37,7 +37,7 @@ public class EmailVerificationService : IEmailVerificationService
     {
         var now = _dateTimeProvider.UtcNow;
         
-        var activeCodes = await _repository.GetAllActiveAsync(email, purpose, now);
+        var activeCodes = await _repository.GetAllActiveAsync(userId, purpose, now);
         foreach (var code in activeCodes)
         {
             code.ExpiresAt = now;
@@ -60,13 +60,13 @@ public class EmailVerificationService : IEmailVerificationService
     
     public async Task<Result> SendCodeAsync(string email, VerificationPurposeEnum purpose)
     {
-        var userResult = await _userService.GetByEmailAsync(email);
-        if (userResult.IsFailure)
+        var user = await _userRepository.GetByEmailAsync(email);
+        if (user is null)
         {
-            return Result.Failure(userResult.Error);
+            return Result.Failure<UserDto>(Error.NotFound("Пользователь не найден"));
         }
 
-        await GenerateVerificationCodeAsync(userResult.Value.Id, userResult.Value.Email, purpose);
+        await GenerateVerificationCodeAsync(user.Id, user.Email, purpose);
         
         //TODO отправить код на почту
         
@@ -90,27 +90,34 @@ public class EmailVerificationService : IEmailVerificationService
         {
             case VerificationPurposeEnum.Registration:
             {
-                var userResult = await _userService.GetByEmailAsync(email);
-                if (userResult.IsFailure)
+                var user = await _userRepository.GetByEmailAsync(email);
+                if (user is null)
                 {
-                    return Result.Failure<ConfirmCodeDto>(userResult.Error);
+                    return Result.Failure<ConfirmCodeDto>(Error.NotFound("Пользователь не найден"));
                 }
 
-                await _userService.SetEmailVerifiedAsync(userResult.Value.Id);
+                user.EmailVerified = true;
+                await _userRepository.UpdateAsync(user);
                 
-                var token = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email);
+                var token = _tokenProvider.Create(user.Id, user.Email, user.Role);
                 
                 return Result.Success(new ConfirmCodeDto(true, token));
             }
             case VerificationPurposeEnum.PasswordReset:
                 return Result.Success(new ConfirmCodeDto(true, null));
             case VerificationPurposeEnum.EmailChange:
-                var updateResult = await _userService.UpdateEmailAsync(userId!.Value, email);
-                if (updateResult.IsFailure)
+            {
+                var user = await _userRepository.GetByIdAsync(userId!.Value);
+                if (user is null)
                 {
-                    return Result.Failure<ConfirmCodeDto>(updateResult.Error);
+                    return Result.Failure<ConfirmCodeDto>(Error.NotFound("Пользователь не найден"));
                 }
+                
+                user.Email = email;
+                await _userRepository.UpdateAsync(user);
+
                 return Result.Success(new ConfirmCodeDto(true, null));
+            }
             default:
                 return Result.Failure<ConfirmCodeDto>(Error.Failure("Неподдерживаемая цель кода"));
         }
@@ -118,30 +125,32 @@ public class EmailVerificationService : IEmailVerificationService
     
     public async Task<Result<bool>> CheckEmailVerifiedAsync(string email)
     {
-        var userResult = await _userService.GetByEmailAsync(email);
-        if (userResult.IsFailure)
+        var user = await _userRepository.GetByEmailAsync(email);
+        if (user is null)
         {
-            return Result.Failure<bool>(userResult.Error);
+            return Result.Failure<bool>(Error.NotFound("Пользователь не найден"));
         }
 
-        return Result.Success(userResult.Value.EmailVerified);
+        return Result.Success(user.EmailVerified);
     }
     
     public async Task<Result> RecoverPasswordAsync(string email, string newPassword)
     {
-        var code = await _repository.GetLatestUsedAsync(email, VerificationPurposeEnum.PasswordReset, _dateTimeProvider.UtcNow);
+        var user = await _userRepository.GetByEmailAsync(email);
+        if (user is null)
+        {
+            return Result.Failure(Error.NotFound("Пользователь не найден"));
+        }
+        
+        var code = await _repository.GetLatestUsedAsync(user.Id, VerificationPurposeEnum.PasswordReset, _dateTimeProvider.UtcNow);
         if (code is null)
         {
             return Result.Failure(Error.Failure("Подтверждение восстановления пароля не выполнено"));
         }
+        
+        user.PasswordHash = _passwordProvider.Hash(newPassword);
+        await _userRepository.UpdateAsync(user);
 
-        var userResult = await _userService.GetByEmailAsync(email);
-        if (userResult.IsFailure)
-        {
-            return Result.Failure<ConfirmCodeDto>(userResult.Error);
-        }
-
-        var passwordHash = _passwordProvider.Hash(newPassword);
-        return await _userService.SetPasswordAsync(userResult.Value.Id, passwordHash);;
+        return Result.Success();
     }
 }

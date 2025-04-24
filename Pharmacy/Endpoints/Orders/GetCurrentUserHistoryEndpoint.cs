@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using FastEndpoints;
+﻿using FastEndpoints;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 

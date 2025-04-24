@@ -1,5 +1,4 @@
-﻿using Pharmacy.Endpoints.Users;
-using Pharmacy.Endpoints.Users.Authentication;
+﻿using Pharmacy.Endpoints.Users.Authentication;
 using Pharmacy.Endpoints.Users.Authorization;
 using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
@@ -59,7 +58,7 @@ public class AuthorizationService : IAuthorizationService
             return Result.Failure<string>(Error.Failure("Неверный пароль"));
         }
         
-        var token = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email);
+        var token = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email, userResult.Value.Role);
         
         return Result.Success(token);
     }

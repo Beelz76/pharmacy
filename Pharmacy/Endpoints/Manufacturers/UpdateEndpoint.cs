@@ -16,7 +16,7 @@ public class UpdateEndpoint : Endpoint<UpdateManufacturerRequest>
     public override void Configure()
     {
         Put("manufacturers/{id:int}");
-        AllowAnonymous();
+        Roles("Admin");
         Tags("Manufacturer");
         Summary(s => { s.Summary = "Изменить производителя"; });
     }

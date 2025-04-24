@@ -73,7 +73,11 @@ namespace Pharmacy.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExpiresAt");
+
                     b.HasIndex("UserId");
+
+                    b.HasIndex("Email", "Code", "Purpose");
 
                     b.ToTable("EmailVerificationCodes", (string)null);
                 });
@@ -441,48 +445,6 @@ namespace Pharmacy.Database.Migrations
                     b.ToTable("Ref_ProductCategories", (string)null);
                 });
 
-            modelBuilder.Entity("Pharmacy.Database.Entities.Role", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Ref_Roles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Пользователь",
-                            Name = "User"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Работник",
-                            Name = "Customer"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Администратор",
-                            Name = "Admin"
-                        });
-                });
-
             modelBuilder.Entity("Pharmacy.Database.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -524,11 +486,12 @@ namespace Pharmacy.Database.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("Phone")
-                        .HasMaxLength(15)
-                        .HasColumnType("character varying(15)");
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
 
-                    b.Property<int?>("RoleId")
-                        .HasColumnType("integer");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -539,8 +502,6 @@ namespace Pharmacy.Database.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
-
-                    b.HasIndex("RoleId");
 
                     b.ToTable("Users", (string)null);
 
@@ -554,6 +515,7 @@ namespace Pharmacy.Database.Migrations
                             FirstName = "test",
                             LastName = "test",
                             PasswordHash = "123456",
+                            Role = "Admin",
                             UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
@@ -691,13 +653,6 @@ namespace Pharmacy.Database.Migrations
                     b.Navigation("ProductCategory");
                 });
 
-            modelBuilder.Entity("Pharmacy.Database.Entities.User", b =>
-                {
-                    b.HasOne("Pharmacy.Database.Entities.Role", null)
-                        .WithMany("Users")
-                        .HasForeignKey("RoleId");
-                });
-
             modelBuilder.Entity("Pharmacy.Database.Entities.Manufacturer", b =>
                 {
                     b.Navigation("Products");
@@ -737,11 +692,6 @@ namespace Pharmacy.Database.Migrations
             modelBuilder.Entity("Pharmacy.Database.Entities.ProductCategory", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("Pharmacy.Database.Entities.Role", b =>
-                {
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Pharmacy.Database.Entities.User", b =>

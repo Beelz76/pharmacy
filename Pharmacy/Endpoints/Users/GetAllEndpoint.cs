@@ -16,7 +16,7 @@ public class GetAllEndpoint : EndpointWithoutRequest
     public override void Configure()
     {
         Get("users");
-        AllowAnonymous();
+        Roles("Admin");
         Tags("Users");
         Summary(s => { s.Summary = "Получить всех пользователей"; });
     }

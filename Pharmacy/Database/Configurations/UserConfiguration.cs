@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Pharmacy.Database.Entities;
+using Pharmacy.Shared.Enums;
 
 namespace Pharmacy.Database.Configurations;
 
@@ -24,7 +25,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(50);
 
         builder.Property(x => x.Phone)
-            .HasMaxLength(15);
+            .HasMaxLength(12);
         
         builder.Property(x => x.Email)
             .IsRequired()
@@ -37,6 +38,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.EmailVerified)
             .IsRequired();
 
+        builder.Property(x => x.Role)
+            .IsRequired()
+            .HasConversion<string>();
+        
         builder.Property(x => x.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -60,7 +65,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 EmailVerified = true,
                 PasswordHash = "123456",
                 LastName = "test",
-                FirstName = "test"
+                FirstName = "test",
+                Role = UserRoleEnum.Admin,
             }
         });
     }

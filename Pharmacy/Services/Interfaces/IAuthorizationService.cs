@@ -1,5 +1,4 @@
-﻿using Pharmacy.Endpoints.Users;
-using Pharmacy.Endpoints.Users.Authorization;
+﻿using Pharmacy.Endpoints.Users.Authorization;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services.Interfaces;

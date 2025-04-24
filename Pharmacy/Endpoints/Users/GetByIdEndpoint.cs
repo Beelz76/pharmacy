@@ -16,7 +16,7 @@ public class GetByIdEndpoint : EndpointWithoutRequest
     public override void Configure()
     {
         Get("users/{id:int}");
-        AllowAnonymous();
+        Roles("Admin");
         Tags("Users");
         Summary(s => { s.Summary = "Получить пользователя по id"; });
     }

@@ -16,7 +16,7 @@ public class RemoveEndpoint : Endpoint<RemoveFromFavoritesRequest>
     public override void Configure()
     {
         Delete("favorites");
-        AllowAnonymous();
+        Roles("User");
         Tags("Favorites");
         Summary(s => { s.Summary = "Удалить товар из избранного"; });
     }

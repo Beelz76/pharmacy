@@ -92,6 +92,7 @@ try
     builder.Services.AddSingleton<CodeGenerator>();
     builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
     
+    builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
     builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
     builder.Services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
     builder.Services.AddScoped<IManufacturerService, ManufacturerService>();
@@ -103,7 +104,6 @@ try
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
-    builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
     
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();

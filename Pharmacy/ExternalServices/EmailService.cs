@@ -1,7 +1,4 @@
-﻿using System.Net.Mail;
-using Pharmacy.Services.Interfaces;
-
-namespace Pharmacy.ExternalServices;
+﻿namespace Pharmacy.ExternalServices;
 
 public class EmailService : IEmailService
 {

@@ -1,5 +1,4 @@
-﻿using System.Net;
-using FastEndpoints;
+﻿using FastEndpoints;
 using FluentValidation;
 using Pharmacy.Services.Interfaces;
 
@@ -17,7 +16,7 @@ public class CreateEndpoint : Endpoint<CreateManufacturerRequest>
     public override void Configure()
     {
         Post("manufacturers");
-        Options(x => x.RequireAuthorization());
+        Roles("Admin");
         Tags("Manufacturer");
         Summary(s => { s.Summary = "Добавить производителя"; });
     }

@@ -19,7 +19,7 @@ public class ConfirmCodeEndpoint : Endpoint<ConfirmCodeRequest>
     public override void Configure()
     {
         Post("verifications/confirm-code");
-        AllowAnonymous(Http.POST);
+        AllowAnonymous();
         Tags("Verifications");
         Summary(s => { s.Summary = "Проверить код подтверждения"; });
     }

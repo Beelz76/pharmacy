@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Pharmacy.DateTimeProvider;
+using Pharmacy.Shared.Enums;
 
 namespace Pharmacy.Endpoints.Users.Authentication;
 
@@ -16,7 +17,7 @@ public class TokenProvider
         _dateTimeProvider = dateTimeProvider;
     }
 
-    public string Create(int userId, string email)
+    public string Create(int userId, string email, UserRoleEnum role)
     {
         string secretKey = _configuration["Jwt:Secret"]!;
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
@@ -28,6 +29,7 @@ public class TokenProvider
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, email),
+                new Claim(ClaimTypes.Role, role.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             }),
             Expires = _dateTimeProvider.UtcNow.AddHours(_configuration.GetValue<int>("Jwt:ExpirationInHours")),
