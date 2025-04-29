@@ -41,8 +41,8 @@ public record RegisterRequest(
     string Password,
     string FirstName,
     string LastName,
-    string? Patronymic = null,
-    string? Phone = null);
+    string? Patronymic,
+    string? Phone);
 
 public class RegisterRequestValidator : Validator<RegisterRequest>
 {

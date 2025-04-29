@@ -18,7 +18,7 @@ public class UpdateProfileEndpoint : Endpoint<UpdateProfileRequest>
     public override void Configure()
     {
         Put("users/profile");
-        AllowAnonymous();
+        Roles("User", "Admin");
         Tags("Users");
         Summary(s => { s.Summary = "Обновить данные пользователя"; });
     }

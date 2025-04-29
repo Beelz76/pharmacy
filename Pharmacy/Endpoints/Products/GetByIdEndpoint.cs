@@ -23,6 +23,16 @@ public class GetByIdEndpoint : EndpointWithoutRequest
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        await SendOkAsync (ct);
+        var productId = Route<int>("id");
+        
+        var result = await _productService.GetByIdAsync(productId);
+        if (result.IsSuccess)
+        {
+            await SendOkAsync (result.Value, ct);
+        }
+        else
+        {
+            await SendAsync(result.Error, (int)result.Error.Code, ct);
+        }
     }
 }

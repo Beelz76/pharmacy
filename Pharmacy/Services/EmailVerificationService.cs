@@ -66,6 +66,11 @@ public class EmailVerificationService : IEmailVerificationService
             return Result.Failure<UserDto>(Error.NotFound("Пользователь не найден"));
         }
 
+        if (purpose == VerificationPurposeEnum.Registration && user.EmailVerified)
+        {
+            return Result.Failure<UserDto>(Error.Conflict("Пользователь уже подтвержден"));
+        }
+        
         await GenerateVerificationCodeAsync(user.Id, user.Email, purpose);
         
         //TODO отправить код на почту
@@ -77,14 +82,14 @@ public class EmailVerificationService : IEmailVerificationService
     {
         var now = _dateTimeProvider.UtcNow;
         
-        var record = await _repository.GetAsync(email, code, purpose, now);
-        if (record is null)
+        var verificationCode = await _repository.GetAsync(email, code, purpose, now);
+        if (verificationCode is null)
         {
             return Result.Failure<ConfirmCodeDto>(Error.Failure("Неверный или просроченный код"));
         }
 
-        record.IsUsed = true;
-        await _repository.UpdateAsync(record);
+        verificationCode.IsUsed = true;
+        await _repository.UpdateAsync(verificationCode);
         
         switch (purpose)
         {
@@ -142,14 +147,19 @@ public class EmailVerificationService : IEmailVerificationService
             return Result.Failure(Error.NotFound("Пользователь не найден"));
         }
         
-        var code = await _repository.GetLatestUsedAsync(user.Id, VerificationPurposeEnum.PasswordReset, _dateTimeProvider.UtcNow);
+        var now = _dateTimeProvider.UtcNow;
+        
+        var code = await _repository.GetLatestUsedAsync(user.Id, VerificationPurposeEnum.PasswordReset, now);
         if (code is null)
         {
-            return Result.Failure(Error.Failure("Подтверждение восстановления пароля не выполнено"));
+            return Result.Failure(Error.Failure("Подтверждение восстановления пароля не выполнено или код просрочен"));
         }
         
         user.PasswordHash = _passwordProvider.Hash(newPassword);
         await _userRepository.UpdateAsync(user);
+        
+        code.ExpiresAt = now;
+        await _repository.UpdateAsync(code);
 
         return Result.Success();
     }

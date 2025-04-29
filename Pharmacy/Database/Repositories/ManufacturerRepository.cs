@@ -25,11 +25,16 @@ public class ManufacturerRepository : BaseRepository, IManufacturerRepository
         return await _context.Manufacturers.FirstOrDefaultAsync(m => m.Id == id);
     }
 
-    public async Task<Manufacturer?> GetByNameAsync(string name, int? excludeId = null)
+    public async Task<bool> ExistsByNameAsync(string name, int? excludeId = null)
     {
-        return await _context.Manufacturers.FirstOrDefaultAsync(m => m.Name == name && (!excludeId.HasValue || m.Id != excludeId.Value));
+        return await _context.Manufacturers.AnyAsync(m => m.Name == name && (!excludeId.HasValue || m.Id != excludeId.Value));
     }
-    
+
+    public async Task<bool> ExistsAsync(int manufacturerId)
+    {
+        return await _context.Manufacturers.AnyAsync(m => m.Id == manufacturerId);
+    }
+
     public async Task AddAsync(Manufacturer manufacturer)
     {
         await _context.Manufacturers.AddAsync(manufacturer);

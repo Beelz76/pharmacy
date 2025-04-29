@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace Pharmacy.Shared.Enums;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum VerificationPurposeEnum
 {
     [Description("Регистрация")] Registration = 1,

@@ -20,7 +20,7 @@ public class PaymentStatusConfiguration: IEntityTypeConfiguration<PaymentStatus>
             
         builder.Property(x => x.Description)
             .IsRequired()
-            .HasColumnType("text");
+            .HasMaxLength(500);
         
         builder.HasMany(x => x.Payments)
             .WithOne(x => x.Status)

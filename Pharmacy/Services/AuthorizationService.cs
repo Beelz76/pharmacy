@@ -34,10 +34,17 @@ public class AuthorizationService : IAuthorizationService
         }
         
         var passwordHash = _passwordProvider.Hash(request.Password);
-        var userId = await _userService.CreateAsync(new CreateUserDto(request.Email, passwordHash, false,
-            request.FirstName, request.LastName, request.Patronymic, request.Phone));
+        var userResult = await _userService.CreateAsync(new CreateUserDto(
+            request.Email, 
+            passwordHash, 
+            false,
+            request.FirstName, 
+            request.LastName, 
+            request.Patronymic, 
+            request.Phone, 
+            UserRoleEnum.User));
         
-        await _emailVerificationService.GenerateVerificationCodeAsync(userId.Value, request.Email, VerificationPurposeEnum.Registration);
+        await _emailVerificationService.GenerateVerificationCodeAsync(userResult.Value.Id, request.Email, VerificationPurposeEnum.Registration);
         
         //TODO отправить письмо с кодом подтверждения
         
@@ -50,6 +57,12 @@ public class AuthorizationService : IAuthorizationService
         if (userResult.IsFailure)
         {
             return Result.Failure<string>(userResult.Error);
+        }
+
+        if (!userResult.Value.EmailVerified)
+        {
+            await _emailVerificationService.GenerateVerificationCodeAsync(userResult.Value.Id, request.Email, VerificationPurposeEnum.Registration);
+            return Result.Success<string>("На почту отправлен код подтверждения");
         }
         
         var verifiedPassword = _passwordProvider.Verify(request.Password, userResult.Value.PasswordHash);

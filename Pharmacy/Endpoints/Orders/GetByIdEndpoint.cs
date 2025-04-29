@@ -15,7 +15,7 @@ public class GetByIdEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("orders/{id:int}");
+        Get("orders/{orderId:int}");
         AllowAnonymous();
         Tags("Orders");
         Summary(s => { s.Summary = "Получить заказ по id"; });

@@ -1,9 +1,10 @@
 ﻿using FastEndpoints;
 using Pharmacy.Services.Interfaces;
+using Pharmacy.Shared.Dto;
 
 namespace Pharmacy.Endpoints.Products;
 
-public class GetAllEndpoint : EndpointWithoutRequest
+public class GetAllEndpoint : Endpoint<ProductFilters>
 {
     private readonly ILogger<GetAllEndpoint> _logger;
     private readonly IProductService _productService;
@@ -15,14 +16,39 @@ public class GetAllEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("products");
+        Post("products/paginated");
         AllowAnonymous();
         Tags("Products");
-        Summary(s => { s.Summary = "Получить все товары"; }); 
+        Summary(s => { s.Summary = "Получить товары"; }); 
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(ProductFilters filters, CancellationToken ct)
     {
-        await SendOkAsync (ct);
+        int pageNumber = Query<int>("pageNumber", isRequired: false) == 0 ? 1 : Query<int>("pageNumber", isRequired: false);
+        int pageSize = Query<int>("pageSize", isRequired: false) == 0 ? 20 : Query<int>("pageSize", isRequired: false);
+        string? sortBy = Query<string>("sortBy", isRequired: false);
+        string? sortOrder = Query<string>("sortOrder", isRequired: false);
+        
+        var parameters = new ProductParameters
+        {
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            SortBy = sortBy,
+            SortOrder = sortOrder,
+            CategoryIds = filters.CategoryIds,
+            ManufacturerIds = filters.ManufacturerIds,
+            Search = filters.Search,
+            PropertyFilters = filters.PropertyFilters
+        };
+        
+        var result = await _productService.GetPaginatedProductsAsync(parameters);
+        if (result.IsSuccess)
+        {
+            await SendOkAsync(result.Value, ct);
+        }
+        else
+        {
+            await SendAsync(result.Error, (int)result.Error.Code, ct);
+        }
     }
 }

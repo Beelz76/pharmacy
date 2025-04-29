@@ -15,7 +15,7 @@ public class GetEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("favorites/{userId:int}");
+        Get("favorites");
         Roles("User");
         Tags("Favorites");
         Summary(s => { s.Summary = "Получить избранное пользователя"; });

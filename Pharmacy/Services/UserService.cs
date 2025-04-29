@@ -1,4 +1,5 @@
-﻿using Pharmacy.Database.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Users;
@@ -24,7 +25,7 @@ public class UserService : IUserService
         _emailVerificationService = emailVerificationService;
     }
 
-    public async Task<Result<int>> CreateAsync(CreateUserDto dto)
+    public async Task<Result<CreatedDto>> CreateAsync(CreateUserDto dto)
     {
         var user = new User
         {
@@ -35,13 +36,13 @@ public class UserService : IUserService
             Patronymic = dto.Patronymic,
             Phone = dto.Phone,
             EmailVerified = dto.EmailVerified,
-            Role = UserRoleEnum.User,
+            Role = dto.Role,
             CreatedAt = _dateTimeProvider.UtcNow,
             UpdatedAt = _dateTimeProvider.UtcNow
         };
         
         await _repository.AddAsync(user);
-        return Result.Success(user.Id);
+        return Result.Success(new CreatedDto(user.Id));
     }
 
     public async Task<Result> UpdateProfileAsync(int id, UpdateProfileRequest request)
@@ -114,5 +115,55 @@ public class UserService : IUserService
         user.UpdatedAt = _dateTimeProvider.UtcNow;
         await _repository.UpdateAsync(user);
         return Result.Success();
+    }
+
+    public async Task<Result<PaginatedList<UserDto>>> GetPaginatedUsersAsync(UserFilters filters, int pageNumber, int pageSize)
+    {
+        var query = _repository.Query();
+
+        if (!string.IsNullOrWhiteSpace(filters.FirstName))
+        {
+            query = query.Where(u => u.FirstName.Contains(filters.FirstName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.LastName))
+        {
+            query = query.Where(u => u.LastName.Contains(filters.LastName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.Patronymic))
+        {
+            query = query.Where(u => u.Patronymic.Contains(filters.Patronymic));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.Email))
+        {
+            query = query.Where(u => u.Email.Contains(filters.Email));
+        }
+
+        if (filters.Role.HasValue)
+        {
+            query = query.Where(u => u.Role == filters.Role.Value);
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var users = await query
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(u => new UserDto(
+                u.Id, 
+                u.Role, 
+                u.Email, 
+                null, 
+                u.EmailVerified, 
+                u.FirstName, 
+                u.LastName,
+                u.Patronymic, 
+                u.Phone))
+            .ToListAsync();
+
+        return Result.Success(new PaginatedList<UserDto>(users, totalCount, pageNumber, pageSize));
     }
 }

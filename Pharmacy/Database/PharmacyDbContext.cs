@@ -13,7 +13,11 @@ public class PharmacyDbContext : DbContext
     public DbSet<Manufacturer> Manufacturers { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<OrderStatus> OrderStatuses { get; set; }
     public DbSet<ProductCategory> ProductCategories { get; set; }
+    public DbSet<ProductCategoryField> ProductCategoryFields { get; set; }
+    public DbSet<ProductProperty> ProductProperties { get; set; }
+    public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
     public DbSet<FavoriteItem> FavoriteItems { get; set; }
     public DbSet<Payment> Payments { get; set; }

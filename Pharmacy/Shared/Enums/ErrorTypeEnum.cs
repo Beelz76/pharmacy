@@ -1,5 +1,8 @@
-﻿namespace Pharmacy.Shared.Enums;
+﻿using System.Text.Json.Serialization;
 
+namespace Pharmacy.Shared.Enums;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ErrorTypeEnum
 {
     None = 0,

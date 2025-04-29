@@ -6,7 +6,7 @@ public record UserDto(
     int Id,
     UserRoleEnum Role,
     string Email,
-    string PasswordHash,
+    string? PasswordHash,
     bool EmailVerified,
     string FirstName,
     string LastName,

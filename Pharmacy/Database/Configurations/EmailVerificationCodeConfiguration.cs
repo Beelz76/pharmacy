@@ -12,9 +12,6 @@ public class EmailVerificationCodeConfiguration : IEntityTypeConfiguration<Email
         
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.UserId)
-            .IsRequired();
-
         builder.Property(x => x.Email)
             .IsRequired()
             .HasMaxLength(255);

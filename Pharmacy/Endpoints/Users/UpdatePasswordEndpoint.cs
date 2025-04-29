@@ -18,7 +18,7 @@ public class UpdatePasswordEndpoint : Endpoint<UpdatePasswordRequest>
     public override void Configure()
     {
         Put("users/change-password");
-        //AllowAnonymous();
+        Roles("User", "Admin");
         Tags("Users");
         Summary(s => { s.Summary = "Изменить пароль пользователя"; });
     }

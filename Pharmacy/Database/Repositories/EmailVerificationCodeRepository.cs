@@ -34,7 +34,6 @@ public class EmailVerificationCodeRepository : BaseRepository, IEmailVerificatio
                         x.ExpiresAt > now)
             .ToListAsync();
     }
-
     
     public async Task<EmailVerificationCode?> GetLatestUsedAsync(int userId, VerificationPurposeEnum purpose, DateTime now)
     {

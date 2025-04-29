@@ -1,9 +1,10 @@
 ﻿using FastEndpoints;
 using Pharmacy.Services.Interfaces;
+using Pharmacy.Shared.Dto;
 
 namespace Pharmacy.Endpoints.Users;
 
-public class GetAllEndpoint : EndpointWithoutRequest
+public class GetAllEndpoint : Endpoint<UserFilters>
 {
     private readonly ILogger<GetAllEndpoint> _logger;
     private readonly IUserService _userService;
@@ -15,14 +16,26 @@ public class GetAllEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("users");
-        Roles("Admin");
+        Get("users/paginated");
+        //Roles("Admin");
+        AllowAnonymous();
         Tags("Users");
-        Summary(s => { s.Summary = "Получить всех пользователей"; });
+        Summary(s => { s.Summary = "Получить пользователей"; });
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(UserFilters filters, CancellationToken ct)
     {
-        await SendOkAsync(ct);
+        int pageNumber = Query<int>("pageNumber", isRequired: false) == 0 ? 1 : Query<int>("pageNumber", isRequired: false);
+        int pageSize = Query<int>("pageSize", isRequired: false) == 0 ? 20 : Query<int>("pageSize", isRequired: false);
+        
+        var result = await _userService.GetPaginatedUsersAsync(filters, pageNumber, pageSize);
+        if (result.IsSuccess)
+        {
+            await SendOkAsync(result.Value, ct);
+        }
+        else
+        {
+            await SendAsync(result.Error, (int)result.Error.Code, ct);
+        }
     }
 }

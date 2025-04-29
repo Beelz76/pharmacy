@@ -16,7 +16,7 @@ public class CreateEndpoint : Endpoint<CreateManufacturerRequest>
     public override void Configure()
     {
         Post("manufacturers");
-        Roles("Admin");
+        //Roles("Admin");
         Tags("Manufacturer");
         Summary(s => { s.Summary = "Добавить производителя"; });
     }
@@ -27,7 +27,7 @@ public class CreateEndpoint : Endpoint<CreateManufacturerRequest>
 
         if (result.IsSuccess)
         {
-            await SendOkAsync(ct);
+            await SendOkAsync(result.Value, ct);
         }
         else
         {

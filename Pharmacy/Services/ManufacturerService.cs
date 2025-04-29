@@ -39,13 +39,17 @@ public class ManufacturerService : IManufacturerService
 
         return Result.Success(new ManufacturerDto(manufacturer.Id, manufacturer.Name, manufacturer.Country));
     }
-
-    public async Task<Result> CreateAsync(CreateManufacturerRequest request)
+    
+    public async Task<bool> ExistsAsync(int manufacturerId)
     {
-        var existingManufacturer = await _repository.GetByNameAsync(request.Name);
-        if (existingManufacturer is not null)
+        return await _repository.ExistsAsync(manufacturerId);
+    }
+
+    public async Task<Result<CreatedDto>> CreateAsync(CreateManufacturerRequest request)
+    {
+        if (await _repository.ExistsByNameAsync(request.Name))
         {
-            return Result.Failure(Error.Conflict("Производитель с таким названием уже существует"));
+            return Result.Failure<CreatedDto>(Error.Conflict("Производитель с таким названием уже существует"));
         }
 
         var manufacturer = new Manufacturer
@@ -55,7 +59,7 @@ public class ManufacturerService : IManufacturerService
         };
 
         await _repository.AddAsync(manufacturer);
-        return Result.Success();
+        return Result.Success(new CreatedDto(manufacturer.Id));
     }
 
     public async Task<Result> UpdateAsync(int id, UpdateManufacturerRequest request)
@@ -70,8 +74,7 @@ public class ManufacturerService : IManufacturerService
 
             if (manufacturer.Name != request.Name)
             {
-                var existingManufacturer = await _repository.GetByNameAsync(request.Name, excludeId: id);
-                if (existingManufacturer is not null)
+                if (await _repository.ExistsByNameAsync(request.Name, excludeId: id))
                 {
                     return Result.Failure(Error.Conflict("Производитель с таким названием уже существует"));
                 }

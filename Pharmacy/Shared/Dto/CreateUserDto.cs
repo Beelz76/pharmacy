@@ -1,4 +1,6 @@
-﻿namespace Pharmacy.Shared.Dto;
+﻿using Pharmacy.Shared.Enums;
+
+namespace Pharmacy.Shared.Dto;
 
 public record CreateUserDto(
     string Email,
@@ -7,4 +9,5 @@ public record CreateUserDto(
     string FirstName,
     string LastName,
     string? Patronymic,
-    string? Phone);
+    string? Phone,
+    UserRoleEnum Role);

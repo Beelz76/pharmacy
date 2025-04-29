@@ -17,10 +17,17 @@ public class ProductCategoryConfiguration : IEntityTypeConfiguration<ProductCate
             .HasMaxLength(100);
             
         builder.Property(x => x.Description)
-            .HasColumnType("text");
+            .IsRequired()
+            .HasMaxLength(500);
         
         builder.HasMany(x => x.Products)
             .WithOne(x => x.ProductCategory)
-            .HasForeignKey(x => x.CategoryId);
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasMany(x => x.Fields)
+            .WithOne(x => x.ProductCategory)
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

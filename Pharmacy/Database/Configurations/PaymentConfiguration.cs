@@ -15,9 +15,6 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(x => x.Amount)
             .IsRequired()
             .HasPrecision(18, 2);
-            
-        builder.Property(x => x.StatusId)
-            .IsRequired();
         
         builder.Property(x => x.PaymentMethodId)
             .IsRequired();

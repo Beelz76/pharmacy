@@ -18,7 +18,7 @@ public class UpdateEmailEndpoint : Endpoint<UpdateEmailRequest>
     public override void Configure()
     {
         Post("users/change-email");
-        //AllowAnonymous();
+        Roles("User", "Admin");
         Tags("Users");
         Summary(s => { s.Summary = "Отправить код подтверждения на новый email"; });
     }

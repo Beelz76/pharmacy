@@ -15,7 +15,7 @@ public class RemoveEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Delete("cart");
+        Delete("cart/{productId:int}");
         Roles("User");
         Tags("Cart");
         Summary(s => { s.Summary = "Удалить товар из корзины"; });

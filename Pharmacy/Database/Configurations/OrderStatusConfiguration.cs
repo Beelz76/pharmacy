@@ -20,7 +20,7 @@ public class OrderStatusConfiguration : IEntityTypeConfiguration<OrderStatus>
             
         builder.Property(x => x.Description)
             .IsRequired()
-            .HasColumnType("text");
+            .HasMaxLength(500);
         
         builder.HasMany(x => x.Orders)
             .WithOne(x => x.Status)

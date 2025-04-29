@@ -19,7 +19,7 @@ public class GetProfileEndpoint : EndpointWithoutRequest
     {
         Get("users/profile");
         Roles("User", "Admin");
-        Tags("Users");
+        Tags("Users", "Admin");
         Summary(s => { s.Summary = "Получить данные профиля текущего пользователя"; });
     }
 

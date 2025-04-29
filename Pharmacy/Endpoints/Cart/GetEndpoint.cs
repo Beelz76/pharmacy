@@ -15,7 +15,7 @@ public class GetEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("cart/{userId:int}");
+        Get("cart");
         Roles("User");
         Tags("Cart");
         Summary(s => { s.Summary = "Получить корзину пользователя"; });

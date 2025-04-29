@@ -7,7 +7,8 @@ public interface IManufacturerRepository
 {
     Task<IEnumerable<Manufacturer>> GetAllAsync();
     Task<Manufacturer?> GetByIdAsync(int id);
-    Task<Manufacturer?> GetByNameAsync(string name, int? excludeId = null);
+    Task<bool> ExistsByNameAsync(string name, int? excludeId = null);
+    Task<bool> ExistsAsync(int manufacturerId);
     Task AddAsync(Manufacturer manufacturer);
     Task UpdateAsync(Manufacturer manufacturer);
     Task DeleteAsync(Manufacturer manufacturer);

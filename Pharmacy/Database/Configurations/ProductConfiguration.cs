@@ -18,7 +18,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(x => x.Description)
             .IsRequired()
-            .HasColumnType("text");
+            .HasMaxLength(1000);
 
         builder.Property(x => x.Price)
             .IsRequired()
@@ -31,6 +31,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired();
 
         builder.Property(x => x.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.HasOne(x => x.ProductCategory)
@@ -40,5 +45,17 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasOne(x => x.Manufacturer)
             .WithMany(x => x.Products)
             .HasForeignKey(x => x.ManufacturerId);
+        
+        builder.HasMany(x => x.Properties)
+            .WithOne(x => x.Product)
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.HasMany(x => x.Images)
+            .WithOne(x => x.Product)
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.HasIndex(x => x.Name);
     }
 }
