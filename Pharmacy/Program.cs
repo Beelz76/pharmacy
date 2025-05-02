@@ -92,6 +92,7 @@ try
     builder.Services.AddSingleton<CodeGenerator>();
     builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
     
+    builder.Services.AddScoped<IEmailSender, EmailSender>();
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IProductRepository, ProductRepository>();
     builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();

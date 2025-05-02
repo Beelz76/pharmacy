@@ -18,12 +18,13 @@ public class EmailVerificationService : IEmailVerificationService
     private readonly IUserRepository _userRepository;
     private readonly PasswordProvider _passwordProvider;
     private readonly IEmailVerificationCodeRepository _repository;
+    private readonly IEmailSender _emailSender;
     private readonly CodeGenerator _codeGenerator;
     
     private const int CodeLength = 6;
     private const int ExpirationMinutes = 5;
 
-    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserRepository userRepository, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator)
+    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserRepository userRepository, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator, IEmailSender emailSender)
     {
         _tokenProvider = tokenProvider;
         _dateTimeProvider = dateTimeProvider;
@@ -31,9 +32,10 @@ public class EmailVerificationService : IEmailVerificationService
         _passwordProvider = passwordProvider;
         _repository = repository;
         _codeGenerator = codeGenerator;
+        _emailSender = emailSender;
     }
 
-    public async Task<Result> GenerateVerificationCodeAsync(int userId, string email, VerificationPurposeEnum purpose)
+    public async Task<EmailVerificationCode> GenerateVerificationCodeAsync(int userId, string email, VerificationPurposeEnum purpose)
     {
         var now = _dateTimeProvider.UtcNow;
         
@@ -55,7 +57,7 @@ public class EmailVerificationService : IEmailVerificationService
 
         await _repository.AddAsync(newCode);
         Console.WriteLine($"[DEBUG] Код подтверждения \"{newCode.Purpose.GetDescription()}\" для {email}: {newCode.Code}");
-        return Result.Success();
+        return newCode;
     }
     
     public async Task<Result> SendCodeAsync(string email, VerificationPurposeEnum purpose)
@@ -63,17 +65,42 @@ public class EmailVerificationService : IEmailVerificationService
         var user = await _userRepository.GetByEmailAsync(email);
         if (user is null)
         {
-            return Result.Failure<UserDto>(Error.NotFound("Пользователь не найден"));
+            return Result.Failure(Error.NotFound("Пользователь не найден"));
         }
 
         if (purpose == VerificationPurposeEnum.Registration && user.EmailVerified)
         {
-            return Result.Failure<UserDto>(Error.Conflict("Пользователь уже подтвержден"));
+            return Result.Failure(Error.Conflict("Пользователь уже подтвержден"));
         }
         
-        await GenerateVerificationCodeAsync(user.Id, user.Email, purpose);
-        
-        //TODO отправить код на почту
+        var code = await GenerateVerificationCodeAsync(user.Id, user.Email, purpose);
+
+        var subject = $"Код подтверждения";
+        var body = $@"
+            <div style="" font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; "">
+                <h2 style="" color: #2c3e50; "">Здравствуйте!</h2>
+                <p style="" font-size: 16px; color: #333; "">
+                    Вы запросили код подтверждения для действия: <strong>{purpose.GetDescription()}</strong>.
+                </p>
+                <p style="" font-size: 18px; color: #000; margin-top: 20px; "">
+                    <strong>Ваш код:</strong>
+                </p>
+                <div style="" font-size: 28px; font-weight: bold; background-color: #f2f2f2; padding: 15px; text-align: center; border-radius: 6px; margin-bottom: 20px; "">
+                    {code.Code}
+                </div>
+                <p style="" font-size: 14px; color: #666; "">
+                    Код действителен до: <strong>{code.ExpiresAt:dd.MM.yyyy HH:mm}</strong>.
+                </p>
+                <p style="" font-size: 14px; color: #999; "">
+                    Если вы не запрашивали этот код, просто проигнорируйте это письмо.
+                </p>
+            </div>";
+
+        var sendResult = await _emailSender.SendEmailAsync(user.Email, subject, body);
+        if (sendResult.IsFailure)
+        {
+            return sendResult;
+        }
         
         return Result.Success();
     }

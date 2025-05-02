@@ -52,7 +52,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         
         builder.HasMany(x => x.Orders)
             .WithOne(x => x.User)
-            .HasForeignKey(x => x.UserId);
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => x.Email).IsUnique();
         

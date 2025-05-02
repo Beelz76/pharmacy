@@ -34,7 +34,7 @@ public class AuthorizationService : IAuthorizationService
         }
         
         var passwordHash = _passwordProvider.Hash(request.Password);
-        var userResult = await _userService.CreateAsync(new CreateUserDto(
+        await _userService.CreateAsync(new CreateUserDto(
             request.Email, 
             passwordHash, 
             false,
@@ -44,9 +44,11 @@ public class AuthorizationService : IAuthorizationService
             request.Phone, 
             UserRoleEnum.User));
         
-        await _emailVerificationService.GenerateVerificationCodeAsync(userResult.Value.Id, request.Email, VerificationPurposeEnum.Registration);
-        
-        //TODO отправить письмо с кодом подтверждения
+        var sendResult = await _emailVerificationService.SendCodeAsync(request.Email, VerificationPurposeEnum.Registration);
+        if (sendResult.IsFailure)
+        {
+            return Result.Failure<string>(sendResult.Error);
+        }
         
         return Result.Success<string>("На почту отправлен код подтверждения");
     }
@@ -59,16 +61,20 @@ public class AuthorizationService : IAuthorizationService
             return Result.Failure<string>(userResult.Error);
         }
 
-        if (!userResult.Value.EmailVerified)
-        {
-            await _emailVerificationService.GenerateVerificationCodeAsync(userResult.Value.Id, request.Email, VerificationPurposeEnum.Registration);
-            return Result.Success<string>("На почту отправлен код подтверждения");
-        }
-        
         var verifiedPassword = _passwordProvider.Verify(request.Password, userResult.Value.PasswordHash);
         if (!verifiedPassword)
         {
             return Result.Failure<string>(Error.Failure("Неверный пароль"));
+        }
+        
+        if (!userResult.Value.EmailVerified)
+        {
+            var sendResult = await _emailVerificationService.SendCodeAsync(request.Email, VerificationPurposeEnum.Registration);
+            if (sendResult.IsFailure)
+            {
+                return Result.Failure<string>(sendResult.Error);
+            }
+            return Result.Success<string>("На почту отправлен код подтверждения");
         }
         
         var token = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email, userResult.Value.Role);

@@ -23,7 +23,9 @@ public class ProductPropertyConfiguration : IEntityTypeConfiguration<ProductProp
         builder.HasOne(x => x.Product)
             .WithMany(x => x.Properties)
             .HasForeignKey(x => x.ProductId);
-
+        
         builder.HasIndex(x => new { x.Key, x.Value });
+        builder.HasIndex(x => x.ProductId);
+        
     }
 }

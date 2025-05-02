@@ -12,7 +12,7 @@ using Pharmacy.Database;
 namespace Pharmacy.Database.Migrations
 {
     [DbContext(typeof(PharmacyDbContext))]
-    [Migration("20250429184254_M1")]
+    [Migration("20250501190624_M1")]
     partial class M1
     {
         /// <inheritdoc />
@@ -409,8 +409,14 @@ namespace Pharmacy.Database.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
-                    b.Property<DateTime>("ExpirationDate")
+                    b.Property<DateTime?>("ExpirationDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPrescriptionRequired")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("ManufacturerId")
                         .HasColumnType("integer");
@@ -437,6 +443,8 @@ namespace Pharmacy.Database.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("ManufacturerId");
+
+                    b.HasIndex("Name");
 
                     b.ToTable("Products", (string)null);
                 });
@@ -695,7 +703,7 @@ namespace Pharmacy.Database.Migrations
                     b.HasOne("Pharmacy.Database.Entities.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Status");
@@ -760,7 +768,7 @@ namespace Pharmacy.Database.Migrations
                     b.HasOne("Pharmacy.Database.Entities.Manufacturer", "Manufacturer")
                         .WithMany("Products")
                         .HasForeignKey("ManufacturerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Manufacturer");

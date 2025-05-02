@@ -142,7 +142,9 @@ namespace Pharmacy.Database.Migrations
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
                     ManufacturerId = table.Column<int>(type: "integer", nullable: false),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    ExpirationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsAvailable = table.Column<bool>(type: "boolean", nullable: false),
+                    IsPrescriptionRequired = table.Column<bool>(type: "boolean", nullable: false),
+                    ExpirationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -154,7 +156,7 @@ namespace Pharmacy.Database.Migrations
                         column: x => x.ManufacturerId,
                         principalTable: "Manufacturers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Products_Ref_ProductCategories_CategoryId",
                         column: x => x.CategoryId,
@@ -213,7 +215,7 @@ namespace Pharmacy.Database.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -500,6 +502,11 @@ namespace Pharmacy.Database.Migrations
                 name: "IX_Products_ManufacturerId",
                 table: "Products",
                 column: "ManufacturerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_Name",
+                table: "Products",
+                column: "Name");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",

@@ -27,9 +27,14 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(x => x.StockQuantity)
             .IsRequired();
 
-        builder.Property(x => x.ExpirationDate)
+        builder.Property(x => x.ExpirationDate);
+        
+        builder.Property(x => x.IsAvailable)
             .IsRequired();
-
+        
+        builder.Property(x => x.IsPrescriptionRequired)
+            .IsRequired();
+        
         builder.Property(x => x.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -40,11 +45,13 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.HasOne(x => x.ProductCategory)
             .WithMany(x => x.Products)
-            .HasForeignKey(x => x.CategoryId);
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.Manufacturer)
             .WithMany(x => x.Products)
-            .HasForeignKey(x => x.ManufacturerId);
+            .HasForeignKey(x => x.ManufacturerId)
+            .OnDelete(DeleteBehavior.Restrict);
         
         builder.HasMany(x => x.Properties)
             .WithOne(x => x.Product)

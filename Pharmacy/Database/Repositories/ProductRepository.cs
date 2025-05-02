@@ -24,7 +24,7 @@ public class ProductRepository : BaseRepository, IProductRepository
             .Include(x => x.Properties)
             .Include(p => p.ProductCategory)
             .Include(p => p.Manufacturer)
-            //.Include(p => p.Images)
+            .Include(p => p.Images)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
     
@@ -88,6 +88,11 @@ public class ProductRepository : BaseRepository, IProductRepository
             .Distinct()
             .Take(10)
             .ToListAsync();
+    }
+
+    public async Task<bool> ExistsByCategoryAsync(int categoryId)
+    {
+        return await _context.Products.AnyAsync(x => x.CategoryId == categoryId);
     }
     
     public IQueryable<Product> QueryWithProperties()

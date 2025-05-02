@@ -47,40 +47,7 @@ public class ProductService : IProductService
             return Result.Failure<CreatedDto>(categoryFieldsResult.Error);
         }
         
-        var errors = new List<string>();
-        
-        var propertyKeys = new HashSet<string>();
-        foreach (var property in request.Properties)
-        {
-            if (!propertyKeys.Add(property.Key))
-            {
-                errors.Add($"Дублирование ключа свойства: \"{property.Key}\"");
-            }
-        }
-        
-        var categoryFields = categoryFieldsResult.Value.ToList();
-        foreach (var field in categoryFields.Where(x => x.IsRequired))
-        {
-            if (!request.Properties.Any(x => x.Key == field.Key && !string.IsNullOrWhiteSpace(x.Value)))
-            {
-                errors.Add($"Обязательное поле \"{field.Label}\" не заполнено");
-            }
-        }
-        
-        var allowedFields = categoryFields.ToDictionary(x => x.Key, x => x.Type);
-        foreach (var property in request.Properties)
-        {
-            if (!allowedFields.TryGetValue(property.Key, out var expectedType))
-            {
-                errors.Add($"Недопустимое поле \"{property.Key}\"");
-                continue;
-            }
-
-            if (!IsValidType(property.Value, expectedType))
-            {
-                errors.Add($"Неверный тип данных для поля \"{property.Key}\". Ожидался тип \"{expectedType}\".");
-            }
-        }
+        var errors = ValidateProductProperties(request.Properties, categoryFieldsResult.Value.ToList());
         
         if (errors.Any())
         {
@@ -96,6 +63,8 @@ public class ProductService : IProductService
             ManufacturerId = request.ManufacturerId,
             Description = request.Description,
             ExpirationDate = request.ExpirationDate,
+            IsAvailable = request.IsAvailable,
+            IsPrescriptionRequired = request.IsPrescriptionRequired,
             CreatedAt = _dateTimeProvider.UtcNow,
             UpdatedAt = _dateTimeProvider.UtcNow,
             Properties = request.Properties.Select(p => new ProductProperty
@@ -117,7 +86,7 @@ public class ProductService : IProductService
             return Result.Failure(Error.NotFound("Товар не найден"));
         }
         
-        if (await _repository.ExistsByNameAsync(request.Name))
+        if (request.Name != product.Name && await _repository.ExistsByNameAsync(request.Name))
         {
             return Result.Failure(Error.Conflict("Товар с таким названием уже существует"));
         }
@@ -138,40 +107,7 @@ public class ProductService : IProductService
             return Result.Failure<CreatedDto>(categoryFieldsResult.Error);
         }
         
-        var errors = new List<string>();
-        
-        var propertyKeys = new HashSet<string>();
-        foreach (var property in request.Properties)
-        {
-            if (!propertyKeys.Add(property.Key))
-            {
-                errors.Add($"Дублирование ключа свойства: \"{property.Key}\"");
-            }
-        }
-        
-        var categoryFields = categoryFieldsResult.Value.ToList();
-        foreach (var field in categoryFields.Where(x => x.IsRequired))
-        {
-            if (!request.Properties.Any(x => x.Key == field.Key && !string.IsNullOrWhiteSpace(x.Value)))
-            {
-                errors.Add($"Обязательное поле \"{field.Label}\" не заполнено");
-            }
-        }
-        
-        var allowedFields = categoryFields.ToDictionary(x => x.Key, x => x.Type);
-        foreach (var property in request.Properties)
-        {
-            if (!allowedFields.TryGetValue(property.Key, out var expectedType))
-            {
-                errors.Add($"Недопустимое поле \"{property.Key}\"");
-                continue;
-            }
-
-            if (!IsValidType(property.Value, expectedType))
-            {
-                errors.Add($"Неверный тип данных для поля \"{property.Key}\". Ожидался тип \"{expectedType}\".");
-            }
-        }
+        var errors = ValidateProductProperties(request.Properties, categoryFieldsResult.Value.ToList());
         
         if (errors.Any())
         {
@@ -185,6 +121,8 @@ public class ProductService : IProductService
         product.ManufacturerId = request.ManufacturerId;
         product.Description = request.Description;
         product.ExpirationDate = request.ExpirationDate;
+        product.IsAvailable = request.IsAvailable;
+        product.IsPrescriptionRequired = request.IsPrescriptionRequired;
         product.UpdatedAt = _dateTimeProvider.UtcNow;
         product.Properties = request.Properties.Select(p => new ProductProperty
         {
@@ -216,6 +154,8 @@ public class ProductService : IProductService
             product.Manufacturer.Name,
             product.Manufacturer.Country,
             product.Description, 
+            product.IsAvailable,
+            product.IsPrescriptionRequired,
             product.ExpirationDate,
             product.Images.Select(x => x.Url).ToList(),
             product.Properties.Select(x => new ProductPropertyDto(x.Key, x.Value)).ToList()
@@ -279,6 +219,8 @@ public class ProductService : IProductService
                 p.Manufacturer.Name,
                 p.Manufacturer.Country,
                 p.Description, 
+                p.IsAvailable,
+                p.IsPrescriptionRequired,
                 p.ExpirationDate,
                 p.Images.Select(x => x.Url).ToList(),
                 p.Properties.Select(x => new ProductPropertyDto(x.Key, x.Value)).ToList()
@@ -299,6 +241,11 @@ public class ProductService : IProductService
         await _repository.DeleteAsync(product);
         return Result.Success();
     }
+
+    public async Task<bool> ExistsByCategoryAsync(int categoryId)
+    {
+        return await _repository.ExistsByCategoryAsync(categoryId);
+    }
     
     public async Task<List<string>> GetSearchSuggestionsAsync(string query)
     {
@@ -309,7 +256,7 @@ public class ProductService : IProductService
     {
         return expectedType.ToLower() switch
         {
-            "string" => true,
+            "string" => !string.IsNullOrWhiteSpace(value),
             "number" => decimal.TryParse(value, out _),
             "integer" => int.TryParse(value, out _),
             "boolean" => bool.TryParse(value, out _),
@@ -317,4 +264,44 @@ public class ProductService : IProductService
             _ => true
         };
     }
+    
+    private List<string> ValidateProductProperties(List<ProductPropertyDto> properties, List<CategoryFieldDto> categoryFields)
+    {
+        var errors = new List<string>();
+        var propertyKeys = new HashSet<string>();
+
+        foreach (var property in properties)
+        {
+            if (!propertyKeys.Add(property.Key))
+            {
+                errors.Add($"Дублирование ключа свойства: \"{property.Key}\"");
+            }
+        }
+
+        foreach (var field in categoryFields.Where(x => x.IsRequired))
+        {
+            if (!properties.Any(x => x.Key == field.Key && !string.IsNullOrWhiteSpace(x.Value)))
+            {
+                errors.Add($"Обязательное поле \"{field.Label}\" не заполнено");
+            }
+        }
+
+        var allowedFields = categoryFields.ToDictionary(x => x.Key, x => x.Type);
+        foreach (var property in properties)
+        {
+            if (!allowedFields.TryGetValue(property.Key, out var expectedType))
+            {
+                errors.Add($"Недопустимое поле \"{property.Key}\"");
+                continue;
+            }
+
+            if (!IsValidType(property.Value, expectedType))
+            {
+                errors.Add($"Неверный тип данных для поля \"{property.Key}\". Ожидался тип \"{expectedType}\".");
+            }
+        }
+
+        return errors;
+    }
+
 }

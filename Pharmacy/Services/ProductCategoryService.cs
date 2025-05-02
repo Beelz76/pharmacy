@@ -223,6 +223,16 @@ public class ProductCategoryService : IProductCategoryService
                 }
             }
             
+            if (existingField.FieldType != fieldDto.Type)
+            {
+                var valuesInvalid = await HasInvalidFieldValuesAsync(categoryId, existingField.FieldKey, fieldDto.Type);
+                if (valuesInvalid)
+                {
+                    errors.Add($"Нельзя изменить тип поля \"{existingField.FieldLabel}\", так как существующие товары содержат значения, не соответствующие новому типу");
+                    continue;
+                }
+            }
+            
             existingField.FieldKey = fieldDto.Key;
             existingField.FieldLabel = fieldDto.Label;
             existingField.FieldType = fieldDto.Type;
@@ -247,6 +257,11 @@ public class ProductCategoryService : IProductCategoryService
             return Result.Failure(Error.NotFound("Категория не найдена"));
         }
 
+        if (await _productRepository.ExistsByCategoryAsync(id))
+        {
+            return Result.Failure(Error.Conflict("Нельзя удалить категорию, пока к ней привязаны товары"));
+        }
+        
         await _repository.DeleteAsync(category);
         return Result.Success();
     }
@@ -326,5 +341,36 @@ public class ProductCategoryService : IProductCategoryService
         }
 
         return Result.Success();
+    }
+    
+    private async Task<bool> HasInvalidFieldValuesAsync(int categoryId, string fieldKey, string newType)
+    {
+        var products = await _productRepository.QueryWithProperties()
+            .Where(p => p.CategoryId == categoryId)
+            .ToListAsync();
+
+        foreach (var product in products)
+        {
+            var value = product.Properties.FirstOrDefault(p => p.Key == fieldKey)?.Value;
+            if (!string.IsNullOrWhiteSpace(value) && !IsValidType(value, newType))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
+    private bool IsValidType(string value, string expectedType)
+    {
+        return expectedType.ToLower() switch
+        {
+            "string" => !string.IsNullOrWhiteSpace(value),
+            "number" => decimal.TryParse(value, out _),
+            "integer" => int.TryParse(value, out _),
+            "boolean" => bool.TryParse(value, out _),
+            "date" => DateTime.TryParse(value, out _),
+            _ => true
+        };
     }
 }

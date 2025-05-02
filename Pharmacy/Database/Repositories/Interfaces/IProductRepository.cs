@@ -14,5 +14,6 @@ public interface IProductRepository
     Task<bool> HasMissingFieldAsync(int categoryId, string fieldKey);
     Task<bool> HasFieldUsedAsync(int categoryId, string fieldKey);
     Task<List<string>> GetSearchSuggestionsAsync(string query);
+    Task<bool> ExistsByCategoryAsync(int categoryId);
     IQueryable<Product> QueryWithProperties();
 }

@@ -95,7 +95,13 @@ public class UserService : IUserService
             return Result.Failure(Error.Conflict("Пользователь с таким email уже зарегистрирован"));
         }
 
-        return await _emailVerificationService.GenerateVerificationCodeAsync(userId, newEmail, VerificationPurposeEnum.EmailChange);
+        var sendResult = await _emailVerificationService.SendCodeAsync(user.Email, VerificationPurposeEnum.Registration);
+        if (sendResult.IsFailure)
+        {
+            return Result.Failure<string>(sendResult.Error);
+        }
+        
+        return Result.Success();
     }
     
     public async Task<Result> UpdatePasswordAsync(int userId, string currentPassword, string newPassword)
@@ -109,6 +115,11 @@ public class UserService : IUserService
         if (!_passwordProvider.Verify(currentPassword, user.PasswordHash))
         {
             return Result.Failure(Error.Failure("Неверный текущий пароль"));
+        }
+        
+        if (_passwordProvider.Verify(newPassword, user.PasswordHash))
+        {
+            return Result.Failure(Error.Failure("Новый пароль совпадает с текущим"));
         }
 
         user.PasswordHash = _passwordProvider.Hash(newPassword);

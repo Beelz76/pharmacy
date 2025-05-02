@@ -72,12 +72,9 @@ public class ManufacturerService : IManufacturerService
                 return Result.Failure(Error.NotFound("Производитель не найден"));
             }
 
-            if (manufacturer.Name != request.Name)
+            if (manufacturer.Name != request.Name && await _repository.ExistsByNameAsync(request.Name, excludeId: id))
             {
-                if (await _repository.ExistsByNameAsync(request.Name, excludeId: id))
-                {
-                    return Result.Failure(Error.Conflict("Производитель с таким названием уже существует"));
-                }
+                return Result.Failure(Error.Conflict("Производитель с таким названием уже существует"));
             }
 
             manufacturer.Name = request.Name;

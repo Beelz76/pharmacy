@@ -44,7 +44,9 @@ public record CreateProductRequest(
     int CategoryId,
     int ManufacturerId,
     string Description,
-    DateTime ExpirationDate,
+    DateTime? ExpirationDate,
+    bool IsAvailable,
+    bool IsPrescriptionRequired,
     List<ProductPropertyDto> Properties);
     
 public class CreateProductRequestValidator : Validator<CreateProductRequest>
