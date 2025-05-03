@@ -12,21 +12,24 @@ public class ProductRepository : BaseRepository, IProductRepository
     {
         _context = context;
     }
-
-    public async Task<Product?> GetByIdAsync(int id)
-    {
-        return await _context.Products.Include(x => x.Properties).FirstOrDefaultAsync(x => x.Id == id);
-    }
     
-    public async Task<Product?> GetDetailsByIdAsync(int id)
+    public async Task<Product?> GetByIdWithRelationsAsync(int id, bool includeProperties = false, bool includeImages = false, bool includeCategory = false, bool includeManufacturer = false)
     {
-        return await _context.Products
-            .Include(x => x.Properties)
-            .Include(p => p.ProductCategory)
-                .ThenInclude(x => x.ParentCategory)
-            .Include(p => p.Manufacturer)
-            .Include(p => p.Images)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var query = _context.Products.AsQueryable();
+
+        if (includeProperties)
+            query = query.Include(x => x.Properties);
+        
+        if (includeImages)
+            query = query.Include(x => x.Images);
+
+        if (includeCategory)
+            query = query.Include(x => x.ProductCategory).ThenInclude(x => x.ParentCategory);
+        
+        if (includeManufacturer)
+            query = query.Include(x => x.Manufacturer);
+
+        return await query.FirstOrDefaultAsync(x => x.Id == id);
     }
     
     public async Task<bool> ExistsAsync(int productId = 0, int categoryId = 0, string? name = null, string? description = null, int? excludeId = null)
@@ -89,6 +92,22 @@ public class ProductRepository : BaseRepository, IProductRepository
             .Distinct()
             .Take(10)
             .ToListAsync();
+    }
+    
+    public async Task<string> GetLastSkuAsync()
+    {
+        var lastSku = await _context.Products
+            .OrderByDescending(p => p.Id)
+            .Select(p => p.Sku)
+            .FirstOrDefaultAsync();
+        return lastSku ?? "PRD-000000";
+    }
+    
+    public IQueryable<Product> Query()
+    {
+        return _context.Products
+            .AsNoTracking()
+            .AsQueryable();
     }
     
     public IQueryable<Product> QueryWithProperties()

@@ -4,8 +4,7 @@ namespace Pharmacy.Database.Repositories.Interfaces;
 
 public interface IProductRepository
 {
-    Task<Product?> GetByIdAsync(int id);
-    Task<Product?> GetDetailsByIdAsync(int id);
+    Task<Product?> GetByIdWithRelationsAsync(int id, bool includeProperties = false, bool includeImages = false, bool includeCategory = false, bool includeManufacturer = false);
     Task<bool> ExistsAsync(int productId = 0, int categoryId = 0, string? name = null, string? description = null, int? excludeId = null);
     Task AddAsync(Product product);
     Task UpdateAsync(Product product);
@@ -13,5 +12,7 @@ public interface IProductRepository
     Task<bool> HasMissingFieldAsync(int categoryId, string fieldKey);
     Task<bool> HasFieldUsedAsync(int categoryId, string fieldKey);
     Task<List<string>> GetSearchSuggestionsAsync(string query);
+    Task<string> GetLastSkuAsync();
+    IQueryable<Product> Query();
     IQueryable<Product> QueryWithProperties();
 }

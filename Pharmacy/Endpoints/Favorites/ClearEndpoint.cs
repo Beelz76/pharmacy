@@ -4,11 +4,11 @@ using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.Favorites;
 
-public class RemoveEndpoint : EndpointWithoutRequest
+public class ClearEndpoint : EndpointWithoutRequest
 {
-    private readonly ILogger<RemoveEndpoint> _logger;
+    private readonly ILogger<ClearEndpoint> _logger;
     private readonly IFavoritesService _favoritesService;
-    public RemoveEndpoint(ILogger<RemoveEndpoint> logger, IFavoritesService favoritesService)
+    public ClearEndpoint(ILogger<ClearEndpoint> logger, IFavoritesService favoritesService)
     {
         _logger = logger;
         _favoritesService = favoritesService;
@@ -16,18 +16,17 @@ public class RemoveEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Delete("favorites/{productId:int}");
+        Delete("favorites");
         Roles("User");
         Tags("Favorites");
-        Summary(s => { s.Summary = "Удалить товар из избранного"; });
+        Summary(s => { s.Summary = "Очистить избранное"; });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.GetUserId();
-        var productId = Route<int>("productId");
         
-        var result = await _favoritesService.RemoveAsync(userId, productId);
+        var result = await _favoritesService.ClearAsync(userId);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);

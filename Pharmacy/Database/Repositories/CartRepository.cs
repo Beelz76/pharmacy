@@ -1,0 +1,69 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Pharmacy.Database.Entities;
+using Pharmacy.Database.Repositories.Interfaces;
+using Pharmacy.Shared.Dto;
+
+namespace Pharmacy.Database.Repositories;
+
+public class CartRepository : ICartRepository
+{
+    private readonly PharmacyDbContext _context;
+
+    public CartRepository(PharmacyDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<List<CartItemDto>> GetByUserAsync(int userId)
+    {
+        return await _context.CartItems
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .Select(c => new CartItemDto(
+                c.ProductId,
+                c.Product.Name,
+                c.Quantity,
+                c.Product.Price,
+                c.Quantity * c.Product.Price,
+                c.Product.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
+                c.Product.IsAvailable
+                ))
+            .ToListAsync();
+    }
+
+    public async Task<ICollection<CartItem>> GetRawUserCartAsync(int userId)
+    {
+        return await _context.CartItems
+            .Where(c => c.UserId == userId)
+            .ToListAsync();
+    }
+    
+    public async Task<CartItem?> GetAsync(int userId, int productId)
+    {
+        return await _context.CartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId);
+    }
+
+    public async Task AddAsync(CartItem item)
+    {
+        await _context.CartItems.AddAsync(item);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(CartItem item)
+    {
+        _context.CartItems.Update(item);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RemoveAsync(CartItem item)
+    {
+        _context.CartItems.Remove(item);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RemoveRangeAsync(IEnumerable<CartItem> items)
+    {
+        _context.CartItems.RemoveRange(items);
+        await _context.SaveChangesAsync();
+    }
+}

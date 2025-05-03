@@ -12,6 +12,10 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         
         builder.HasKey(x => x.Id);
         
+        builder.Property(x => x.Number)
+            .IsRequired()
+            .HasMaxLength(20);
+        
         builder.Property(x => x.Amount)
             .IsRequired()
             .HasPrecision(18, 2);
@@ -41,5 +45,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasOne(x => x.Status)
             .WithMany(x => x.Payments)
             .HasForeignKey(x => x.StatusId);
+        
+        builder.HasIndex(x => x.Number).IsUnique();
     }
 }

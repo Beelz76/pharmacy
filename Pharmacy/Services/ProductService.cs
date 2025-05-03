@@ -14,15 +14,19 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _repository;
     private readonly IProductCategoryService _productCategoryService;
+    private readonly ICartRepository _cartRepository;
+    private readonly IFavoritesRepository _favoritesRepository;
     private readonly IManufacturerService _manufacturerService;
     private readonly IDateTimeProvider _dateTimeProvider;
     
-    public ProductService(IDateTimeProvider dateTimeProvider, IProductRepository repository, IProductCategoryService productCategoryService, IManufacturerService manufacturerService)
+    public ProductService(IDateTimeProvider dateTimeProvider, IProductRepository repository, IProductCategoryService productCategoryService, IManufacturerService manufacturerService, ICartRepository cartRepository, IFavoritesRepository favoritesRepository)
     {
         _dateTimeProvider = dateTimeProvider;
         _repository = repository;
         _productCategoryService = productCategoryService;
         _manufacturerService = manufacturerService;
+        _cartRepository = cartRepository;
+        _favoritesRepository = favoritesRepository;
     }
     
     public async Task<Result<CreatedDto>> CreateProductAsync(CreateProductRequest request)
@@ -51,8 +55,11 @@ public class ProductService : IProductService
             return Result.Failure<CreatedDto>(Error.Failure("Ошибки при создании", errors));
         }
         
+        var sku = await GenerateNextSkuAsync();
+        
         var product = new Product
         {
+            Sku = sku,
             Name = request.Name,
             Price = request.Price,
             StockQuantity = request.StockQuantity,
@@ -77,7 +84,7 @@ public class ProductService : IProductService
     
     public async Task<Result> UpdateAsync(int id, UpdateProductRequest request)
     {
-        var product = await _repository.GetByIdAsync(id);
+        var product = await _repository.GetByIdWithRelationsAsync(id, includeCategory: true, includeImages: true, includeManufacturer: true, includeProperties: true);
         if (product is null)
         {
             return Result.Failure(Error.NotFound("Товар не найден"));
@@ -154,11 +161,10 @@ public class ProductService : IProductService
         await _repository.UpdateAsync(product);
         return Result.Success();
     }
-
     
     public async Task<Result<ProductDto>> GetByIdAsync(int id)
     {
-        var product = await _repository.GetDetailsByIdAsync(id);
+        var product = await _repository.GetByIdWithRelationsAsync(id, includeCategory: true, includeImages: true, includeManufacturer: true, includeProperties: true);
         if (product is null)
         {
             return Result.Failure<ProductDto>(Error.NotFound("Товар не найден"));
@@ -168,7 +174,8 @@ public class ProductService : IProductService
         var parentCategory = category.ParentCategory;
         
         return Result.Success(new ProductDto(
-            product.Id, 
+            product.Id,
+            product.Sku,
             product.Name, 
             product.Price, 
             product.StockQuantity, 
@@ -190,9 +197,9 @@ public class ProductService : IProductService
         ));
     }
     
-    public async Task<Result<PaginatedList<ProductDto>>> GetPaginatedProductsAsync(ProductParameters query)
+    public async Task<Result<PaginatedList<ProductCardDto>>> GetPaginatedProductsAsync(ProductParameters query, int? userId = null)
     {
-        var productsQuery = _repository.QueryWithProperties();
+        var productsQuery = _repository.Query();
 
         if (query.CategoryIds is not null && query.CategoryIds.Any())
         {
@@ -237,44 +244,45 @@ public class ProductService : IProductService
         };
 
         var totalCount = await productsQuery.CountAsync();
-
-        var rawProducts = await productsQuery
+        
+        var pageItems = await productsQuery
             .Skip((query.PageNumber - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Include(p => p.ProductCategory)
-                .ThenInclude(c => c.ParentCategory)
-            .Include(p => p.Manufacturer)
-            .Include(p => p.Images)
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.Price,
+                p.StockQuantity,
+                ImageUrl = p.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
+                p.IsAvailable,
+                p.IsPrescriptionRequired,
+            })
+            .AsNoTracking()
             .ToListAsync();
-        
-        var items = rawProducts.Select(p => new ProductDto(
+
+        var favoriteIds = userId is null ? new HashSet<int>() : (await _favoritesRepository.GetFavoriteProductIdsAsync(userId.Value)).ToHashSet();
+        var cartItems = userId is null ? new Dictionary<int, int>() : (await _cartRepository.GetRawUserCartAsync(userId.Value)).ToDictionary(x => x.ProductId, x => x.Quantity);
+
+        var items = pageItems.Select(p => new ProductCardDto(
             p.Id,
             p.Name,
             p.Price,
             p.StockQuantity,
-            p.CategoryId,
-            p.ProductCategory.Name,
-            p.ProductCategory.Description,
-            p.ProductCategory.ParentCategory?.Id,
-            p.ProductCategory.ParentCategory?.Name,
-            p.ProductCategory.ParentCategory?.Description,
-            p.ManufacturerId,
-            p.Manufacturer.Name,
-            p.Manufacturer.Country,
-            p.Description,
+            p.ImageUrl,
             p.IsAvailable,
             p.IsPrescriptionRequired,
-            p.ExpirationDate,
-            p.Images.Select(x => x.Url).ToList(),
-            p.Properties.Select(x => new ProductPropertyDto(x.Key, x.Value)).ToList()
-        )).ToList();
+            favoriteIds.Contains(p.Id),
+            cartItems.TryGetValue(p.Id, out var qty) ? qty : 0 ) 
+        ).ToList();
 
-        return Result.Success(new PaginatedList<ProductDto>(items, totalCount, query.PageNumber, query.PageSize));
+
+        return Result.Success(new PaginatedList<ProductCardDto>(items, totalCount, query.PageNumber, query.PageSize));
     }
 
     public async Task<Result> DeleteAsync(int productId)
     {
-        var product = await _repository.GetByIdAsync(productId);
+        var product = await _repository.GetByIdWithRelationsAsync(productId);
         if (product is null)
         {
             return Result.Failure(Error.NotFound("Товар не найден"));
@@ -328,4 +336,14 @@ public class ProductService : IProductService
         return errors;
     }
 
+    private async Task<string> GenerateNextSkuAsync()
+    {
+        var lastSku = await _repository.GetLastSkuAsync();
+        var numberPart = lastSku.Split('-').LastOrDefault();
+        if (int.TryParse(numberPart, out int lastNumber))
+        {
+            return $"PRD-{(lastNumber + 1):D6}";
+        }
+        return "PRD-000001";
+    }
 }

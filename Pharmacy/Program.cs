@@ -95,6 +95,10 @@ try
     builder.Services.AddScoped<IEmailSender, EmailSender>();
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IProductRepository, ProductRepository>();
+    builder.Services.AddScoped<ICartRepository, CartRepository>();
+    builder.Services.AddScoped<ICartService, CartService>();
+    builder.Services.AddScoped<IFavoritesRepository, FavoritesRepository>();
+    builder.Services.AddScoped<IFavoritesService, FavoritesService>();
     builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
     builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
     builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();

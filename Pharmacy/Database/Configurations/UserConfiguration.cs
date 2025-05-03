@@ -62,12 +62,32 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             new User
             {
                 Id = 1,
-                Email = "test@gmail.com",
+                Email = "admin@example.com",
                 EmailVerified = true,
                 PasswordHash = "2C7C7E374A42F485DBB90E8C19C1B9CEA0BD13EF67816BB8F8A70FCD47F0B9AA-02286835EA819C04E58E380AD9C0A8AF",
                 LastName = "test",
                 FirstName = "test",
                 Role = UserRoleEnum.Admin,
+            },
+            new User
+            {
+                Id = 2,
+                Email = "employee@example.com",
+                EmailVerified = true,
+                PasswordHash = "2C7C7E374A42F485DBB90E8C19C1B9CEA0BD13EF67816BB8F8A70FCD47F0B9AA-02286835EA819C04E58E380AD9C0A8AF",
+                LastName = "test",
+                FirstName = "test",
+                Role = UserRoleEnum.Employee,
+            },
+            new User
+            {
+                Id = 3,
+                Email = "user@example.com",
+                EmailVerified = true,
+                PasswordHash = "2C7C7E374A42F485DBB90E8C19C1B9CEA0BD13EF67816BB8F8A70FCD47F0B9AA-02286835EA819C04E58E380AD9C0A8AF",
+                LastName = "test",
+                FirstName = "test",
+                Role = UserRoleEnum.User
             }
         });
     }

@@ -10,4 +10,10 @@ public static class ClaimsPrincipalExtensions
         var value = user.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(value, out var id) ? id : throw new UnauthorizedAccessException("User ID не найден в этом токене");
     }
+    
+    public static int? GetUserIdNullable(this ClaimsPrincipal user)
+    {
+        var value = user.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(value, out var id) ? id : null;
+    }
 }

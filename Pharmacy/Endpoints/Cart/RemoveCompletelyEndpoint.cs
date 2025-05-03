@@ -5,11 +5,11 @@ using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.Cart;
 
-public class AddEndpoint : EndpointWithoutRequest
+public class RemoveCompletelyEndpoint : EndpointWithoutRequest
 {
-    private readonly ILogger<AddEndpoint> _logger;
+    private readonly ILogger<RemoveCompletelyEndpoint> _logger;
     private readonly ICartService _cartService;
-    public AddEndpoint(ILogger<AddEndpoint> logger, ICartService cartService)
+    public RemoveCompletelyEndpoint(ILogger<RemoveCompletelyEndpoint> logger, ICartService cartService)
     {
         _logger = logger;
         _cartService = cartService;
@@ -17,10 +17,10 @@ public class AddEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Post("cart/{productId:int}");
+        Delete("cart/{productId:int}");
         Roles("User");
         Tags("Cart");
-        Summary(s => { s.Summary = "Добавить товар в корзину / увеличить количество товара в корзине"; });
+        Summary(s => { s.Summary = "Удалить товар из корзины"; });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
@@ -28,7 +28,7 @@ public class AddEndpoint : EndpointWithoutRequest
         var userId = User.GetUserId();
         var productId = Route<int>("productId");
         
-        var result = await _cartService.AddToCartAsync(userId, productId);
+        var result = await _cartService.RemoveFromCartCompletelyAsync(userId, productId);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);

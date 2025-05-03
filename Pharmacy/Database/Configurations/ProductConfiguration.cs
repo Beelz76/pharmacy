@@ -11,6 +11,10 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.ToTable("Products");
         
         builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.Sku)
+            .IsRequired()
+            .HasMaxLength(20);
         
         builder.Property(x => x.Name)
             .IsRequired()
@@ -64,5 +68,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasIndex(x => x.Name);
+        builder.HasIndex(x => x.Sku).IsUnique();
     }
 }

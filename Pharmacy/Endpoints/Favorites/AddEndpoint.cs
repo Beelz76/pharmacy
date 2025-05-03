@@ -1,30 +1,40 @@
 ﻿using FastEndpoints;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.Favorites;
 
-public class AddEndpoint : Endpoint<AddToFavoritesRequest>
+public class AddEndpoint : EndpointWithoutRequest
 {
     private readonly ILogger<AddEndpoint> _logger;
-    private readonly IProductService _productService;
-    public AddEndpoint(ILogger<AddEndpoint> logger, IProductService productService)
+    private readonly IFavoritesService _favoritesService;
+    public AddEndpoint(ILogger<AddEndpoint> logger, IFavoritesService favoritesService)
     {
         _logger = logger;
-        _productService = productService;
+        _favoritesService = favoritesService;
     }
 
     public override void Configure()
     {
-        Post("favorites");
+        Post("favorites/{productId:int}");
         Roles("User");
         Tags("Favorites");
         Summary(s => { s.Summary = "Добавить товар в избранное"; });
     }
 
-    public override async Task HandleAsync(AddToFavoritesRequest request, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        await SendOkAsync (ct);
+        var userId = User.GetUserId();
+        var productId = Route<int>("productId");
+        
+        var result = await _favoritesService.AddAsync(userId, productId);
+        if (result.IsSuccess)
+        {
+            await SendOkAsync(ct);
+        }
+        else
+        {
+            await SendAsync(result.Error, (int)result.Error.Code, ct);
+        }
     }
 }
-
-public record AddToFavoritesRequest(string name);

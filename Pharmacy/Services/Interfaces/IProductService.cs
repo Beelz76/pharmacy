@@ -9,7 +9,7 @@ public interface IProductService
     Task<Result<CreatedDto>> CreateProductAsync(CreateProductRequest request);
     Task<Result> UpdateAsync(int id, UpdateProductRequest request);
     Task<Result<ProductDto>> GetByIdAsync(int id);
-    Task<Result<PaginatedList<ProductDto>>> GetPaginatedProductsAsync(ProductParameters query);
+    Task<Result<PaginatedList<ProductCardDto>>> GetPaginatedProductsAsync(ProductParameters query, int? userId = null);
     Task<Result> DeleteAsync(int productId);
     Task<List<string>> GetSearchSuggestionsAsync(string query);
 }

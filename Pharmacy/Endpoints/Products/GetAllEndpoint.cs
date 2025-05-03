@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 
@@ -28,6 +29,8 @@ public class GetAllEndpoint : Endpoint<ProductFilters>
         int pageSize = Query<int>("pageSize", isRequired: false) == 0 ? 20 : Query<int>("pageSize", isRequired: false);
         string? sortBy = Query<string>("sortBy", isRequired: false);
         string? sortOrder = Query<string>("sortOrder", isRequired: false);
+     
+        var userId = User.GetUserIdNullable();
         
         var parameters = new ProductParameters
         {
@@ -41,7 +44,7 @@ public class GetAllEndpoint : Endpoint<ProductFilters>
             PropertyFilters = filters.PropertyFilters
         };
         
-        var result = await _productService.GetPaginatedProductsAsync(parameters);
+        var result = await _productService.GetPaginatedProductsAsync(parameters, userId);
         if (result.IsSuccess)
         {
             await SendOkAsync(result.Value, ct);

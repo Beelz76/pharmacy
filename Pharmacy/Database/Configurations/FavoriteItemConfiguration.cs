@@ -4,23 +4,20 @@ using Pharmacy.Database.Entities;
 
 namespace Pharmacy.Database.Configurations;
 
-public class CartConfiguration : IEntityTypeConfiguration<CartItem>
+public class FavoriteItemConfiguration : IEntityTypeConfiguration<FavoriteItem>
 {
-    public void Configure(EntityTypeBuilder<CartItem> builder)
+    public void Configure(EntityTypeBuilder<FavoriteItem> builder)
     {
-        builder.ToTable("CartItems");
+        builder.ToTable("FavoriteItems");
 
         builder.HasKey(x => new {x.UserId, x.ProductId});
         
-        builder.Property(x => x.Quantity)
-            .IsRequired();
-        
         builder.HasOne(x => x.User)
-            .WithMany(x => x.CartItems)
+            .WithMany(x => x.FavoriteItems)
             .HasForeignKey(x => x.UserId);
 
         builder.HasOne(x => x.Product)
-            .WithMany(x => x.Carts)
+            .WithMany(x => x.Favorites)
             .HasForeignKey(x => x.ProductId);
     }
 }

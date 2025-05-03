@@ -11,11 +11,18 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.ToTable("Orders");
         
         builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.Number)
+            .IsRequired()
+            .HasMaxLength(20);
         
         builder.Property(x => x.TotalPrice)
             .IsRequired()
             .HasPrecision(18, 2);
 
+        builder.Property(x => x.PickupCode)
+            .HasMaxLength(4);
+        
         builder.Property(x => x.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -31,5 +38,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasOne(x => x.Status)
             .WithMany(x => x.Orders)
             .HasForeignKey(x => x.StatusId);
+        
+        builder.HasIndex(x => x.Number).IsUnique();
     }
 }

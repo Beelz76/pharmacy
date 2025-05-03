@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.Favorites;
@@ -6,11 +7,11 @@ namespace Pharmacy.Endpoints.Favorites;
 public class GetEndpoint : EndpointWithoutRequest
 {
     private readonly ILogger<GetEndpoint> _logger;
-    private readonly IProductService _productService;
-    public GetEndpoint(ILogger<GetEndpoint> logger, IProductService productService)
+    private readonly IFavoritesService _favoritesService;
+    public GetEndpoint(ILogger<GetEndpoint> logger, IFavoritesService favoritesService)
     {
         _logger = logger;
-        _productService = productService;
+        _favoritesService = favoritesService;
     }
 
     public override void Configure()
@@ -23,6 +24,12 @@ public class GetEndpoint : EndpointWithoutRequest
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        await SendOkAsync (ct);
+        var userId = User.GetUserId();
+        
+        var result = await _favoritesService.GetByUserAsync(userId);
+        if (result.IsSuccess)
+        {
+            await SendOkAsync(result.Value, ct);
+        }
     }
 }
