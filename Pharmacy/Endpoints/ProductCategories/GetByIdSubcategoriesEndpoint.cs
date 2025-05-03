@@ -3,12 +3,11 @@ using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.ProductCategories;
 
-
-public class GetAllEndpoint : EndpointWithoutRequest
+public class GetByIdSubcategoriesEndpoint : EndpointWithoutRequest
 {
-    private readonly ILogger<GetAllEndpoint> _logger;
+    private readonly ILogger<GetByIdSubcategoriesEndpoint> _logger;
     private readonly IProductCategoryService _productCategoryService;
-    public GetAllEndpoint(ILogger<GetAllEndpoint> logger, IProductCategoryService productCategoryService)
+    public GetByIdSubcategoriesEndpoint(ILogger<GetByIdSubcategoriesEndpoint> logger, IProductCategoryService productCategoryService)
     {
         _logger = logger;
         _productCategoryService = productCategoryService;
@@ -16,15 +15,17 @@ public class GetAllEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("categories");
+        Get("categories/{categoryId:int}/subcategories");
         //AllowAnonymous();
         Tags("ProductCategories");
-        Summary(s => { s.Summary = "Получение всех категорий товаров"; }); 
+        Summary(s => { s.Summary = "Получить подкатегории"; }); 
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await _productCategoryService.GetAllWithSubcategoriesAsync();
+        var categoryId = Route<int>("categoryId");
+        
+        var result = await _productCategoryService.GetSubcategoriesAsync(categoryId);
         if (result.IsSuccess)
         {
             await SendOkAsync (result.Value, ct);

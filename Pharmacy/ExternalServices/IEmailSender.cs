@@ -1,6 +1,6 @@
 ﻿using Pharmacy.Shared.Result;
 
-namespace Pharmacy.Services.Interfaces;
+namespace Pharmacy.ExternalServices;
 
 public interface IEmailSender
 {

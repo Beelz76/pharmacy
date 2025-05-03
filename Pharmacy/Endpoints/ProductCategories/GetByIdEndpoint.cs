@@ -3,11 +3,11 @@ using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.ProductCategories;
 
-public class DeleteEndpoint : EndpointWithoutRequest
+public class GetByIdEndpoint : EndpointWithoutRequest
 {
-    private readonly ILogger<DeleteEndpoint> _logger;
+    private readonly ILogger<GetByIdEndpoint> _logger;
     private readonly IProductCategoryService _productCategoryService;
-    public DeleteEndpoint(ILogger<DeleteEndpoint> logger, IProductCategoryService productCategoryService)
+    public GetByIdEndpoint(ILogger<GetByIdEndpoint> logger, IProductCategoryService productCategoryService)
     {
         _logger = logger;
         _productCategoryService = productCategoryService;
@@ -15,20 +15,20 @@ public class DeleteEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Delete("categories/{categoryId:int}");
-        //Roles("Admin");
+        Get("categories/{categoryId:int}");
+        //AllowAnonymous();
         Tags("ProductCategories");
-        Summary(s => { s.Summary = "Удаление категории товаров"; }); 
+        Summary(s => { s.Summary = "Получить категорию по id"; }); 
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        int categoryId = Route<int>("categoryId");
+        var categoryId = Route<int>("categoryId");
         
-        var result = await _productCategoryService.DeleteAsync(categoryId);
+        var result = await _productCategoryService.GetWithSubcategoriesByIdAsync(categoryId);
         if (result.IsSuccess)
         {
-            await SendOkAsync (ct);
+            await SendOkAsync (result.Value, ct);
         }
         else
         {

@@ -15,7 +15,7 @@ public class ProductRepository : BaseRepository, IProductRepository
 
     public async Task<Product?> GetByIdAsync(int id)
     {
-        return await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
+        return await _context.Products.Include(x => x.Properties).FirstOrDefaultAsync(x => x.Id == id);
     }
     
     public async Task<Product?> GetDetailsByIdAsync(int id)
@@ -23,19 +23,20 @@ public class ProductRepository : BaseRepository, IProductRepository
         return await _context.Products
             .Include(x => x.Properties)
             .Include(p => p.ProductCategory)
+                .ThenInclude(x => x.ParentCategory)
             .Include(p => p.Manufacturer)
             .Include(p => p.Images)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
     
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(int productId = 0, int categoryId = 0, string? name = null, string? description = null, int? excludeId = null)
     {
-       return await _context.Products.AnyAsync(x => x.Id == id);
-    }
-    
-    public async Task<bool> ExistsByNameAsync(string name)
-    {
-        return await _context.Products.AnyAsync(x => x.Name == name);
+        return await _context.Products.AnyAsync(x =>
+            ((productId != 0 && x.Id == productId) || 
+             (categoryId != 0 && x.CategoryId == categoryId) ||
+             (!string.IsNullOrEmpty(name) && x.Name.ToLower() == name.ToLower()) ||
+             (!string.IsNullOrEmpty(description) && x.Description.ToLower() == description.ToLower())) && 
+            (!excludeId.HasValue || x.Id != excludeId));
     }
     
     public async Task AddAsync(Product product)
@@ -88,11 +89,6 @@ public class ProductRepository : BaseRepository, IProductRepository
             .Distinct()
             .Take(10)
             .ToListAsync();
-    }
-
-    public async Task<bool> ExistsByCategoryAsync(int categoryId)
-    {
-        return await _context.Products.AnyAsync(x => x.CategoryId == categoryId);
     }
     
     public IQueryable<Product> QueryWithProperties()

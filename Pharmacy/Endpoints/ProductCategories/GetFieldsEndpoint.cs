@@ -15,7 +15,7 @@ public class GetFieldsEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("products/category/{id:int}/fields");
+        Get("categories/{categoryId:int}/fields");
         //Roles("Admin", "User");
         Tags("ProductCategories");
         Summary(s => { s.Summary = "Получение полей для категории товаров"; }); 
@@ -23,9 +23,9 @@ public class GetFieldsEndpoint : EndpointWithoutRequest
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        int categoryId = Route<int>("id");
+        int categoryId = Route<int>("categoryId");
         
-        var result = await _productCategoryService.GetCategoryFieldsAsync(categoryId);
+        var result = await _productCategoryService.GetAllFieldsIncludingParentAsync(categoryId, true);
         if (result.IsSuccess)
         {
             await SendOkAsync (result.Value, ct);

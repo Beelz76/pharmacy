@@ -5,7 +5,9 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
       <UserSecretsId>b77bfb52-c3f7-4f86-a936-9f63accf9205</UserSecretsId>
-  </PropertyGroup>
+        <PlatformTarget>x64</PlatformTarget>
+
+    </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="FastEndpoints" Version="5.35.0" />

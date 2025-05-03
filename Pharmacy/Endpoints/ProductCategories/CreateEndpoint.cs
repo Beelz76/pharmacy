@@ -17,7 +17,7 @@ public class CreateEndpoint : Endpoint<CreateCategoryRequest>
 
     public override void Configure()
     {
-        Post("products/category");
+        Post("categories");
         //Roles("Admin");
         Tags("ProductCategories");
         Summary(s => { s.Summary = "Добавить новую категорию товаров"; }); 
@@ -25,7 +25,7 @@ public class CreateEndpoint : Endpoint<CreateCategoryRequest>
 
     public override async Task HandleAsync(CreateCategoryRequest request, CancellationToken ct)
     {
-        var result = await _productCategoryService.CreateAsync(request.Name, request.Description, request.Fields);
+        var result = await _productCategoryService.CreateAsync(request.Name, request.Description, request.ParentCategoryId, request.Fields);
         if (result.IsSuccess)
         {
             await SendOkAsync (result.Value, ct);
@@ -37,7 +37,7 @@ public class CreateEndpoint : Endpoint<CreateCategoryRequest>
     }
 }
 
-public record CreateCategoryRequest(string Name, string Description, List<CategoryFieldDto> Fields);
+public record CreateCategoryRequest(string Name, string Description, int? ParentCategoryId, List<CategoryFieldDto> Fields);
 
 public class CreateCategoryRequestValidator : Validator<CreateCategoryRequest>
 {

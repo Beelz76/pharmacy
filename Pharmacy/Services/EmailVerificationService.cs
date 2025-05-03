@@ -4,6 +4,7 @@ using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Users.Authentication;
 using Pharmacy.Endpoints.Users.Verification;
 using Pharmacy.Extensions;
+using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Enums;

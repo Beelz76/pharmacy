@@ -1,10 +1,9 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Result;
 
-namespace Pharmacy.Services;
+namespace Pharmacy.ExternalServices;
 
 public class EmailSender : IEmailSender
 {

@@ -16,8 +16,33 @@ public class ProductCategoryRepository : IProductCategoryRepository
     public async Task<IEnumerable<ProductCategory>> GetAllAsync()
     {
         return await _context.ProductCategories
+            .Include(x => x.Subcategories)
             .AsNoTracking()
             .ToListAsync();
+    }
+    
+    public async Task<IEnumerable<ProductCategory>> GetSubcategoriesAsync(int parentId)
+    {
+        return await _context.ProductCategories
+            .Where(x => x.ParentCategoryId == parentId)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+    
+    public async Task<ProductCategory?> GetByIdWithRelationsAsync(int categoryId, bool includeFields = false, bool includeParent = false, bool includeSubcategories = false)
+    {
+        var query = _context.ProductCategories.AsQueryable();
+
+        if (includeFields)
+            query = query.Include(x => x.Fields);
+        
+        if (includeParent)
+            query = query.Include(x => x.ParentCategory);
+
+        if (includeSubcategories)
+            query = query.Include(x => x.Subcategories);
+
+        return await query.FirstOrDefaultAsync(x => x.Id == categoryId);
     }
     
     public async Task AddAsync(ProductCategory productCategory)
@@ -31,13 +56,6 @@ public class ProductCategoryRepository : IProductCategoryRepository
         _context.ProductCategories.Update(productCategory);
         await _context.SaveChangesAsync();
     }
-
-    public async Task<ProductCategory?> GetByIdAsync(int categoryId)
-    {
-        return await _context.ProductCategories
-            .Include(x => x.Fields)
-            .FirstOrDefaultAsync(x => x.Id == categoryId);
-    }
     
     public async Task DeleteAsync(ProductCategory productCategory)
     {
@@ -45,14 +63,21 @@ public class ProductCategoryRepository : IProductCategoryRepository
         await _context.SaveChangesAsync();
     }
     
-    public async Task<bool> ExistsAsync(int categoryId)
+    public async Task<List<int>> GetChildrenIdsAsync(int parentCategoryId)
     {
-        return await _context.ProductCategories.AnyAsync(x => x.Id == categoryId);
+        return await _context.ProductCategories
+            .Where(x => x.ParentCategoryId == parentCategoryId)
+            .Select(x => x.Id)
+            .ToListAsync();
     }
-
-    public async Task<bool> ExistsByNameOrDescriptionAsync(string name, string description)
+    
+    public async Task<bool> ExistsAsync(int categoryId = 0, string? name = null, string? description = null, int? excludeId = null)
     {
-        return await _context.ProductCategories.AnyAsync(x => x.Name.ToLower() == name.ToLower() || x.Description.ToLower() == description.ToLower());
+        return await _context.ProductCategories.AnyAsync(x =>
+            ((categoryId != 0 && x.Id == categoryId) ||
+            (!string.IsNullOrEmpty(name) && x.Name.ToLower() == name.ToLower()) ||
+            (!string.IsNullOrEmpty(description) && x.Description.ToLower() == description.ToLower())) && 
+            (!excludeId.HasValue || x.Id != excludeId));
     }
     
     public async Task<IEnumerable<ProductCategoryField>> GetCategoryFieldsAsync(int categoryId)

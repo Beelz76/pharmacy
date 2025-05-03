@@ -25,7 +25,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(50);
 
         builder.Property(x => x.Phone)
-            .HasMaxLength(12);
+            .HasMaxLength(11);
         
         builder.Property(x => x.Email)
             .IsRequired()
@@ -64,7 +64,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 Id = 1,
                 Email = "test@gmail.com",
                 EmailVerified = true,
-                PasswordHash = "123456",
+                PasswordHash = "2C7C7E374A42F485DBB90E8C19C1B9CEA0BD13EF67816BB8F8A70FCD47F0B9AA-02286835EA819C04E58E380AD9C0A8AF",
                 LastName = "test",
                 FirstName = "test",
                 Role = UserRoleEnum.Admin,

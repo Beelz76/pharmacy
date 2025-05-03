@@ -1,6 +1,5 @@
 ﻿using Pharmacy.Endpoints.Users.Authentication;
 using Pharmacy.Endpoints.Users.Authorization;
-using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Enums;
@@ -11,17 +10,15 @@ namespace Pharmacy.Services;
 public class AuthorizationService : IAuthorizationService
 {
     private readonly IUserService _userService;
-    private readonly IEmailService _emailService;
     private readonly PasswordProvider _passwordProvider;
     private readonly TokenProvider _tokenProvider;
     private readonly IEmailVerificationService _emailVerificationService;
 
-    public AuthorizationService(IUserService userService, PasswordProvider passwordProvider, TokenProvider tokenProvider, IEmailService emailService, IEmailVerificationService emailVerificationService)
+    public AuthorizationService(IUserService userService, PasswordProvider passwordProvider, TokenProvider tokenProvider, IEmailVerificationService emailVerificationService)
     {
         _userService = userService;
         _passwordProvider = passwordProvider;
         _tokenProvider = tokenProvider;
-        _emailService = emailService;
         _emailVerificationService = emailVerificationService;
     }
 

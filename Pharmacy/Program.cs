@@ -107,7 +107,6 @@ try
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderService, OrderService>();
-    builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
     
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

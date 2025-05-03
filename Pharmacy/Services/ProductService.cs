@@ -3,6 +3,7 @@ using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Products;
+using Pharmacy.Helpers;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Result;
@@ -26,9 +27,9 @@ public class ProductService : IProductService
     
     public async Task<Result<CreatedDto>> CreateProductAsync(CreateProductRequest request)
     {
-        if (await _repository.ExistsByNameAsync(request.Name))
+        if (await _repository.ExistsAsync(name: request.Name, description: request.Description))
         {
-            return Result.Failure<CreatedDto>(Error.Conflict("Товар с таким названием уже существует"));
+            return Result.Failure<CreatedDto>(Error.Conflict("Товар с таким названием или описанием уже существует"));
         }
         
         if (!await _productCategoryService.ExistsAsync(request.CategoryId))
@@ -41,11 +42,7 @@ public class ProductService : IProductService
             return Result.Failure<CreatedDto>(Error.NotFound("Производитель не найден"));
         }
         
-        var categoryFieldsResult = await _productCategoryService.GetCategoryFieldsAsync(request.CategoryId);
-        if (categoryFieldsResult.IsFailure)
-        {
-            return Result.Failure<CreatedDto>(categoryFieldsResult.Error);
-        }
+        var categoryFieldsResult = await _productCategoryService.GetAllFieldsIncludingParentAsync(request.CategoryId);
         
         var errors = ValidateProductProperties(request.Properties, categoryFieldsResult.Value.ToList());
         
@@ -85,10 +82,10 @@ public class ProductService : IProductService
         {
             return Result.Failure(Error.NotFound("Товар не найден"));
         }
-        
-        if (request.Name != product.Name && await _repository.ExistsByNameAsync(request.Name))
+
+        if (await _repository.ExistsAsync(name: request.Name, description: request.Description, excludeId: product.Id))
         {
-            return Result.Failure(Error.Conflict("Товар с таким названием уже существует"));
+            return Result.Failure(Error.Conflict("Товар с таким названием или описанием уже существует"));
         }
 
         if (!await _productCategoryService.ExistsAsync(request.CategoryId))
@@ -101,14 +98,10 @@ public class ProductService : IProductService
             return Result.Failure(Error.NotFound("Производитель не найден"));
         }
 
-        var categoryFieldsResult = await _productCategoryService.GetCategoryFieldsAsync(request.CategoryId);
-        if (categoryFieldsResult.IsFailure)
-        {
-            return Result.Failure<CreatedDto>(categoryFieldsResult.Error);
-        }
-        
-        var errors = ValidateProductProperties(request.Properties, categoryFieldsResult.Value.ToList());
-        
+        var categoryFieldsResult = await _productCategoryService.GetAllFieldsIncludingParentAsync(request.CategoryId);
+        var categoryFields = categoryFieldsResult.Value.ToList();
+
+        var errors = ValidateProductProperties(request.Properties, categoryFields);
         if (errors.Any())
         {
             return Result.Failure<CreatedDto>(Error.Failure("Ошибки при обновлении", errors));
@@ -124,15 +117,44 @@ public class ProductService : IProductService
         product.IsAvailable = request.IsAvailable;
         product.IsPrescriptionRequired = request.IsPrescriptionRequired;
         product.UpdatedAt = _dateTimeProvider.UtcNow;
-        product.Properties = request.Properties.Select(p => new ProductProperty
+
+        var existingProperties = product.Properties.ToDictionary(p => p.Key, p => p, StringComparer.OrdinalIgnoreCase);
+        
+        foreach (var propDto in request.Properties)
         {
-            Key = p.Key, 
-            Value = p.Value
-        }).ToList();
+            if (existingProperties.TryGetValue(propDto.Key, out var existingProp))
+            {
+                existingProp.Value = propDto.Value;
+            }
+            else
+            {
+                product.Properties.Add(new ProductProperty
+                {
+                    Key = propDto.Key,
+                    Value = propDto.Value
+                });
+            }
+        }
+        
+        var requestKeys = request.Properties.Select(p => p.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var allowedFields = categoryFields.ToDictionary(f => f.Key, f => f, StringComparer.OrdinalIgnoreCase);
+        
+        var propertiesToRemove = product.Properties
+            .Where(p => 
+                !requestKeys.Contains(p.Key) &&
+                allowedFields.TryGetValue(p.Key, out var field) &&
+                !field.IsRequired)
+            .ToList();
+
+        foreach (var prop in propertiesToRemove)
+        {
+            product.Properties.Remove(prop);
+        }
 
         await _repository.UpdateAsync(product);
         return Result.Success();
     }
+
     
     public async Task<Result<ProductDto>> GetByIdAsync(int id)
     {
@@ -141,7 +163,10 @@ public class ProductService : IProductService
         {
             return Result.Failure<ProductDto>(Error.NotFound("Товар не найден"));
         }
-
+        
+        var category = product.ProductCategory;
+        var parentCategory = category.ParentCategory;
+        
         return Result.Success(new ProductDto(
             product.Id, 
             product.Name, 
@@ -150,6 +175,9 @@ public class ProductService : IProductService
             product.CategoryId,
             product.ProductCategory.Name,
             product.ProductCategory.Description,
+            parentCategory?.Id,
+            parentCategory?.Name,
+            parentCategory?.Description,
             product.ManufacturerId,
             product.Manufacturer.Name,
             product.Manufacturer.Country,
@@ -168,7 +196,13 @@ public class ProductService : IProductService
 
         if (query.CategoryIds is not null && query.CategoryIds.Any())
         {
-            productsQuery = productsQuery.Where(p => query.CategoryIds.Contains(p.CategoryId));
+            var categoryIds = new List<int>(query.CategoryIds);
+            foreach (var categoryId in query.CategoryIds)
+            {
+                var childIds = await _productCategoryService.GetAllSubcategoryIdsAsync(categoryId);
+                categoryIds.AddRange(childIds);
+            }
+            productsQuery = productsQuery.Where(p => categoryIds.Contains(p.CategoryId));
         }
 
         if (query.ManufacturerIds is not null && query.ManufacturerIds.Any())
@@ -204,28 +238,36 @@ public class ProductService : IProductService
 
         var totalCount = await productsQuery.CountAsync();
 
-        var items = await productsQuery
+        var rawProducts = await productsQuery
             .Skip((query.PageNumber - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Select(p => new ProductDto(
-                p.Id, 
-                p.Name, 
-                p.Price, 
-                p.StockQuantity, 
-                p.CategoryId,
-                p.ProductCategory.Name,
-                p.ProductCategory.Description,
-                p.ManufacturerId,
-                p.Manufacturer.Name,
-                p.Manufacturer.Country,
-                p.Description, 
-                p.IsAvailable,
-                p.IsPrescriptionRequired,
-                p.ExpirationDate,
-                p.Images.Select(x => x.Url).ToList(),
-                p.Properties.Select(x => new ProductPropertyDto(x.Key, x.Value)).ToList()
-            ))
+            .Include(p => p.ProductCategory)
+                .ThenInclude(c => c.ParentCategory)
+            .Include(p => p.Manufacturer)
+            .Include(p => p.Images)
             .ToListAsync();
+        
+        var items = rawProducts.Select(p => new ProductDto(
+            p.Id,
+            p.Name,
+            p.Price,
+            p.StockQuantity,
+            p.CategoryId,
+            p.ProductCategory.Name,
+            p.ProductCategory.Description,
+            p.ProductCategory.ParentCategory?.Id,
+            p.ProductCategory.ParentCategory?.Name,
+            p.ProductCategory.ParentCategory?.Description,
+            p.ManufacturerId,
+            p.Manufacturer.Name,
+            p.Manufacturer.Country,
+            p.Description,
+            p.IsAvailable,
+            p.IsPrescriptionRequired,
+            p.ExpirationDate,
+            p.Images.Select(x => x.Url).ToList(),
+            p.Properties.Select(x => new ProductPropertyDto(x.Key, x.Value)).ToList()
+        )).ToList();
 
         return Result.Success(new PaginatedList<ProductDto>(items, totalCount, query.PageNumber, query.PageSize));
     }
@@ -241,28 +283,10 @@ public class ProductService : IProductService
         await _repository.DeleteAsync(product);
         return Result.Success();
     }
-
-    public async Task<bool> ExistsByCategoryAsync(int categoryId)
-    {
-        return await _repository.ExistsByCategoryAsync(categoryId);
-    }
     
     public async Task<List<string>> GetSearchSuggestionsAsync(string query)
     {
         return await _repository.GetSearchSuggestionsAsync(query);
-    }
-    
-    private bool IsValidType(string value, string expectedType)
-    {
-        return expectedType.ToLower() switch
-        {
-            "string" => !string.IsNullOrWhiteSpace(value),
-            "number" => decimal.TryParse(value, out _),
-            "integer" => int.TryParse(value, out _),
-            "boolean" => bool.TryParse(value, out _),
-            "date" => DateTime.TryParse(value, out _),
-            _ => true
-        };
     }
     
     private List<string> ValidateProductProperties(List<ProductPropertyDto> properties, List<CategoryFieldDto> categoryFields)
@@ -282,7 +306,7 @@ public class ProductService : IProductService
         {
             if (!properties.Any(x => x.Key == field.Key && !string.IsNullOrWhiteSpace(x.Value)))
             {
-                errors.Add($"Обязательное поле \"{field.Label}\" не заполнено");
+                errors.Add($"Обязательное поле \"{field.Key}\" не заполнено");
             }
         }
 
@@ -295,7 +319,7 @@ public class ProductService : IProductService
                 continue;
             }
 
-            if (!IsValidType(property.Value, expectedType))
+            if (!TypeValidationHelper.IsValidType(property.Value, expectedType))
             {
                 errors.Add($"Неверный тип данных для поля \"{property.Key}\". Ожидался тип \"{expectedType}\".");
             }

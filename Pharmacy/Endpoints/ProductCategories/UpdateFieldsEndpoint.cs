@@ -17,7 +17,7 @@ public class UpdateFieldsEndpoint : Endpoint<UpdateFieldsRequest>
 
     public override void Configure()
     {
-        Put("products/category/{categoryId:int}/fields");
+        Put("categories/{categoryId:int}/fields");
         //Roles("Admin");
         Tags("ProductCategories");
         Summary(s => { s.Summary = "Обновить поля категории"; }); 

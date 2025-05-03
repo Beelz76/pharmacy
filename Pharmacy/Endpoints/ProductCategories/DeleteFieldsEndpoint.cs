@@ -16,7 +16,7 @@ public class DeleteFieldsEndpoint : Endpoint<DeleteFieldsRequest>
 
     public override void Configure()
     {
-        Delete("products/category/{categoryId:int}/fields");
+        Delete("categories/{categoryId:int}/fields");
         //Roles("Admin");
         Tags("ProductCategories");
         Summary(s => { s.Summary = "Удалить поля категории"; }); 
@@ -26,7 +26,7 @@ public class DeleteFieldsEndpoint : Endpoint<DeleteFieldsRequest>
     {
         var categoryId = Route<int>("categoryId");
         
-        var result = await _productCategoryService.DeleteFieldsAsync(categoryId, request.Fields);
+        var result = await _productCategoryService.DeleteFieldsAsync(categoryId, request.FieldIds);
         if (result.IsSuccess)
         {
             await SendOkAsync (ct);
@@ -38,13 +38,13 @@ public class DeleteFieldsEndpoint : Endpoint<DeleteFieldsRequest>
     }
 }
 
-public record DeleteFieldsRequest(List<int> Fields);
+public record DeleteFieldsRequest(List<int> FieldIds);
 
 public class DeleteFieldsRequestValidator : Validator<DeleteFieldsRequest>
 {
     public DeleteFieldsRequestValidator()
     {
-        RuleFor(x => x.Fields)
+        RuleFor(x => x.FieldIds)
             .NotEmpty(); 
     }
 }

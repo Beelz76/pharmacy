@@ -25,7 +25,7 @@ public class UpdateEndpoint : Endpoint<UpdateProductRequest>
 
     public override async Task HandleAsync(UpdateProductRequest request, CancellationToken ct)
     {
-        int productId = Route<int>("id");
+        int productId = Route<int>("productId");
         
         var result = await _productService.UpdateAsync(productId, request);
         if (result.IsSuccess)

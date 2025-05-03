@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
+using Pharmacy.Helpers;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Result;
@@ -18,28 +19,86 @@ public class ProductCategoryService : IProductCategoryService
         _productRepository = productRepository;
     }
 
-    public async Task<Result<IEnumerable<ProductCategoryDto>>> GetAllAsync()
+    // public async Task<Result<IEnumerable<ProductCategoryDto>>> GetAllAsync()
+    // {
+    //     var categories = (await _repository.GetAllAsync()).ToList();
+    //     if (!categories.Any())
+    //     {
+    //         return Result.Failure<IEnumerable<ProductCategoryDto>>(Error.NotFound("Категории не найдены"));
+    //     }
+    //
+    //     var categoriesDto = new List<ProductCategoryDto>(categories.Select(x => new ProductCategoryDto(x.Id, x.Name, x.Description)));
+    //     
+    //     return Result.Success<IEnumerable<ProductCategoryDto>>(categoriesDto);
+    // }
+    
+    public async Task<Result<IEnumerable<ProductCategoryWithSubDto>>> GetAllWithSubcategoriesAsync()
     {
         var categories = (await _repository.GetAllAsync()).ToList();
+
         if (!categories.Any())
         {
-            return Result.Failure<IEnumerable<ProductCategoryDto>>(Error.NotFound("Категории не найдены"));
+            return Result.Failure<IEnumerable<ProductCategoryWithSubDto>>(Error.NotFound("Категории не найдены"));
+        }
+        
+        var result = categories
+            .Where(c => c.ParentCategoryId == null)
+            .Select(c => new ProductCategoryWithSubDto(
+                c.Id,
+                c.Name,
+                c.Description,
+                c.ParentCategoryId,
+                c.Subcategories.Select(sc => new ProductCategoryDto(sc.Id, sc.Name, sc.Description)).ToList()
+            )).ToList();
+        
+        return Result.Success<IEnumerable<ProductCategoryWithSubDto>>(result);
+    }
+
+    public async Task<Result<ProductCategoryWithSubDto>> GetWithSubcategoriesByIdAsync(int categoryId)
+    {
+        var category = await _repository.GetByIdWithRelationsAsync(categoryId, includeSubcategories: true);
+        if (category is null)
+        {
+            return Result.Failure<ProductCategoryWithSubDto>(Error.NotFound("Категория не найдена"));
         }
 
-        var categoriesDto = new List<ProductCategoryDto>(categories.Select(x => new ProductCategoryDto(x.Id, x.Name, x.Description)));
-        
-        return Result.Success<IEnumerable<ProductCategoryDto>>(categoriesDto);
+        var dto = new ProductCategoryWithSubDto(
+            category.Id,
+            category.Name,
+            category.Description,
+            category.ParentCategoryId,
+            category.Subcategories.Select(sc => new ProductCategoryDto(sc.Id, sc.Name, sc.Description)).ToList()
+        );
+
+        return Result.Success(dto);
     }
     
-    public async Task<Result<CreatedDto>> CreateAsync(string name, string description, List<CategoryFieldDto> fields)
+    public async Task<Result<IEnumerable<ProductCategoryDto>>> GetSubcategoriesAsync(int categoryId)
     {
-        if (await _repository.ExistsByNameOrDescriptionAsync(name, description))
+        var subcategories = (await _repository.GetSubcategoriesAsync(categoryId)).ToList();
+
+        if (!subcategories.Any())
+        {
+            return Result.Failure<IEnumerable<ProductCategoryDto>>(Error.NotFound("Подкатегории не найдены"));
+        }
+
+        return Result.Success(subcategories.Select(x => new ProductCategoryDto(x.Id, x.Name, x.Description)));
+    }
+    
+    public async Task<Result<CreatedDto>> CreateAsync(string name, string description, int? parentCategoryId, List<CategoryFieldDto> fields)
+    {
+        if (await _repository.ExistsAsync(name: name, description: description))
         {
             return Result.Failure<CreatedDto>(Error.Conflict("Категория с таким именем или описанием уже существует"));
         }
 
+        if (parentCategoryId.HasValue && !await _repository.ExistsAsync(parentCategoryId.Value))
+        {
+            return Result.Failure<CreatedDto>(Error.NotFound("Родительская категория не найдена"));
+        }
+        
         var duplicateKeys = fields
-            .GroupBy(x => x.Key)
+            .GroupBy(x => x.Key.ToLower())
             .Where(x => x.Count() > 1)
             .Select(x => x.Key)
             .ToList();
@@ -48,11 +107,22 @@ public class ProductCategoryService : IProductCategoryService
         {
             return Result.Failure<CreatedDto>(Error.Failure($"Обнаружены дублирующиеся ключи: {string.Join(", ", duplicateKeys)}"));
         }
+
+        if (parentCategoryId.HasValue)
+        {
+            var allFieldsResult = await GetAllFieldsIncludingParentAsync(parentCategoryId.Value);
+            var conflicts = fields.Where(x => allFieldsResult.Value.Any(f => f.Key.Equals(x.Key, StringComparison.OrdinalIgnoreCase))).ToList();
+            if (conflicts.Any())
+            {
+                return Result.Failure<CreatedDto>(Error.Conflict($"Поля с такими ключами уже существуют: {string.Join(", ", conflicts.Select(c => c.Key))}"));
+            }
+        }
         
         var category = new ProductCategory
         {
             Name = name, 
             Description = description,
+            ParentCategoryId = parentCategoryId,
             Fields = fields.Select(x => new ProductCategoryField
             {
                 FieldKey = x.Key,
@@ -66,37 +136,48 @@ public class ProductCategoryService : IProductCategoryService
         return Result.Success(new CreatedDto(category.Id));
     }
 
-    public async Task<Result> UpdateBasicInfoAsync(int id, string name, string description)
+    public async Task<Result> UpdateBasicInfoAsync(int id, string name, string description, int? parentCategoryId)
     {
-        var category = await _repository.GetByIdAsync(id);
+        var category = await _repository.GetByIdWithRelationsAsync(id);
         if (category is null)
         {
             return Result.Failure(Error.NotFound("Категория не найдена"));
         }
 
-        if (await _repository.ExistsByNameOrDescriptionAsync(name, description))
+        if (parentCategoryId.HasValue && !await _repository.ExistsAsync(parentCategoryId.Value))
+        {
+            return Result.Failure(Error.NotFound("Родительская категория не найдена"));
+        }
+
+        if (parentCategoryId == id)
+        {
+            return Result.Failure(Error.Failure("Категория не может быть родителем самой себя"));
+        }
+        
+        if (await _repository.ExistsAsync(name: name, description: description, excludeId: id))
         {
             return Result.Failure(Error.Conflict("Категория с таким именем или описанием уже существует"));
         }
 
         category.Name = name;
         category.Description = description;
+        category.ParentCategoryId = parentCategoryId;
         await _repository.UpdateAsync(category);
         return Result.Success();
     }
 
     public async Task<Result> AddFieldsAsync(int categoryId, List<CategoryFieldDto> fields)
     {
-        var category = await _repository.GetByIdAsync(categoryId);
+        var category = await _repository.GetByIdWithRelationsAsync(categoryId, includeFields:true);
         if (category is null)
         {
             return Result.Failure(Error.NotFound("Категория не найдена"));
         }
         
         var duplicateKeys = fields
-            .GroupBy(x => x.Key)
-            .Where(x => x.Count() > 1).
-            Select(x => x.Key)
+            .GroupBy(x => x.Key.ToLower())
+            .Where(x => x.Count() > 1)
+            .Select(x => x.Key)
             .ToList();
 
         if (duplicateKeys.Any())
@@ -104,16 +185,16 @@ public class ProductCategoryService : IProductCategoryService
             return Result.Failure(Error.Failure($"Обнаружены дублирующиеся ключи в запросе: {string.Join(", ", duplicateKeys)}"));
         }
 
-        var existingKeys = category.Fields.Select(f => f.FieldKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var allFieldsResult = await GetAllFieldsIncludingParentAsync(categoryId);
+        var existingKeys = allFieldsResult.Value.Select(x => x.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var conflicts = fields
-            .Where(x => existingKeys
-            .Contains(x.Key))
+            .Where(x => existingKeys.Contains(x.Key))
             .Select(x => x.Key)
             .ToList();
         
         if (conflicts.Any())
         {
-            return Result.Failure(Error.Conflict($"Поля с такими ключами уже существуют: {string.Join(", ", conflicts)}"));
+            return Result.Failure(Error.Conflict($"Поля с такими ключами уже существуют в родительской или текущей категории: {string.Join(", ", conflicts)}"));
         }
 
         foreach (var field in fields)
@@ -134,41 +215,37 @@ public class ProductCategoryService : IProductCategoryService
     
     public async Task<Result> DeleteFieldsAsync(int categoryId, List<int> fieldIds)
     {
-        var category = await _repository.GetByIdAsync(categoryId);
+        var category = await _repository.GetByIdWithRelationsAsync(categoryId, includeFields: true);
         if (category is null)
         {
             return Result.Failure(Error.NotFound("Категория не найдена"));
         }
-
-        var fieldsToRemove = category.Fields
-            .Where(f => fieldIds.Contains(f.Id))
-            .ToList();
         
-        if (!fieldsToRemove.Any())
+        var existingIds = category.Fields.Select(f => f.Id).ToHashSet();
+        var invalidIds = fieldIds.Except(existingIds).ToList();
+        if (invalidIds.Any())
         {
-            return Result.Failure(Error.NotFound("Не найдены поля для удаления"));
+            return Result.Failure(Error.Failure($"Следующие поля не принадлежат категории: {string.Join(", ", invalidIds)}"));
+
         }
-        
-        var errors = new List<string>();
 
-        foreach (var field in fieldsToRemove)
+        var errors = new List<string>();
+        var toRemove = category.Fields.Where(f => fieldIds.Contains(f.Id)).ToList();
+
+        foreach (var field in toRemove)
         {
-            if (field.IsRequired)
+            if (field.IsRequired && await _productRepository.HasFieldUsedAsync(categoryId, field.FieldKey))
             {
-                var isUsed = await _productRepository.HasFieldUsedAsync(categoryId, field.FieldKey);
-                if (isUsed)
-                {
-                    errors.Add($"Нельзя удалить обязательное поле \"{field.FieldLabel}\", пока оно используется хотя бы одним товаром.");
-                }
+                errors.Add($"Нельзя удалить обязательное поле \"{field.FieldLabel}\", пока оно используется хотя бы одним товаром.");
             }
         }
-        
+
         if (errors.Any())
         {
-            return Result.Failure(Error.Failure("Ошибка при удалении полей", errors));
+            return Result.Failure(Error.Failure("Ошибки при удалении полей", errors));
         }
 
-        foreach (var field in fieldsToRemove)
+        foreach (var field in toRemove)
         {
             category.Fields.Remove(field);
         }
@@ -179,24 +256,27 @@ public class ProductCategoryService : IProductCategoryService
     
     public async Task<Result> UpdateFieldsAsync(int categoryId, List<CategoryFieldDto> fields)
     {
-        var category = await _repository.GetByIdAsync(categoryId);
+        var category = await _repository.GetByIdWithRelationsAsync(categoryId, includeFields: true);
         if (category is null)
         {
             return Result.Failure(Error.NotFound("Категория не найдена"));
         }
 
+        var errors = new List<string>();
+        
         var duplicateKeys = fields
-            .GroupBy(x => x.Key)
+            .GroupBy(x => x.Key.ToLower())
             .Where(x => x.Count() > 1)
             .Select(x => x.Key)
             .ToList();
 
         if (duplicateKeys.Any())
         {
-            return Result.Failure(Error.Failure($"Обнаружены дублирующиеся ключи: {string.Join(", ", duplicateKeys)}"));
+            errors.Add($"Обнаружены дублирующиеся ключи: {string.Join(", ", duplicateKeys)}");
         }
 
-        var errors = new List<string>();
+        var allFieldsResult = await GetAllFieldsIncludingParentAsync(categoryId);
+        
         foreach (var fieldDto in fields)
         {
             if (fieldDto.Id is null)
@@ -205,39 +285,36 @@ public class ProductCategoryService : IProductCategoryService
                 continue;
             }
 
-            var existingField = category.Fields.FirstOrDefault(f => f.Id == fieldDto.Id.Value);
-            if (existingField is null)
+            var currentField = category.Fields.FirstOrDefault(f => f.Id == fieldDto.Id);
+            if (currentField is null)
             {
-                errors.Add($"Поле с ID {fieldDto.Id.Value} не найдено");
+                errors.Add($"Поле с ID {fieldDto.Id.Value} не найдено в текущей категории");
+                continue;
+            }
+
+            if (allFieldsResult.Value.Any(f => f.Key.Equals(fieldDto.Key, StringComparison.OrdinalIgnoreCase) && f.Id != fieldDto.Id))
+            {
+                errors.Add($"Поле с ключом '{fieldDto.Key}' уже существует");
+                continue;
+            }
+
+            if (!currentField.IsRequired && fieldDto.IsRequired && await _productRepository.HasMissingFieldAsync(categoryId, currentField.FieldKey))
+            {
+                errors.Add($"Нельзя сделать поле \"{currentField.FieldLabel}\" обязательным, пока есть товары без заполненного значения.");
+                continue;
+            }
+
+            if (currentField.FieldType != fieldDto.Type && await HasInvalidFieldValuesAsync(categoryId, currentField.FieldKey, fieldDto.Type))
+            {
+                errors.Add($"Нельзя изменить тип поля \"{currentField.FieldLabel}\", так как значения товаров не соответствуют новому типу.");
                 continue;
             }
             
-            if (!existingField.IsRequired && fieldDto.IsRequired)
-            {
-                var hasMissingInProducts = await _productRepository.HasMissingFieldAsync(categoryId, existingField.FieldKey);
-
-                if (hasMissingInProducts)
-                {
-                    errors.Add($"Нельзя сделать поле \"{existingField.FieldLabel}\" обязательным, пока есть товары без заполненного значения.");
-                    continue;
-                }
-            }
-            
-            if (existingField.FieldType != fieldDto.Type)
-            {
-                var valuesInvalid = await HasInvalidFieldValuesAsync(categoryId, existingField.FieldKey, fieldDto.Type);
-                if (valuesInvalid)
-                {
-                    errors.Add($"Нельзя изменить тип поля \"{existingField.FieldLabel}\", так как существующие товары содержат значения, не соответствующие новому типу");
-                    continue;
-                }
-            }
-            
-            existingField.FieldKey = fieldDto.Key;
-            existingField.FieldLabel = fieldDto.Label;
-            existingField.FieldType = fieldDto.Type;
-            existingField.IsRequired = fieldDto.IsRequired;
-            existingField.IsFilterable = fieldDto.IsFilterable;
+            currentField.FieldKey = fieldDto.Key;
+            currentField.FieldLabel = fieldDto.Label;
+            currentField.FieldType = fieldDto.Type;
+            currentField.IsRequired = fieldDto.IsRequired;
+            currentField.IsFilterable = fieldDto.IsFilterable;
         }
 
         if (errors.Any())
@@ -251,13 +328,18 @@ public class ProductCategoryService : IProductCategoryService
     
     public async Task<Result> DeleteAsync(int id)
     {
-        var category = await _repository.GetByIdAsync(id);
+        var category = await _repository.GetByIdWithRelationsAsync(id, includeSubcategories: true);
         if (category is null)
         {
             return Result.Failure(Error.NotFound("Категория не найдена"));
         }
 
-        if (await _productRepository.ExistsByCategoryAsync(id))
+        if (category.Subcategories.Any())
+        {
+            return Result.Failure(Error.Conflict("Нельзя удалить категорию, у которой есть подкатегории"));
+        }
+        
+        if (await _productRepository.ExistsAsync(categoryId: id))
         {
             return Result.Failure(Error.Conflict("Нельзя удалить категорию, пока к ней привязаны товары"));
         }
@@ -270,30 +352,43 @@ public class ProductCategoryService : IProductCategoryService
     {
         return await _repository.ExistsAsync(categoryId);
     }
-
-    public async Task<Result<IEnumerable<CategoryFieldDto>>> GetCategoryFieldsAsync(int categoryId)
+    
+    public async Task<Result<ICollection<CategoryFieldDto>>> GetAllFieldsIncludingParentAsync(int? categoryId, bool checkForExistence = false)
     {
-        var category = await _repository.GetByIdAsync(categoryId);
-        if (category is null)
+        if (checkForExistence)
         {
-            return Result.Failure<IEnumerable<CategoryFieldDto>>(Error.NotFound("Категория не найдена"));
+            var categoryExists = await _repository.ExistsAsync(categoryId!.Value);
+            if (!categoryExists)
+            {
+                return Result.Failure<ICollection<CategoryFieldDto>>(Error.NotFound("Категория не найдена"));
+            }
         }
         
-        var fields = await _repository.GetCategoryFieldsAsync(categoryId);
-        
-        return Result.Success(fields.Select(x => new CategoryFieldDto(
-            x.Id,
-            x.FieldKey,
-            x.FieldLabel,
-            x.FieldType,
-            x.IsRequired,
-            x.IsRequired
-        )));
+        var result = new List<CategoryFieldDto>();
+        while (categoryId.HasValue)
+        {
+            var category = await _repository.GetByIdWithRelationsAsync(categoryId.Value, includeFields: true, includeParent: true);
+            if (category == null) break;
+            result.AddRange(category.Fields.Select(x => new CategoryFieldDto(
+                x.Id,
+                x.FieldKey,
+                x.FieldLabel,
+                x.FieldType,
+                x.IsRequired,
+                x.IsFilterable)));
+            categoryId = category.ParentCategory?.Id;
+        }
+        return result;
+    }
+    
+    public async Task<List<int>> GetAllSubcategoryIdsAsync(int categoryId)
+    {
+        return await _repository.GetChildrenIdsAsync(categoryId);
     }
     
     private async Task<Result> ValidateProductsInCategoryAsync(int categoryId)
     {
-        var categoryFieldsResult = await GetCategoryFieldsAsync(categoryId);
+        var categoryFieldsResult = await GetAllFieldsIncludingParentAsync(categoryId);
         if (categoryFieldsResult.IsFailure)
         {
             return Result.Failure(categoryFieldsResult.Error);
@@ -352,25 +447,12 @@ public class ProductCategoryService : IProductCategoryService
         foreach (var product in products)
         {
             var value = product.Properties.FirstOrDefault(p => p.Key == fieldKey)?.Value;
-            if (!string.IsNullOrWhiteSpace(value) && !IsValidType(value, newType))
+            if (!string.IsNullOrWhiteSpace(value) && !TypeValidationHelper.IsValidType(value, newType))
             {
                 return true;
             }
         }
 
         return false;
-    }
-    
-    private bool IsValidType(string value, string expectedType)
-    {
-        return expectedType.ToLower() switch
-        {
-            "string" => !string.IsNullOrWhiteSpace(value),
-            "number" => decimal.TryParse(value, out _),
-            "integer" => int.TryParse(value, out _),
-            "boolean" => bool.TryParse(value, out _),
-            "date" => DateTime.TryParse(value, out _),
-            _ => true
-        };
     }
 }

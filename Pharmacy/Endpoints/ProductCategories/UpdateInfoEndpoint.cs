@@ -17,7 +17,7 @@ public class UpdateInfoEndpoint : Endpoint<UpdateCategoryRequest>
 
     public override void Configure()
     {
-        Put("products/category/{categoryId:int}");
+        Put("categories/{categoryId:int}");
         //Roles("Admin");
         Tags("ProductCategories");
         Summary(s => { s.Summary = "Обновление названия/описания категории"; }); 
@@ -27,7 +27,7 @@ public class UpdateInfoEndpoint : Endpoint<UpdateCategoryRequest>
     {
         int categoryId = Route<int>("categoryId");
         
-        var result = await _productCategoryService.UpdateBasicInfoAsync(categoryId, request.Name, request.Description);
+        var result = await _productCategoryService.UpdateBasicInfoAsync(categoryId, request.Name, request.Description, request.ParentCategoryId);
         if (result.IsSuccess)
         {
             await SendOkAsync (ct);
@@ -39,7 +39,7 @@ public class UpdateInfoEndpoint : Endpoint<UpdateCategoryRequest>
     }
 }
 
-public record UpdateCategoryRequest(string Name, string Description);
+public record UpdateCategoryRequest(string Name, string Description, int? ParentCategoryId);
 
 public class UpdateCategoryRequestValidator : Validator<UpdateCategoryRequest>
 {

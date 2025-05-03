@@ -47,7 +47,7 @@ public class ManufacturerService : IManufacturerService
 
     public async Task<Result<CreatedDto>> CreateAsync(CreateManufacturerRequest request)
     {
-        if (await _repository.ExistsByNameAsync(request.Name))
+        if (await _repository.ExistsAsync(name: request.Name))
         {
             return Result.Failure<CreatedDto>(Error.Conflict("Производитель с таким названием уже существует"));
         }
@@ -64,25 +64,21 @@ public class ManufacturerService : IManufacturerService
 
     public async Task<Result> UpdateAsync(int id, UpdateManufacturerRequest request)
     {
-        return await _repository.ExecuteInTransactionAsync(async () =>
+        var manufacturer = await _repository.GetByIdAsync(id);
+        if (manufacturer is null) 
         {
-            var manufacturer = await _repository.GetByIdAsync(id);
-            if (manufacturer is null)
-            {
-                return Result.Failure(Error.NotFound("Производитель не найден"));
-            }
+            return Result.Failure(Error.NotFound("Производитель не найден"));
+        }
 
-            if (manufacturer.Name != request.Name && await _repository.ExistsByNameAsync(request.Name, excludeId: id))
-            {
-                return Result.Failure(Error.Conflict("Производитель с таким названием уже существует"));
-            }
-
-            manufacturer.Name = request.Name;
-            manufacturer.Country = request.Country;
-
-            await _repository.UpdateAsync(manufacturer);
-            return Result.Success();
-        });
+        if (await _repository.ExistsAsync(name: request.Name, excludeId: id)) 
+        { 
+            return Result.Failure(Error.Conflict("Производитель с таким названием уже существует"));
+        }
+        
+        manufacturer.Name = request.Name;
+        manufacturer.Country = request.Country;
+        await _repository.UpdateAsync(manufacturer);
+        return Result.Success();
     }
 
     public async Task<Result> DeleteAsync(int id)

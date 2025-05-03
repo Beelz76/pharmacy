@@ -17,7 +17,7 @@ public class AddFieldsEndpoint : Endpoint<AddFieldsRequest>
 
     public override void Configure()
     {
-        Post("products/category/{categoryId:int}/fields");
+        Post("categories/{categoryId:int}/fields");
         //Roles("Admin");
         Tags("ProductCategories");
         Summary(s => { s.Summary = "Добавить поля к категории"; }); 
