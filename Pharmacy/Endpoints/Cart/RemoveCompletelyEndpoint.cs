@@ -26,9 +26,14 @@ public class RemoveCompletelyEndpoint : EndpointWithoutRequest
     public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.GetUserId();
+        if (userId == null)
+        {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
         var productId = Route<int>("productId");
         
-        var result = await _cartService.RemoveFromCartCompletelyAsync(userId, productId);
+        var result = await _cartService.RemoveFromCartCompletelyAsync(userId.Value, productId);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);

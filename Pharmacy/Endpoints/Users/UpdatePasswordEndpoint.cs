@@ -26,8 +26,13 @@ public class UpdatePasswordEndpoint : Endpoint<UpdatePasswordRequest>
     public override async Task HandleAsync(UpdatePasswordRequest request, CancellationToken ct)
     {
         var userId = User.GetUserId();
+        if (userId == null)
+        {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
         
-        var result = await _userService.UpdatePasswordAsync(userId, request.CurrentPassword, request.NewPassword);
+        var result = await _userService.UpdatePasswordAsync(userId.Value, request.CurrentPassword, request.NewPassword);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);

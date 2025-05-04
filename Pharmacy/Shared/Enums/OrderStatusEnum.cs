@@ -1,13 +1,16 @@
 ﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace Pharmacy.Shared.Enums;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum OrderStatusEnum
 {
-    [Description("Ожидает обработки")] Pending = 1,
-    [Description("В обработке")] Processing = 2,
-    [Description("Готов к получению")] ReadyForReceive = 3,
-    [Description("Получен")] Received = 4,
-    [Description("Отменен")] Cancelled = 5,
-    [Description("Возврат средств")] Refunded = 6
+    [Description("Ожидает оплаты")] WaitingForPayment = 1,
+    [Description("Ожидает обработки")] Pending = 2,
+    [Description("В обработке")] Processing = 3,
+    [Description("Готов к получению")] ReadyForReceive = 4,
+    [Description("Получен")] Received = 5,
+    [Description("Отменен")] Cancelled = 6,
+    [Description("Возврат средств")] Refunded = 7
 }

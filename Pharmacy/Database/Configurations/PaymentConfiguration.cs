@@ -23,8 +23,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(x => x.PaymentMethodId)
             .IsRequired();
         
-        builder.Property(x => x.TransactionDate)
-            .IsRequired();
+        builder.Property(x => x.TransactionDate);
 
         builder.Property(p => p.CreatedAt)
             .IsRequired()
@@ -33,10 +32,6 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.UpdatedAt)
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
-        
-        builder.HasOne(x => x.Order)
-            .WithMany(x => x.Payments)
-            .HasForeignKey(x => x.OrderId);
             
         builder.HasOne(x => x.Method)
             .WithMany(x => x.Payments)

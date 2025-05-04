@@ -1,15 +1,14 @@
 ﻿using FastEndpoints;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
-using Pharmacy.Shared.Enums;
 
 namespace Pharmacy.Endpoints.Orders;
 
-public class GetByIdEndpoint : EndpointWithoutRequest
+public class PayEndpoint : EndpointWithoutRequest
 {
-    private readonly ILogger<GetByIdEndpoint> _logger;
+    private readonly ILogger<PayEndpoint> _logger;
     private readonly IOrderService _orderService;
-    public GetByIdEndpoint(ILogger<GetByIdEndpoint> logger, IOrderService orderService)
+    public PayEndpoint(ILogger<PayEndpoint> logger, IOrderService orderService)
     {
         _logger = logger;
         _orderService = orderService;
@@ -17,10 +16,10 @@ public class GetByIdEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("orders/{orderId:int}");
-        Roles("Admin", "User", "Employee");
+        Post("orders/{orderId:int}/pay");
+        Roles("User");
         Tags("Orders");
-        Summary(s => { s.Summary = "Получить заказ по id"; });
+        Summary(s => { s.Summary = "Оплатить заказ"; });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
@@ -32,13 +31,12 @@ public class GetByIdEndpoint : EndpointWithoutRequest
             return;
         }
         
-        var userRole = User.GetUserRole();
         var orderId = Route<int>("orderId");
         
-        var result = await _orderService.GetByIdAsync(orderId, userId.Value, userRole);
+        var result = await _orderService.PayAsync(orderId, userId.Value);
         if (result.IsSuccess)
         {
-            await SendOkAsync(result.Value, ct);
+            await SendOkAsync(ct);
         }
         else
         {

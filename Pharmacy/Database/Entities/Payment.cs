@@ -9,7 +9,7 @@ public class Payment
     public int StatusId { get; set; }
     public int PaymentMethodId { get; set; }
     public string? Comment { get; set; }
-    public DateTime TransactionDate { get; set; }
+    public DateTime? TransactionDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
         

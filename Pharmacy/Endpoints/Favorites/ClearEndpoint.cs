@@ -25,8 +25,13 @@ public class ClearEndpoint : EndpointWithoutRequest
     public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.GetUserId();
+        if (userId == null)
+        {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
         
-        var result = await _favoritesService.ClearAsync(userId);
+        var result = await _favoritesService.ClearAsync(userId.Value);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);

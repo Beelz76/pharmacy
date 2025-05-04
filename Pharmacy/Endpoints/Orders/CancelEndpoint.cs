@@ -1,15 +1,14 @@
 ﻿using FastEndpoints;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
-using Pharmacy.Shared.Enums;
 
 namespace Pharmacy.Endpoints.Orders;
 
-public class GetByIdEndpoint : EndpointWithoutRequest
+public class CancelEndpoint : EndpointWithoutRequest
 {
-    private readonly ILogger<GetByIdEndpoint> _logger;
+    private readonly ILogger<CancelEndpoint> _logger;
     private readonly IOrderService _orderService;
-    public GetByIdEndpoint(ILogger<GetByIdEndpoint> logger, IOrderService orderService)
+    public CancelEndpoint(ILogger<CancelEndpoint> logger, IOrderService orderService)
     {
         _logger = logger;
         _orderService = orderService;
@@ -17,10 +16,10 @@ public class GetByIdEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("orders/{orderId:int}");
-        Roles("Admin", "User", "Employee");
+        Put("orders/{orderId:int}/cancel");
+        Roles("User", "Employee", "Admin");
         Tags("Orders");
-        Summary(s => { s.Summary = "Получить заказ по id"; });
+        Summary(s => { s.Summary = "Отменить заказ"; });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
@@ -31,14 +30,12 @@ public class GetByIdEndpoint : EndpointWithoutRequest
             await SendUnauthorizedAsync(ct);
             return;
         }
-        
-        var userRole = User.GetUserRole();
         var orderId = Route<int>("orderId");
         
-        var result = await _orderService.GetByIdAsync(orderId, userId.Value, userRole);
+        var result = await _orderService.CancelAsync(userId.Value, orderId);
         if (result.IsSuccess)
         {
-            await SendOkAsync(result.Value, ct);
+            await SendOkAsync(ct);
         }
         else
         {

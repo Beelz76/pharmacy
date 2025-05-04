@@ -26,7 +26,13 @@ public class UpdateProfileEndpoint : Endpoint<UpdateProfileRequest>
     public override async Task HandleAsync(UpdateProfileRequest request, CancellationToken ct)
     {
         var userId = User.GetUserId();
-        var result = await _userService.UpdateProfileAsync(userId, request);
+        if (userId == null)
+        {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+        
+        var result = await _userService.UpdateProfileAsync(userId.Value, request);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);

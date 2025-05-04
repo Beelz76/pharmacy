@@ -26,8 +26,13 @@ public class GetProfileEndpoint : EndpointWithoutRequest
     public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.GetUserId();
+        if (userId == null)
+        {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
         
-        var result = await _userService.GetByIdAsync(userId);
+        var result = await _userService.GetByIdAsync(userId.Value);
         if (result.IsFailure)
         {
             await SendAsync(result.Error, (int)result.Error.Code, ct);

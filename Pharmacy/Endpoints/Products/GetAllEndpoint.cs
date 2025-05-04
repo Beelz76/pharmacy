@@ -30,7 +30,7 @@ public class GetAllEndpoint : Endpoint<ProductFilters>
         string? sortBy = Query<string>("sortBy", isRequired: false);
         string? sortOrder = Query<string>("sortOrder", isRequired: false);
      
-        var userId = User.GetUserIdNullable();
+        var userId = User.GetUserId();
         
         var parameters = new ProductParameters
         {

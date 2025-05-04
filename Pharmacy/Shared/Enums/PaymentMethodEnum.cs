@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace Pharmacy.Shared.Enums;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PaymentMethodEnum
 {
-    [Description("Онлайн")] Online = 1,
-    [Description("Карта")] Card = 2,
-    [Description("Наличные")] Cash = 3
+    [Description("Картой онлайн")] Online = 1,
+    [Description("При получении")] OnDelivery = 2
 }
