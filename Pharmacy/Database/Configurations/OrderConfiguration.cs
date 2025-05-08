@@ -23,6 +23,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(x => x.PickupCode)
             .HasMaxLength(4);
         
+        builder.Property(x => x.PharmacyAddress)
+            .IsRequired()
+            .HasMaxLength(255);
+        
         builder.Property(x => x.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");

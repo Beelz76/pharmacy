@@ -54,6 +54,7 @@ public class UpdatePasswordRequestValidator : Validator<UpdatePasswordRequest>
             .NotEmpty();
         
         RuleFor(x => x.NewPassword)
+            .MinimumLength(6)
             .NotEmpty();
         
         RuleFor(x => x.ConfirmNewPassword)

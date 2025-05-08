@@ -7,7 +7,7 @@ public interface IProductCategoryService
 {
     //Task<Result<IEnumerable<ProductCategoryDto>>> GetAllAsync();
     Task<Result<IEnumerable<ProductCategoryWithSubDto>>> GetAllWithSubcategoriesAsync();
-    Task<Result<ProductCategoryWithSubDto>> GetWithSubcategoriesByIdAsync(int categoryId);
+    Task<Result<ProductCategoryWithSubDto>> GetByIdAsync(int categoryId, bool includeSubcategories = false);
     Task<Result<IEnumerable<ProductCategoryDto>>> GetSubcategoriesAsync(int categoryId);
     Task<Result<CreatedDto>> CreateAsync(string name, string description, int? parentCategoryId, List<CategoryFieldDto> fields);
     Task<Result> UpdateBasicInfoAsync(int id, string name, string description, int? parentCategoryId);

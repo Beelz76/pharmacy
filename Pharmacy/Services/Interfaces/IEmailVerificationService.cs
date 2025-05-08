@@ -11,5 +11,4 @@ public interface IEmailVerificationService
     Task<Result<ConfirmCodeDto>> ConfirmCodeAsync(string email, string code, VerificationPurposeEnum purpose, int? userId = null);
     Task<Result<bool>> CheckEmailVerifiedAsync(string email);
     Task<Result> RecoverPasswordAsync(string email, string newPassword);
-    Task<EmailVerificationCode> GenerateVerificationCodeAsync(int userId, string email, VerificationPurposeEnum purpose);
 }

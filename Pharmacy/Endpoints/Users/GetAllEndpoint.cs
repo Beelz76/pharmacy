@@ -16,7 +16,7 @@ public class GetAllEndpoint : Endpoint<UserFilters>
 
     public override void Configure()
     {
-        Get("users/paginated");
+        Post("users/paginated");
         //Roles("Admin");
         AllowAnonymous();
         Tags("Users");

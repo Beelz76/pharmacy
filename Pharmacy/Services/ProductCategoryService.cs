@@ -54,9 +54,9 @@ public class ProductCategoryService : IProductCategoryService
         return Result.Success<IEnumerable<ProductCategoryWithSubDto>>(result);
     }
 
-    public async Task<Result<ProductCategoryWithSubDto>> GetWithSubcategoriesByIdAsync(int categoryId)
+    public async Task<Result<ProductCategoryWithSubDto>> GetByIdAsync(int categoryId, bool includeSubcategories = false)
     {
-        var category = await _repository.GetByIdWithRelationsAsync(categoryId, includeSubcategories: true);
+        var category = await _repository.GetByIdWithRelationsAsync(categoryId, includeSubcategories);
         if (category is null)
         {
             return Result.Failure<ProductCategoryWithSubDto>(Error.NotFound("Категория не найдена"));

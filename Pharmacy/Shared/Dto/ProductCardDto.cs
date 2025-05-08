@@ -3,6 +3,7 @@
 public record ProductCardDto(
     int Id,
     string Name,
+    string Description,
     decimal Price,
     int StockQuantity,
     string? ImageUrl,

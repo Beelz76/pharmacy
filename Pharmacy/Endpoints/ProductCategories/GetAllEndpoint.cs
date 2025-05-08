@@ -17,7 +17,7 @@ public class GetAllEndpoint : EndpointWithoutRequest
     public override void Configure()
     {
         Get("categories");
-        //AllowAnonymous();
+        AllowAnonymous();
         Tags("ProductCategories");
         Summary(s => { s.Summary = "Получение всех категорий товаров"; }); 
     }

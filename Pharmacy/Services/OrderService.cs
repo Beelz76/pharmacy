@@ -32,7 +32,7 @@ public class OrderService : IOrderService
         _emailSender = emailSender;
     }
 
-    public async Task<Result<CreatedDto>> CreateAsync(int userId, string deliveryAddress, PaymentMethodEnum paymentMethod)
+    public async Task<Result<CreatedDto>> CreateAsync(int userId, string pharmacyAddress, PaymentMethodEnum paymentMethod)
     {
         var cartItems = await _cartRepository.GetRawUserCartAsync(userId);
         if (!cartItems.Any())
@@ -68,7 +68,8 @@ public class OrderService : IOrderService
             StatusId = paymentMethod == PaymentMethodEnum.Online ? (int)OrderStatusEnum.WaitingForPayment : (int)OrderStatusEnum.Pending,
             CreatedAt = now,
             UpdatedAt = now,
-            OrderItems = orderItems
+            OrderItems = orderItems,
+            PharmacyAddress = pharmacyAddress.Trim()
         };
 
         await _orderRepository.AddAsync(order);
@@ -149,8 +150,9 @@ public class OrderService : IOrderService
             order.TotalPrice,
             order.Status.Description,
             order.PickupCode,
+            order.PharmacyAddress,
             order.UserId,
-            $"{order.User.LastName} {order.User.FirstName} {order.User.Patronymic}",
+            $"{order.User.LastName} {order.User.FirstName} {order.User.Patronymic}".Trim(),
             order.User.Email,
             order.OrderItems.Select(oi => new OrderItemDto(
                 oi.ProductId,
@@ -191,7 +193,12 @@ public class OrderService : IOrderService
         if (!string.IsNullOrWhiteSpace(filters.UserFullName) && userId == null)
         {
             var name = filters.UserFullName.ToLower();
-            query = query.Where(o => (o.User.LastName + " " + o.User.FirstName + (o.User.Patronymic != null ? " " + o.User.Patronymic : "")).ToLower().Contains(name));
+            query = query.Where(o => $"{o.User.LastName} {o.User.FirstName} {o.User.Patronymic}".Trim().ToLower().Contains(name));
+        }
+        
+        if (!string.IsNullOrWhiteSpace(filters.PharmacyCity) && userId == null)
+        {
+            query = query.Where(o => o.PharmacyAddress.ToLower().Contains(filters.PharmacyCity.ToLower()));
         }
         
         if (!string.IsNullOrWhiteSpace(filters.Number))
@@ -234,7 +241,7 @@ public class OrderService : IOrderService
                 o.Status.Name,
                 o.PickupCode,
                 o.UserId,
-                $"{o.User.LastName} {o.User.FirstName} {o.User.Patronymic}",
+                $"{o.User.LastName} {o.User.FirstName} {o.User.Patronymic}".Trim(),
                 o.User.Email))
             .ToListAsync();
 
@@ -272,6 +279,9 @@ public class OrderService : IOrderService
                     <h2 style=""color: #2c3e50;"">Здравствуйте, {user.LastName} {user.FirstName}!</h2>
                     <p style=""font-size: 16px; color: #333;"">
                         Ваш заказ <strong>{order.Number}</strong> теперь готов к получению в аптеке.
+                    </p>
+                    <p style=\""font-size: 14px; color: #888;\"">
+                        Адрес аптеки: <strong>{order.PharmacyAddress}</strong>
                     </p>
                     <p style=""font-size: 18px; color: #000; margin-top: 20px;"">
                         <strong>Код для получения:</strong>

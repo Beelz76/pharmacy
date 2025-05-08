@@ -61,17 +61,17 @@ try
     
     builder.Services.AddAuthorization();
     
-    // builder.Services.AddCors(options =>
-    // {
-    //     options.AddDefaultPolicy(policy =>
-    //     {
-    //         policy
-    //             .AllowAnyHeader()
-    //             .AllowAnyMethod()
-    //             .AllowCredentials()
-    //             .WithOrigins("http://localhost:"); // Vue frontend
-    //     });
-    // });
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+        {
+            policy
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials()
+                .WithOrigins("http://localhost:5173");
+        });
+    });
 
     builder.Services.AddFastEndpoints()
         .SwaggerDocument(options =>
@@ -128,7 +128,9 @@ try
     }
     
     app.UseHttpsRedirection();
-
+    
+    app.UseCors();
+    
     app.UseExceptionHandler();
     
     app.UseAuthentication();

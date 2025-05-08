@@ -28,7 +28,7 @@ public class LoginEndpoint : Endpoint<LoginRequest>
 
         if (result.IsSuccess)
         {
-            await SendStringAsync(result.Value, cancellation: ct);
+            await SendAsync(result.Value, cancellation: ct);
         }
         else
         {

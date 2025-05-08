@@ -53,6 +53,7 @@ public class RegisterRequestValidator : Validator<RegisterRequest>
             .EmailAddress();
 
         RuleFor(x => x.Password)
+            .MinimumLength(6)
             .NotEmpty();
         
         RuleFor(x => x.FirstName)

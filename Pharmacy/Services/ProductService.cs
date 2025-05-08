@@ -252,6 +252,7 @@ public class ProductService : IProductService
             {
                 p.Id,
                 p.Name,
+                p.Description,
                 p.Price,
                 p.StockQuantity,
                 ImageUrl = p.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
@@ -267,6 +268,7 @@ public class ProductService : IProductService
         var items = pageItems.Select(p => new ProductCardDto(
             p.Id,
             p.Name,
+            p.Description,
             p.Price,
             p.StockQuantity,
             p.ImageUrl,
@@ -295,6 +297,59 @@ public class ProductService : IProductService
     public async Task<List<string>> GetSearchSuggestionsAsync(string query)
     {
         return await _repository.GetSearchSuggestionsAsync(query);
+    }
+
+    public async Task<Result<List<FilterOptionDto>>> GetFilterValuesAsync(int categoryId)
+    {
+        var categoryResult = await _productCategoryService.GetByIdAsync(categoryId);
+        if (categoryResult.IsFailure)
+        {
+            return Result.Failure<List<FilterOptionDto>>(categoryResult.Error);
+        }
+
+        var category = categoryResult.Value;
+        
+        List<int> relevantCategoryIds;
+        if (category.ParentCategoryId is null)
+        {
+            relevantCategoryIds = new List<int> { category.Id };
+        }
+        else
+        {
+            relevantCategoryIds = new List<int> { category.Id, category.ParentCategoryId.Value };
+        }
+
+        var products = await _repository.Query()
+            .Where(p => relevantCategoryIds.Contains(p.CategoryId))
+            .Select(p => p.Properties)
+            .ToListAsync();
+
+        var result = new Dictionary<string, HashSet<string>>();
+
+        foreach (var propertyList in products)
+        {
+            foreach (var prop in propertyList)
+            {
+                if (!result.ContainsKey(prop.Key))
+                    result[prop.Key] = new HashSet<string>();
+                result[prop.Key].Add(prop.Value);
+            }
+        }
+
+        var fields = await _productCategoryService.GetAllFieldsIncludingParentAsync(categoryId);
+
+        var finalResult = result.Select(r =>
+        {
+            var field = fields.Value.FirstOrDefault(f => f.Key == r.Key);
+            var label = field?.Label ?? r.Key;
+            return new FilterOptionDto(
+                r.Key,
+                label,
+                r.Value.OrderBy(v => v).ToList()
+            );
+        }).ToList();
+
+        return Result.Success(finalResult);
     }
     
     private List<string> ValidateProductProperties(List<ProductPropertyDto> properties, List<CategoryFieldDto> categoryFields)

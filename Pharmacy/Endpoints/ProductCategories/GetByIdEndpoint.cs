@@ -24,8 +24,8 @@ public class GetByIdEndpoint : EndpointWithoutRequest
     public override async Task HandleAsync(CancellationToken ct)
     {
         var categoryId = Route<int>("categoryId");
-        
-        var result = await _productCategoryService.GetWithSubcategoriesByIdAsync(categoryId);
+
+        var result = await _productCategoryService.GetByIdAsync(categoryId, includeSubcategories: true);
         if (result.IsSuccess)
         {
             await SendOkAsync (result.Value, ct);

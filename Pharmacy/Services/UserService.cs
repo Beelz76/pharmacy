@@ -95,7 +95,7 @@ public class UserService : IUserService
             return Result.Failure(Error.Conflict("Пользователь с таким email уже зарегистрирован"));
         }
 
-        var sendResult = await _emailVerificationService.SendCodeAsync(user.Email, VerificationPurposeEnum.Registration);
+        var sendResult = await _emailVerificationService.SendCodeAsync(user!.Email, VerificationPurposeEnum.Registration);
         if (sendResult.IsFailure)
         {
             return Result.Failure<string>(sendResult.Error);

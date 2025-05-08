@@ -47,21 +47,21 @@ public class AuthorizationService : IAuthorizationService
             return Result.Failure<string>(sendResult.Error);
         }
         
-        return Result.Success<string>("На почту отправлен код подтверждения");
+        return Result.Success("На почту отправлен код подтверждения");
     }
     
-    public async Task<Result<string>> LoginAsync(LoginRequest request)
+    public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request)
     {
         var userResult = await _userService.GetByEmailAsync(request.Email);
         if (userResult.IsFailure)
         {
-            return Result.Failure<string>(userResult.Error);
+            return Result.Failure<LoginResponse>(userResult.Error);
         }
 
         var verifiedPassword = _passwordProvider.Verify(request.Password, userResult.Value.PasswordHash);
         if (!verifiedPassword)
         {
-            return Result.Failure<string>(Error.Failure("Неверный пароль"));
+            return Result.Failure<LoginResponse>(Error.Failure("Неверный пароль"));
         }
         
         if (!userResult.Value.EmailVerified)
@@ -69,13 +69,13 @@ public class AuthorizationService : IAuthorizationService
             var sendResult = await _emailVerificationService.SendCodeAsync(request.Email, VerificationPurposeEnum.Registration);
             if (sendResult.IsFailure)
             {
-                return Result.Failure<string>(sendResult.Error);
+                return Result.Failure<LoginResponse>(sendResult.Error);
             }
-            return Result.Success<string>("На почту отправлен код подтверждения");
+            return Result.Success(new LoginResponse("На почту отправлен код подтверждения", null));
         }
         
         var token = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email, userResult.Value.Role);
         
-        return Result.Success(token);
+        return Result.Success(new LoginResponse(null, token));
     }
 }
