@@ -47,7 +47,7 @@ public class OrderService : IOrderService
             var product = await _productRepository.GetByIdWithRelationsAsync(cartItem.ProductId);
             if (product is null || !product.IsAvailable || product.StockQuantity < cartItem.Quantity)
             {
-                return Result.Failure<CreatedDto>(Error.Failure($"Товар {cartItem.ProductId} недоступен или недостаточно на складе"));
+                return Result.Failure<CreatedDto>(Error.Failure($"Товар {cartItem.ProductId} недоступен"));
             }
 
             orderItems.Add(new OrderItem

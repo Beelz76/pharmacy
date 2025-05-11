@@ -27,9 +27,13 @@ public class FavoritesService : IFavoritesService
         var result = favorites.Select(x => new FavoriteItemDto(
             x.ProductId,
             x.Name,
+            x.Description,
+            x.ManufacturerName,
+            x.ManufacturerCountry,
             x.Price,
             x.ImageUrl,
             x.IsAvailable,
+            x.IsPrescriptionRequired,
             cartItems.TryGetValue(x.ProductId, out int qty) ? qty : 0
         ));
         

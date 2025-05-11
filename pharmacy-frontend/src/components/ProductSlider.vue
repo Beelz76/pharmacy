@@ -1,6 +1,6 @@
 <template>
-  <section class="py-12 relative bg-slate-100">
-    <div class="max-w-7xl mx-auto px-4">
+  <section class="py-12 relative bg-gray-50">
+    <div class="max-w-7xl mx-auto">
       <div class="text-center mb-8">
         <p class="text-primary-600 font-semibold uppercase">Последние товары</p>
         <h2 class="text-3xl font-extrabold text-gray-900 mt-2">Новинки</h2>
@@ -30,7 +30,7 @@
           @click="prevSlide"
           class="absolute left-[-2.5rem] top-0 h-full w-10 flex items-center justify-center z-10 bg-transparent focus:outline-none"
         >
-          <div class="bg-slate-50 border rounded-full shadow p-2 hover:bg-gray-100">
+          <div class="bg-gray-50 border rounded-full shadow p-2 hover:bg-gray-100">
             <i class="fas fa-chevron-left"></i>
           </div>
         </button>
@@ -40,7 +40,7 @@
           @click="nextSlide"
           class="absolute right-[-2.5rem] top-0 h-full w-10 flex items-center justify-center z-10 bg-transparent focus:outline-none"
         >
-          <div class="bg-slate-50 border rounded-full shadow p-2 hover:bg-gray-100">
+          <div class="bg-gray-50 border rounded-full shadow p-2 hover:bg-gray-100">
             <i class="fas fa-chevron-right"></i>
           </div>
         </button>
@@ -57,11 +57,11 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import ProductCard from './ProductCard.vue'
-import { getPaginatedProducts } from '/src/composables/useProducts'
-import { useCartStore } from '/src/store/CartStore'
-import { useFavoritesStore } from '/src/store/FavoritesStore'
-import LoadingSpinner from '../LoadingSpinner.vue'
+import ProductCard from './cards/ProductCard.vue'
+import { getPaginatedProducts } from '../composables/useProducts'
+import { useCartStore } from '../store/CartStore'
+import { useFavoritesStore } from '../store/FavoritesStore'
+import LoadingSpinner from './LoadingSpinner.vue'
 
 const visibleCount = 4
 const cardWidth = 300

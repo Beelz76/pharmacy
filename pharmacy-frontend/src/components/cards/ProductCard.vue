@@ -1,11 +1,12 @@
 <template>
-  <div class="bg-slate-50 rounded-xl shadow hover:shadow-lg transition overflow-hidden relative flex flex-col">
+  <div class="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden relative flex flex-col">
     <!-- Изображение -->
     <div class="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
-      <img :src="product.imageUrl || defaultImage" alt="product image" class="w-full h-full object-cover" />
+      <img v-if="product.imageUrl" :src="product.imageUrl || defaultImage" alt="image" class="w-full h-full object-cover" />
+        <i v-else class="fas fa-image text-3xl text-gray-400"></i>
 
       <!-- Избранное (всегда доступна) -->
-      <button @click="toggleFavorite" class="absolute top-2 right-2 text-xl">
+      <button @click="toggleFavorite" class="absolute top-2 right-4 text-2xl">
         <i :class="['fas fa-heart', isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-500']"></i>
       </button>
 
@@ -35,17 +36,29 @@
       <div class="mt-4 flex items-center justify-between flex-wrap gap-2">
         <span class="font-semibold text-gray-900">{{ product.price.toFixed(2) }} ₽</span>
 
-        <div v-if="cartQuantity > 0" class="flex items-center gap-2">
-          <button @click="decrementQuantity" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">−</button>
-          <input
-            v-model.number="editableQuantity"
-            @change="setQuantity"
-            type="number"
-            min="1"
-            class="w-12 text-center border rounded"
-          />
-          <button @click="incrementQuantity" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">+</button>
-        </div>
+<div v-if="cartQuantity > 0" class="flex items-center gap-1">
+  <button
+    @click="decrementQuantity"
+    class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
+  >
+    −
+  </button>
+
+  <input
+    v-model.number="editableQuantity"
+    @change="setQuantity"
+    type="number"
+    min="1"
+    class="w-12 h-8 text-center border rounded appearance-none focus:outline-none"
+  />
+
+  <button
+    @click="incrementQuantity"
+    class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
+  >
+    +
+  </button>
+</div>
 
         <button
           v-else
@@ -105,3 +118,15 @@ const setQuantity = () => {
   cartStore.setQuantity(props.product.id, quantity)
 }
 </script>
+
+<style scoped>
+/* Удаляем стрелки у number input */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+</style>

@@ -123,7 +123,7 @@
           <el-input v-model="form.newPassword" type="password" size="large" show-password class="!h-12 !text-base !rounded-md" />
         </el-form-item>
         <el-form-item label="Повторить пароль" prop="confirmPassword">
-          <el-input v-model="form.confirmPassword" type="password" size="large" show-password class="!h-12 !text-base !rounded-md" />
+          <el-input v-model="form.confirmPassword" type="password" size="large" show-password @paste.prevent class="!h-12 !text-base !rounded-md" />
         </el-form-item>
       </el-form>
 

@@ -22,11 +22,15 @@ public class CartRepository : ICartRepository
             .Select(c => new CartItemDto(
                 c.ProductId,
                 c.Product.Name,
+                c.Product.Description,
+                c.Product.Manufacturer.Name,
+                c.Product.Manufacturer.Country,
                 c.Quantity,
                 c.Product.Price,
                 c.Quantity * c.Product.Price,
                 c.Product.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
-                c.Product.IsAvailable
+                c.Product.IsAvailable,
+                c.Product.IsPrescriptionRequired
                 ))
             .ToListAsync();
     }

@@ -3,6 +3,7 @@ import HomePage from "../pages/HomePage.vue";
 import ProductsPage from "../pages/ProductsPage.vue";
 import AccountLayout from "../layouts/AccountLayout.vue";
 import AccountPage from "../pages/account/AccountPage.vue";
+import CartPage from '../pages/CartPage.vue'
 import OrderHistoryPage from "../pages/account/OrderHistoryPage.vue";
 import FavoritesPage from "../pages/account/FavoritesPage.vue";
 import { useAuthStore } from '../store/AuthStore'
@@ -10,6 +11,7 @@ import { useAuthStore } from '../store/AuthStore'
 const routes = [
   { path: "/", name: "Home", component: HomePage },
   { path: "/products", name: "Products", component: ProductsPage },
+  { path: "/cart", name: "Cart", component: CartPage },
   {
     path: '/account',
     component: AccountLayout,
@@ -17,7 +19,7 @@ const routes = [
     children: [
       { path: '', component: AccountPage },
       { path: 'orders', component: OrderHistoryPage },
-      { path: 'favorites', component: FavoritesPage },
+      { path: 'favorites', component: FavoritesPage }
     ]
   }
 ];

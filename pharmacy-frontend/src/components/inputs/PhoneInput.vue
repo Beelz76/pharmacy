@@ -68,15 +68,15 @@ const validationRules = [
   {
     validator(_, val, cb) {
       const digits = (val || '').replace(/\D/g, '')
-      if (!val && !props.required) return cb()
+      if (!digits && !props.required) return cb()
       if (digits.length !== 11 || !digits.startsWith('7')) {
-        cb(new Error('Введите корректный номер'))
-      } else {
-        cb()
+        return cb(new Error('Введите корректный номер'))
       }
+      cb()
     },
-    trigger: 'blur'
+    trigger: ['blur', 'change']
   }
 ]
+
 
 </script>

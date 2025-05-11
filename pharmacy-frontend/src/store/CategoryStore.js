@@ -4,6 +4,8 @@ import api from '../utils/axios'
 export const useCategoryStore = defineStore('categories', {
   state: () => ({
     categories: [],
+    selectedCategoryId: null,
+    selectedCategoryName: 'Все категории',
     loading: false,
     isLoaded: false,
     error: null
@@ -24,6 +26,16 @@ export const useCategoryStore = defineStore('categories', {
       } finally {
         this.loading = false
       }
+    },
+
+    selectCategory(id, name) {
+      this.selectedCategoryId = id
+      this.selectedCategoryName = name
+    },
+
+    resetCategory() {
+      this.selectedCategoryId = null
+      this.selectedCategoryName = 'Все категории'
     }
   }
 })

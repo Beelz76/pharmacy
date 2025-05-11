@@ -1,11 +1,11 @@
 <template>
-  <section class="py-12 bg-slate-50">
+  <section class="py-12 bg-white">
     <div class="max-w-7xl mx-auto px-4 text-center">
       <p class="text-primary-600 font-semibold uppercase">Категории</p>
       <h2 class="text-3xl font-extrabold text-gray-900 mt-2">Выберите по назначению</h2>
     </div>
 
-    <div v-if="topLevelCategories.length" class="mt-10 max-w-7xl mx-auto px-4">
+    <div v-if="topLevelCategories.length" class="mt-10 max-w-7xl mx-auto">
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <div
           v-for="category in topLevelCategories"
@@ -32,16 +32,19 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCategoryStore } from '../store/CategoryStore'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 const categoryStore = useCategoryStore()
+const router = useRouter()
 
 const topLevelCategories = computed(() =>
   categoryStore.categories
 )
 
 function onCategoryClick(category) {
-  console.log('Категория выбрана:', category)
+  categoryStore.selectCategory(category.id, category.name)
+  router.push({ path: '/products', query: { categoryId: category.id } })
 }
 </script>

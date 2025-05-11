@@ -23,9 +23,13 @@ public class FavoritesRepository : IFavoritesRepository
             {
                 ProductId = f.ProductId,
                 Name = f.Product.Name,
+                Description = f.Product.Description,
+                ManufacturerName = f.Product.Manufacturer.Name,
+                ManufacturerCountry = f.Product.Manufacturer.Country,
                 Price = f.Product.Price,
                 ImageUrl = f.Product.Images.OrderBy(i => i.Id).Select(i => i.Url).FirstOrDefault(),
-                IsAvailable = f.Product.IsAvailable
+                IsAvailable = f.Product.IsAvailable,
+                IsPrescriptionRequired = f.Product.IsPrescriptionRequired
             })
             .ToListAsync();
     }

@@ -9,5 +9,5 @@
 <script setup>
 import HeroBanner from '../components/HeroBanner.vue'
 import CategoryGrid from '../components/CategoryGrid.vue'
-import ProductSlider from '../components/product/ProductSlider.vue'
+import ProductSlider from '../components/ProductSlider.vue'
 </script>

@@ -1,6 +1,6 @@
 <template>
-  <header class="sticky top-0 z-50 bg-slate-50/80 backdrop-blur-md border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0">
       <div class="flex items-center h-16 gap-6">
         <!-- Логотип -->
         <div class="flex items-center flex-shrink-0 space-x-6">
@@ -19,49 +19,6 @@
               Главная
             </router-link>
 
-            <!-- Каталог -->
-            <el-dropdown trigger="hover" @visible-change="val => { if (!val) activeCategory = null }">
-              <span
-                :class="[
-                  'text-base font-medium cursor-pointer flex items-center focus:outline-none',
-                  $route.path.startsWith('/products')
-                    ? 'text-primary-600 border-b-2 border-primary-500'
-                    : 'text-gray-500 hover:text-gray-700'
-                ]"
-                @click="goToProducts"
-              >
-                Каталог <i class="fas fa-chevron-down text-xs ml-1"></i>
-              </span>
-              <template #dropdown>
-                <div class="inline-flex rounded-lg shadow-lg z-50 overflow-hidden">
-                  <ul class="w-64 border-r divide-y">
-                    <li
-                      v-for="cat in categories"
-                      :key="cat.id"
-                      @mouseenter="activeCategory = cat"
-                      class="px-4 py-3 text-sm hover:bg-primary-50 cursor-pointer font-medium text-gray-800 whitespace-nowrap"
-                    >
-                      {{ cat.name }}
-                    </li>
-                  </ul>
-                  <ul
-                    v-if="activeCategory?.subcategories?.length"
-                    class="divide-y"
-                    :style="{ minWidth: '20rem' }"
-                  >
-                    <li
-                      v-for="sub in activeCategory.subcategories"
-                      :key="sub.id"
-                      @click="goToCategory(sub)"
-                      class="px-4 py-3 text-sm hover:bg-primary-50 cursor-pointer text-gray-800 whitespace-nowrap"
-                    >
-                      {{ sub.name }}
-                    </li>
-                  </ul>
-                </div>
-              </template>
-            </el-dropdown>
-
             <router-link
               to="/about"
               class="text-base font-medium"
@@ -72,115 +29,178 @@
           </nav>
         </div>
 
-        <!-- Поиск -->
-        <div
-          class="relative flex-grow hidden md:block"
-          @mouseenter="dropdownHovered = true"
-          @mouseleave="dropdownHovered = false"
+<!-- Категория + Поиск -->
+<div class="relative flex-grow hidden md:flex items-center rounded-md overflow-visible border border-gray-300 bg-white">
+  <!-- Выпадающий список категорий -->
+  <el-dropdown
+    
+    v-model:visible="categoryDropdownVisible"
+  >
+    <template #default>
+      <div
+        class="px-4 h-10 text-sm font-medium text-gray-700 flex items-center gap-2 cursor-pointer select-none focus:outline-none"
+        @click="toggleCategoryDropdown"
+      >
+        {{ selectedCategoryName }} <i class="fas fa-chevron-down text-xs"></i>
+      </div>
+    </template>
+
+    <template #dropdown>
+      <div
+        class="inline-flex rounded-md shadow-lg z-50 overflow-hidden"
+        @mouseenter="categoryDropdownVisible = true"
+        @mouseleave="closeCategoryDropdown"
+      >
+        <ul class="w-60 border-r divide-y bg-white max-h-72 overflow-auto">
+          <li
+            @click="resetCategory"
+            class="px-4 py-3 text-sm hover:bg-primary-50 cursor-pointer font-medium text-gray-800 whitespace-nowrap "
+          >
+            Все категории
+          </li>
+          <li
+            v-for="cat in categories"
+            :key="cat.id"
+            @mouseenter="activeCategory = cat"
+            @click="selectCategory(cat)"
+            class="px-4 py-3 text-sm hover:bg-primary-50 cursor-pointer font-medium text-gray-800 whitespace-nowrap"
+          >
+            {{ cat.name }}
+          </li>
+        </ul>
+
+        <ul
+          v-if="activeCategory?.subcategories?.length"
+          class="divide-y bg-white max-h-72 overflow-auto"
+          :style="{ minWidth: '16rem' }"
         >
-          <el-input
-            v-model="searchQuery"
-            placeholder="Поиск товаров..."
-            clearable
-            @input="onSearchInput"
-            @keyup.enter="goToSearch"
-            @focus="onFocus"
-            @blur="onBlur"
-            class="w-full !h-10 !text-sm !rounded-md"
+          <li
+            v-for="sub in activeCategory.subcategories"
+            :key="sub.id"
+            @click="selectCategory(sub)"
+            class="px-4 py-3 text-sm hover:bg-primary-50 cursor-pointer text-gray-800 whitespace-nowrap"
           >
-            <template #prefix>
-              <i class="fas fa-search text-gray-400 ml-2"></i>
-            </template>
-          </el-input>
-          <ul
-            v-if="showDropdown && searchResults.length > 0"
-            class="absolute z-10 bg-slate-50 border rounded-md mt-1 w-full shadow-md max-h-60 overflow-auto"
-          >
-            <li
-              v-for="(result, index) in searchResults"
-              :key="index"
-              @click="goToSearch(result)"
-              class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
-            >
-              {{ result }}
-            </li>
-          </ul>
-        </div>
+            {{ sub.name }}
+          </li>
+        </ul>
+      </div>
+    </template>
+  </el-dropdown>
 
-        <!-- Иконки и профиль -->
-        <div class="flex items-center flex-shrink-0 space-x-6">
-          <template v-if="isAuthenticated">
-            <div class="relative">
-              <router-link to="/account/favorites" class="text-xl text-gray-600 hover:text-primary-600">
-                <i class="fas fa-heart"></i>
-              </router-link>
-              <span
-                v-if="favoritesCount > 0"
-                class="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center"
-              >
-                {{ favoritesCount }}
-              </span>
-            </div>
+  <!-- Разделительная линия -->
+  <div class="w-px h-6 bg-gray-300 mx-2"></div>
 
-            <div class="relative">
-              <router-link
-                to="/cart"
-                class="text-xl"
-                :class="$route.path === '/cart' ? 'text-primary-600' : 'text-gray-600 hover:text-primary-600'"
-              >
-                <i class="fas fa-shopping-cart"></i>
-              </router-link>
-              <span
-                v-if="cartCount > 0"
-                class="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center"
-              >
-                {{ cartCount }}
-              </span>
-            </div>
+  <!-- Поле поиска -->
+  <div class="relative flex-1">
+    <el-input
+      v-model="searchQuery"
+      placeholder="Поиск товаров..."
+      clearable
+      @input="onSearchInput"
+      @keyup.enter="goToSearch"
+      @focus.native="onFocus"
+      @blur.native="onBlur"
+      class="!h-10 !text-sm !border-none !rounded-none !shadow-none w-full"
+    >
+      <template #prefix>
+        <i class="fas fa-search text-gray-400 ml-2"></i>
+      </template>
+    </el-input>
 
-            <!-- Профиль с dropdown -->
-            <el-dropdown>
-              <template #default>
-                <button
-                  @click="goToAccount"
-                  class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-4 py-2 rounded flex items-center gap-2 transition focus:outline-none"
-                >
-                  <i class="fas fa-user"></i>
-                  Профиль
-                  <i class="fas fa-chevron-down text-xs"></i>
-                </button>
-              </template>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item>
-                    <router-link to="/account">Личный кабинет</router-link>
-                  </el-dropdown-item>
-                  <el-dropdown-item>
-                    <router-link to="/account/orders">История заказов</router-link>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="handleLogout">Выйти</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
+    <!-- Выпадающие подсказки -->
+    <ul
+      v-if="showDropdown && searchResults.length > 0"
+      class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-md max-h-60 overflow-auto"
+      @mouseenter="dropdownHovered = true"
+      @mouseleave="dropdownHovered = false"
+    >
+      <li
+        v-for="(result, index) in searchResults"
+        :key="index"
+        @click="goToSearch(result)"
+        class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
+      >
+        {{ result }}
+      </li>
+    </ul>
+  </div>
+</div>
 
-          <template v-else>
-            <el-button
-              type="primary"
-              class="!bg-primary-600 !h-10 hover:!bg-primary-700"
-              @click="openAuthModal"
-            >
-              <i class="fas fa-user mr-2"></i> Войти
-            </el-button>
-          </template>
-        </div>
+<!-- Иконки и профиль -->
+<div class="flex items-center flex-shrink-0 space-x-6">
+  <template v-if="isAuthenticated">
+    <!-- Избранное -->
+    <div class="relative flex flex-col items-center">
+      <router-link to="/account/favorites" class="text-xl text-gray-600 hover:text-primary-600">
+        <i class="fas fa-heart"></i>
+      </router-link>
+      <span
+        v-if="favoritesCount > 0"
+        class="absolute top-5 text-[10px] text-gray-700 font-semibold"
+      >
+        {{ favoritesCount }}
+      </span>
+    </div>
+
+    <!-- Корзина -->
+    <div class="relative flex flex-col items-center">
+      <router-link
+        to="/cart"
+        class="text-xl"
+        :class="$route.path === '/cart' ? 'text-primary-600' : 'text-gray-600 hover:text-primary-600'"
+      >
+        <i class="fas fa-shopping-cart"></i>
+      </router-link>
+      <span
+        v-if="cartCount > 0"
+        class="absolute top-5 text-[10px] text-gray-700 font-semibold"
+      >
+        {{ cartCount }}
+      </span>
+    </div>
+
+    <!-- Профиль -->
+    <el-dropdown>
+      <template #default>
+        <button class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-4 py-2 rounded flex items-center gap-2 transition focus:outline-none">
+          <i class="fas fa-user"></i>
+          Профиль
+          <i class="fas fa-chevron-down text-xs"></i>
+        </button>
+      </template>
+      <template #dropdown>
+        <el-dropdown-menu>
+          <el-dropdown-item>
+            <router-link to="/account">Личный кабинет</router-link>
+          </el-dropdown-item>
+          <el-dropdown-item>
+            <router-link to="/account/orders">История заказов</router-link>
+          </el-dropdown-item>
+          <el-dropdown-item @click="handleLogout">Выйти</el-dropdown-item>
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
+  </template>
+
+  <template v-else>
+    <el-button
+      type="primary"
+      class="!bg-primary-600 !h-10 hover:!bg-primary-700"
+      @click="openAuthModal"
+    >
+      <i class="fas fa-user mr-2"></i> Войти
+    </el-button>
+  </template>
+</div>
+
       </div>
     </div>
   </header>
 </template>
 
+
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../store/AuthStore'
@@ -198,9 +218,10 @@ const { isAuthenticated } = storeToRefs(auth)
 const { favoritesCount } = storeToRefs(favorites)
 const { cartCount } = storeToRefs(cart)
 const { categories } = storeToRefs(categoryStore)
+const { selectedCategoryName } = storeToRefs(categoryStore)
 
-const showCatalog = ref(false)
 const activeCategory = ref(null)
+const categoryDropdownVisible = ref(false)
 
 const $route = useRoute()
 const router = useRouter()
@@ -209,7 +230,16 @@ const searchResults = ref([])
 const showDropdown = ref(false)
 const dropdownHovered = ref(false)
 const debounceTimer = ref(null)
-const showAuthModal = ref(false)
+
+watch(
+  () => $route.path,
+  (path) => {
+    if (!path.includes('/products')) {
+      categoryStore.resetCategory()
+    }
+  }
+)
+
 
 onMounted(() => {
   if (isAuthenticated.value) {
@@ -219,22 +249,28 @@ onMounted(() => {
   categoryStore.fetchCategories()
 })
 
+function selectCategory(category) {
+  categoryStore.selectCategory(category.id, category.name)
+  router.push({ path: '/products', query: { categoryId: category.id } })
+}
+
+function resetCategory() {
+  categoryStore.resetCategory()
+  router.push({ path: '/products' })
+}
+
+function toggleCategoryDropdown() {
+  categoryDropdownVisible.value = !categoryDropdownVisible.value
+}
+
+function closeCategoryDropdown() {
+  categoryDropdownVisible.value = false
+  activeCategory.value = null
+}
+
 function openAuthModal() {
   auth.setReturnUrl(router.currentRoute.value.fullPath)
   window.dispatchEvent(new Event('unauthorized'))
-}
-
-function goToProducts() {
-  router.push('/products')
-}
-
-function goToAccount() {
-  router.push('/account')
-}
-
-function goToCategory(category) {
-  showCatalog.value = false
-  router.push({ path: '/products', query: { categoryId: category.id } })
 }
 
 const fetchSearchSuggestions = async (query) => {
@@ -295,5 +331,30 @@ ul::-webkit-scrollbar {
 ul::-webkit-scrollbar-thumb {
   background-color: #ccc;
   border-radius: 2px;
+}
+
+/* Убираем внутренние обводки у поля поиска */
+:deep(.el-input__wrapper) {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+:deep(.el-input__inner) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+/* Дополнительно: выравнивание высоты и убираем разделение */
+:deep(.el-input) {
+  height: 100% !important;
 }
 </style>
