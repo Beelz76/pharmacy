@@ -61,20 +61,14 @@ public class EmailVerificationService : IEmailVerificationService
         return newCode;
     }
     
-    public async Task<Result> SendCodeAsync(string email, VerificationPurposeEnum purpose)
+    public async Task<Result> SendCodeAsync(int userId, string email, bool emailVerified, VerificationPurposeEnum purpose)
     {
-        var user = await _userRepository.GetByEmailAsync(email);
-        if (user is null)
-        {
-            return Result.Failure(Error.NotFound("Пользователь не найден"));
-        }
-
-        if (purpose == VerificationPurposeEnum.Registration && user.EmailVerified)
+        if (purpose == VerificationPurposeEnum.Registration && emailVerified)
         {
             return Result.Failure(Error.Conflict("Пользователь уже подтвержден"));
         }
         
-        var code = await GenerateVerificationCodeAsync(user.Id, user.Email, purpose);
+        var code = await GenerateVerificationCodeAsync(userId, email, purpose);
 
         var subject = $"Код подтверждения";
         var body = $@"
@@ -97,7 +91,7 @@ public class EmailVerificationService : IEmailVerificationService
                 </p>
             </div>";
 
-        var sendResult = await _emailSender.SendEmailAsync(user.Email, subject, body);
+        var sendResult = await _emailSender.SendEmailAsync(email, subject, body);
         if (sendResult.IsFailure)
         {
             return sendResult;
@@ -149,7 +143,9 @@ public class EmailVerificationService : IEmailVerificationService
                 user.Email = email;
                 await _userRepository.UpdateAsync(user);
 
-                return Result.Success(new ConfirmCodeDto(true, null));
+                var token = _tokenProvider.Create(user.Id, user.Email, user.Role);
+                
+                return Result.Success(new ConfirmCodeDto(true, token));
             }
             default:
                 return Result.Failure<ConfirmCodeDto>(Error.Failure("Неподдерживаемая цель кода"));

@@ -18,7 +18,7 @@ public class GetProfileEndpoint : EndpointWithoutRequest
     public override void Configure()
     {
         Get("users/profile");
-        Roles("User", "Admin");
+        Roles("User", "Admin", "Employee");
         Tags("Users", "Admin");
         Summary(s => { s.Summary = "Получить данные профиля текущего пользователя"; });
     }

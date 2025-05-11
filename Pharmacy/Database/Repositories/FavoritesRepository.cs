@@ -30,6 +30,13 @@ public class FavoritesRepository : IFavoritesRepository
             .ToListAsync();
     }
 
+    public async Task<int> CountByUserAsync(int userId)
+    {
+        return await _context.FavoriteItems
+            .Where(f => f.UserId == userId)
+            .CountAsync();
+    }
+    
     public async Task<ICollection<FavoriteItem>> GetRawUserFavoritesAsync(int userId)
     {
         return await _context.FavoriteItems

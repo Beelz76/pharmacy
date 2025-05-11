@@ -35,6 +35,12 @@ public class FavoritesService : IFavoritesService
         
         return Result.Success(result);
     }
+    
+    public async Task<Result<int>> GetCountAsync(int userId)
+    {
+        var count = await _repository.CountByUserAsync(userId);
+        return Result.Success(count);
+    }
 
     public async Task<Result> AddAsync(int userId, int productId)
     {
@@ -44,7 +50,7 @@ public class FavoritesService : IFavoritesService
         }
 
         var product = await _productRepository.GetByIdWithRelationsAsync(productId);
-        if (product is null || !product.IsAvailable)
+        if (product is null)
         {
             return Result.Failure(Error.NotFound("Товар недоступен"));
         }

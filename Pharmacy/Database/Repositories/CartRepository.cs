@@ -31,6 +31,13 @@ public class CartRepository : ICartRepository
             .ToListAsync();
     }
 
+    public async Task<int> CountItemsByUserAsync(int userId)
+    {
+        return await _context.CartItems
+            .Where(ci => ci.UserId == userId)
+            .SumAsync(ci => ci.Quantity);
+    }
+    
     public async Task<ICollection<CartItem>> GetRawUserCartAsync(int userId)
     {
         return await _context.CartItems

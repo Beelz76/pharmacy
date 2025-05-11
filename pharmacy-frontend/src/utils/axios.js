@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '../store/AuthStore'
 
 const api = axios.create({
   baseURL: 'http://localhost:5068',
@@ -23,14 +24,34 @@ api.interceptors.response.use(
     const status = error.response?.status
     const message = error.response?.data?.message || 'Произошла ошибка запроса'
 
-    if (status === 401) {
-      localStorage.removeItem('token')
-      ElMessage.error('Сессия истекла. Пожалуйста, войдите заново.')
-      setTimeout(() => {
-        window.location.reload()
-      }, 1000)
-    } else {
-      ElMessage.error(message)
+    switch (status) {
+      case 401: {
+        try {
+          useAuthStore().softLogout()
+        } catch {
+          localStorage.removeItem('token')
+        }
+
+        ElMessage.error('Сессия истекла. Пожалуйста, войдите заново.')
+        window.dispatchEvent(new Event('unauthorized'))
+        break
+      }
+
+      case 403:
+        ElMessage.warning('У вас нет прав для выполнения этого действия.')
+        break
+
+      case 404:
+        ElMessage.warning('Ресурс не найден.')
+        break
+
+      case 500:
+        ElMessage.error('Внутренняя ошибка сервера. Попробуйте позже.')
+        break
+
+      default:
+        ElMessage.error(message)
+        break
     }
 
     return Promise.reject(error)

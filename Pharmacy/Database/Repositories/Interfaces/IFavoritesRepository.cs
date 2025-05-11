@@ -6,6 +6,7 @@ namespace Pharmacy.Database.Repositories.Interfaces;
 public interface IFavoritesRepository
 {
     Task<IEnumerable<FavoriteProductRawDto>> GetByUserAsync(int userId);
+    Task<int> CountByUserAsync(int userId);
     Task<ICollection<FavoriteItem>> GetRawUserFavoritesAsync(int userId);
     Task<List<int>> GetFavoriteProductIdsAsync(int userId);
     Task<bool> ExistsAsync(int userId, int productId);

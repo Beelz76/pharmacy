@@ -31,7 +31,7 @@ public class AuthorizationService : IAuthorizationService
         }
         
         var passwordHash = _passwordProvider.Hash(request.Password);
-        await _userService.CreateAsync(new CreateUserDto(
+        var created = await _userService.CreateAsync(new CreateUserDto(
             request.Email, 
             passwordHash, 
             false,
@@ -41,7 +41,7 @@ public class AuthorizationService : IAuthorizationService
             request.Phone, 
             UserRoleEnum.User));
         
-        var sendResult = await _emailVerificationService.SendCodeAsync(request.Email, VerificationPurposeEnum.Registration);
+        var sendResult = await _emailVerificationService.SendCodeAsync(created.Value.Id, request.Email, false, VerificationPurposeEnum.Registration);
         if (sendResult.IsFailure)
         {
             return Result.Failure<string>(sendResult.Error);
@@ -66,7 +66,7 @@ public class AuthorizationService : IAuthorizationService
         
         if (!userResult.Value.EmailVerified)
         {
-            var sendResult = await _emailVerificationService.SendCodeAsync(request.Email, VerificationPurposeEnum.Registration);
+            var sendResult = await _emailVerificationService.SendCodeAsync(userResult.Value.Id, userResult.Value.Email, userResult.Value.EmailVerified, VerificationPurposeEnum.Registration);
             if (sendResult.IsFailure)
             {
                 return Result.Failure<LoginResponse>(sendResult.Error);

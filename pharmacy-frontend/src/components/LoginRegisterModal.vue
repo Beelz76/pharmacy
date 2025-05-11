@@ -5,48 +5,46 @@
     width="420px"
     class="rounded-xl"
     :modal-append-to-body="false"
-    :lock-scroll="true"
+    :lock-scroll="false"
     align-center
+    :append-to-body="false"
+    teleported="false"
   >
-  <template #header>
-  <div class="flex items-center justify-center relative h-10">
-      <!-- Стрелка Назад -->
-      <div
-        v-if="isPasswordReset || showVerification || showResetPasswordFields"
-        class="absolute left-0 pl-2 cursor-pointer text-gray-500 hover:text-primary-600"
-        @click="goBack"
-      >
-        <i class="fas fa-arrow-left text-base"></i>
+    <template #header>
+      <div class="flex items-center justify-center relative h-10">
+        <div
+          v-if="isPasswordReset || showVerification || showResetPasswordFields"
+          class="absolute left-0 pl-2 cursor-pointer text-gray-500 hover:text-primary-600"
+          @click="goBack"
+        >
+          <i class="fas fa-arrow-left text-base"></i>
+        </div>
+        <div class="text-xl font-semibold">
+          {{
+            isPasswordReset
+              ? (showResetPasswordFields ? 'Новый пароль' : showVerification ? 'Подтверждение' : 'Восстановление пароля')
+              : isLogin
+                ? (showVerification ? 'Подтверждение' : 'Вход')
+                : (showVerification ? 'Подтверждение' : 'Регистрация')
+          }}
+        </div>
       </div>
+    </template>
 
-      <!-- Заголовок -->
-      <div class="text-xl font-semibold">
-        {{
-          isPasswordReset
-            ? (showResetPasswordFields ? 'Новый пароль' : showVerification ? 'Подтверждение' : 'Восстановление пароля')
-            : isLogin
-              ? (showVerification ? 'Подтверждение' : 'Вход')
-              : (showVerification ? 'Подтверждение' : 'Регистрация')
-        }}
-      </div>
-    </div>
-  </template>
     <div class="space-y-4 mt-2">
-      <!-- Восстановление пароля: шаг 1 -->
-      <template v-if="isPasswordReset && !showVerification && !showResetPasswordFields">
-        <el-form :model="form" ref="formRef" label-position="top" size="large">
-          <el-form-item>
+      <template v-if="showResetStep1">
+        <el-form :model="form" :rules="rules" ref="formRef" label-position="top" size="large">
+          <el-form-item prop="email">
             <el-input v-model="form.email" placeholder="Email" class="!h-11 !text-base !rounded-md" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" class="w-full !h-11" :loading="loading" @click="sendResetCode">
+            <el-button type="primary" class="w-full !h-11" :loading="loading" :disabled="loading" @click="() => validateAnd(sendResetCode)">
               Отправить код
             </el-button>
           </el-form-item>
         </el-form>
       </template>
 
-      <!-- Подтверждение кода -->
       <template v-else-if="showVerification && !showResetPasswordFields">
         <div class="flex justify-center gap-2 mb-2">
           <input
@@ -67,13 +65,12 @@
         <el-button
           type="primary"
           class="w-full mt-2 !h-11"
-          :disabled="verificationCode.length !== 6"
+          :disabled="verificationCode.length !== 6 || loading"
           :loading="loading"
           @click="confirmCode"
         >
           Подтвердить
         </el-button>
-
         <div v-if="errorMessage" class="text-red-600 text-sm text-center mt-2">
           {{ errorMessage }}
         </div>
@@ -82,14 +79,13 @@
             Отправить код повторно через {{ resendTimer }} сек
           </template>
           <template v-else>
-            <button class="text-primary-600 hover:underline" @click="resendCode">
+            <button class="text-primary-600 hover:underline" :disabled="loading" @click="resendCode">
               Отправить код снова
             </button>
           </template>
         </div>
       </template>
 
-      <!-- Новый пароль -->
       <template v-else-if="showResetPasswordFields">
         <el-form :model="form" :rules="rules" ref="formRef" label-position="top" size="large" @keyup.enter="handleSubmit">
           <el-form-item prop="newPassword">
@@ -99,14 +95,13 @@
             <el-input v-model="form.confirmPassword" placeholder="Подтверждение пароля" type="password" class="!h-11 !rounded-md" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" class="w-full !h-11" :loading="loading" @click="resetPassword">
+            <el-button type="primary" class="w-full !h-11" :loading="loading" :disabled="loading" @click="() => validateAnd(resetPassword)">
               Сохранить пароль
             </el-button>
           </el-form-item>
         </el-form>
       </template>
 
-      <!-- Вход / Регистрация -->
       <template v-else>
         <el-form :model="form" :rules="rules" ref="formRef" label-position="top" size="large" @keyup.enter="handleSubmit">
           <el-form-item prop="email">
@@ -128,13 +123,11 @@
               </template>
             </el-input>
           </el-form-item>
-
           <div v-if="isLogin" class="text-left text-sm -mt-2 mb-3">
-            <button class="text-primary-600 hover:underline ml-1"@click="startPasswordReset">
+            <button type="button" class="text-primary-600 hover:underline ml-1" @click="startPasswordReset">
               Забыли пароль?
             </button>
           </div>
-
           <template v-if="!isLogin">
             <el-form-item prop="lastName">
               <el-input v-model="form.lastName" placeholder="Фамилия" class="!h-11 !text-base !rounded-md" />
@@ -146,22 +139,25 @@
               <el-input v-model="form.patronymic" placeholder="Отчество" class="!h-11 !text-base !rounded-md" />
               <div v-if="form.patronymic.trim() === ''" class="text-xs text-gray-400 ml-1">Необязательное поле</div>
             </el-form-item>
-            <el-form-item>
-              <el-input v-model="form.phone" placeholder="Телефон" class="!h-11 !text-base !rounded-md" />
-              <div v-if="form.phone.trim() === ''" class="text-xs text-gray-400 ml-1">Необязательное поле</div>
-            </el-form-item>
+            <PhoneInput
+              v-model="form.phone"
+              placeholder="Телефон"
+              :required="false"
+              :wrapWithFormItem="false"
+              :digitsOnly="true"
+              size="large"
+            />
+            <div v-if="form.phone.trim() === ''" class="text-xs text-gray-400 ml-1">Необязательное поле</div>
           </template>
-
           <el-form-item>
-            <el-button type="primary" class="w-full !h-11" :loading="loading" @click="handleSubmit">
+            <el-button type="primary" class="w-full !h-11 mt-4" :loading="loading" :disabled="loading" @click="handleSubmit">
               {{ isLogin ? 'Войти' : 'Зарегистрироваться' }}
             </el-button>
           </el-form-item>
         </el-form>
-
         <div class="text-center text-sm text-gray-500 mt-2">
           {{ isLogin ? 'Нет аккаунта?' : 'Уже есть аккаунт?' }}
-          <button class="text-primary-600 hover:underline ml-1" @click="toggleMode">
+          <button class="text-primary-600 hover:underline ml-1" :disabled="loading" @click="toggleMode">
             {{ isLogin ? 'Зарегистрироваться' : 'Войти' }}
           </button>
         </div>
@@ -171,10 +167,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, watch } from 'vue'
+import { ref, reactive, nextTick, watch, computed } from 'vue'
 import api from '../utils/axios'
 import { ElMessage } from 'element-plus'
+import PhoneInput from '/src/components/inputs/PhoneInput.vue'
+import VerificationService from '/src/services/VerificationService.js'
+import { useAuthStore } from '../store/AuthStore'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
+const auth = useAuthStore()
 const props = defineProps({ visible: Boolean })
 const emit = defineEmits(['update:visible'])
 
@@ -193,6 +195,10 @@ const errorMessage = ref('')
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
+const showResetStep1 = computed(() =>
+  isPasswordReset.value && !showVerification.value && !showResetPasswordFields.value
+)
+
 const formRef = ref()
 const form = reactive({
   email: '',
@@ -206,66 +212,51 @@ const form = reactive({
 })
 
 const rules = {
-  email: [
-    {
-      validator(_, val, cb) {
-        if (!val || !val.trim()) return cb()
-        const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return pattern.test(val)
-          ? cb()
-          : cb(new Error('Неверный формат email'))
-      },
-      trigger: 'change'
-    }
-  ],
-  password: [
-    {
-      validator(_, val, cb) {
-        if (!val || !val.trim()) return cb()
-        return val.length >= 6
-          ? cb()
-          : cb(new Error('Пароль должен быть не менее 6 символов'))
-      },
-      trigger: 'change'
-    }
-  ],
-  firstName: [{ validator(_, val, cb) { if (!val?.trim()) return cb(); return cb() }, trigger: 'change' }],
-  lastName: [{ validator(_, val, cb) { if (!val?.trim()) return cb(); return cb() }, trigger: 'change' }],
-  newPassword: [
-    {
-      validator(_, val, cb) {
-        if (!val?.trim()) return cb()
-        return val.length >= 6
-          ? cb()
-          : cb(new Error('Пароль должен быть не менее 6 символов'))
-      },
-      trigger: 'change'
-    }
-  ],
-  confirmPassword: [
-    {
-      validator(_, val, cb) {
-        if (!val?.trim()) return cb()
-        if (val !== form.newPassword) return cb(new Error('Пароли не совпадают'))
-        return cb()
-      },
-      trigger: 'change'
-    }
-  ]
+  email: [{ validator(_, val, cb) {
+    const trimmed = val?.trim()
+    if (!trimmed) return cb(new Error('Email обязателен'))
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return pattern.test(trimmed) ? cb() : cb(new Error('Неверный формат email'))
+  }, trigger: 'change' }],
+  password: [{ validator(_, val, cb) {
+    const trimmed = val?.trim()
+    if (!trimmed) return cb(new Error('Пароль обязателен'))
+    return trimmed.length >= 6 ? cb() : cb(new Error('Пароль должен быть не менее 6 символов'))
+  }, trigger: 'change' }],
+  firstName: [{ validator(_, val, cb) {
+    return val?.trim() ? cb() : cb(new Error('Имя обязательно'))
+  }, trigger: 'change' }],
+  lastName: [{ validator(_, val, cb) {
+    return val?.trim() ? cb() : cb(new Error('Фамилия обязательна'))
+  }, trigger: 'change' }],
+  newPassword: [{ validator(_, val, cb) {
+    if (!val?.trim()) return cb()
+    return val.length >= 6 ? cb() : cb(new Error('Пароль должен быть не менее 6 символов'))
+  }, trigger: 'change' }],
+  confirmPassword: [{ validator(_, val, cb) {
+    if (!val?.trim()) return cb()
+    if (val !== form.newPassword) return cb(new Error('Пароли не совпадают'))
+    return cb()
+  }, trigger: 'change' }]
 }
 
 watch(() => props.visible, val => {
-  if (!val) {
-    resetAll()
-  }
+  if (!val) resetAll()
 })
+
+function validateAnd(callback) {
+  if (!formRef.value) return
+  formRef.value.validate(valid => {
+    if (valid) callback()
+  })
+}
 
 function toggleMode() {
   isLogin.value = !isLogin.value
   isPasswordReset.value = false
   showVerification.value = false
   showResetPasswordFields.value = false
-  resetFormFields()
+  nextTick(resetFormFields)
 }
 
 function startPasswordReset() {
@@ -273,7 +264,7 @@ function startPasswordReset() {
   isLogin.value = false
   showVerification.value = false
   showResetPasswordFields.value = false
-  resetFormFields()
+  nextTick(resetFormFields)
 }
 
 function resetFormFields() {
@@ -281,7 +272,7 @@ function resetFormFields() {
   verificationCode.value = ''
   errorMessage.value = ''
   codeDigits.value = ['', '', '', '', '', '']
-  formRef.value?.clearValidate?.()
+  nextTick(() => formRef.value?.clearValidate?.())
 }
 
 function resetAll() {
@@ -299,24 +290,22 @@ function resetAll() {
 
 function handleSubmit() {
   formRef.value.validate(valid => {
-    if (valid) {
-      isLogin.value ? submitLogin() : submitRegister()
-    }
+    if (valid) isLogin.value ? submitLogin() : submitRegister()
   })
 }
 
 async function submitLogin() {
   loading.value = true
   try {
-    const res = await api.post('/authorization/login', {
-      email: form.email,
-      password: form.password
-    })
-
+    const res = await api.post('/authorization/login', { email: form.email, password: form.password })
     const token = res.data?.token
     if (token) {
-      localStorage.setItem('token', token)
-      window.location.reload()
+      auth.setToken(token)
+      emit('update:visible', false)
+      nextTick(() => {
+        router.push(auth.returnUrl || '/')
+        auth.clearReturnUrl()
+      })
     } else {
       await sendCode('Registration')
       showVerification.value = true
@@ -337,7 +326,6 @@ async function submitRegister() {
       patronymic: form.patronymic || undefined,
       phone: form.phone || undefined
     })
-
     await sendCode('Registration')
     showVerification.value = true
   } finally {
@@ -346,18 +334,25 @@ async function submitRegister() {
 }
 
 async function sendResetCode() {
-  await sendCode('PasswordReset')
-  showVerification.value = true
+  loading.value = true
+  try {
+    errorMessage.value = ''
+    await VerificationService.sendCode(form.email, 'PasswordReset')
+    ElMessage.success('Код отправлен на почту')
+    showVerification.value = true
+    startResendTimer()
+    codeDigits.value = ['', '', '', '', '', '']
+    nextTick(() => codeInputs.value[0]?.focus())
+  } finally {
+    loading.value = false
+  }
 }
 
 async function sendCode(purpose) {
   loading.value = true
   try {
     errorMessage.value = ''
-    await api.post('/verifications/send-code', {
-      email: form.email,
-      purpose
-    })
+    await VerificationService.sendCode(form.email, purpose)
     ElMessage.success('Код отправлен на почту')
     startResendTimer()
     codeDigits.value = ['', '', '', '', '', '']
@@ -383,22 +378,20 @@ function startResendTimer() {
 async function resendCode() {
   if (!canResend.value) return
   errorMessage.value = ''
-  const purpose = isPasswordReset.value ? 'PasswordReset' : 'Registration'
-  await sendCode(purpose)
+  await sendCode(isPasswordReset.value ? 'PasswordReset' : 'Registration')
 }
 
 async function confirmCode() {
   loading.value = true
   try {
-    const res = await api.post('/verifications/confirm-code', {
-      email: form.email,
-      code: verificationCode.value,
-      purpose: isPasswordReset.value ? 'PasswordReset' : 'Registration'
-    })
-
-    if (res.data?.token) {
-      localStorage.setItem('token', res.data.token)
-      window.location.reload()
+    const result = await VerificationService.confirmCode(form.email, verificationCode.value, isPasswordReset.value ? 'PasswordReset' : 'Registration')
+    if (result.data?.token) {
+      auth.setToken(result.data.token)
+      emit('update:visible', false)
+      nextTick(() => {
+        router.push(auth.returnUrl || '/')
+        auth.clearReturnUrl()
+      })
     } else {
       ElMessage.success('Код подтверждён')
       if (isPasswordReset.value) {
@@ -406,6 +399,8 @@ async function confirmCode() {
         showVerification.value = false
       }
     }
+  } catch (err) {
+    errorMessage.value = err.message || 'Ошибка подтверждения'
   } finally {
     loading.value = false
   }
@@ -459,9 +454,7 @@ function goBack() {
     showVerification.value = true
   } else if (showVerification.value) {
     showVerification.value = false
-    if (isPasswordReset.value) {
-      isPasswordReset.value = true
-    }
+    if (isPasswordReset.value) isPasswordReset.value = true
   } else if (isPasswordReset.value) {
     isPasswordReset.value = false
     isLogin.value = true
@@ -470,4 +463,3 @@ function goBack() {
   verificationCode.value = ''
 }
 </script>
-

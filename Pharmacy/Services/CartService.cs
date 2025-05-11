@@ -24,6 +24,12 @@ public class CartService : ICartService
         return Result.Success(new CartDto(items, total));
     }
 
+    public async Task<Result<int>> GetCountAsync(int userId)
+    {
+        var count = await _repository.CountItemsByUserAsync(userId);
+        return Result.Success(count);
+    }
+    
     public async Task<Result> AddToCartAsync(int userId, int productId)
     {
         var product = await _productRepository.GetByIdWithRelationsAsync(productId);

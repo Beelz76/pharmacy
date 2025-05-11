@@ -1,5 +1,6 @@
 ﻿using FastEndpoints;
 using FluentValidation;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Enums;
 
@@ -9,10 +10,12 @@ public class SendCodeEndpoint : Endpoint<SendCodeRequest>
 {
     private readonly ILogger<SendCodeEndpoint> _logger;
     private readonly IEmailVerificationService _emailVerificationService;
-    public SendCodeEndpoint(ILogger<SendCodeEndpoint> logger, IEmailVerificationService emailVerificationService)
+    private readonly IUserService _userService;
+    public SendCodeEndpoint(ILogger<SendCodeEndpoint> logger, IEmailVerificationService emailVerificationService, IUserService userService)
     {
         _logger = logger;
         _emailVerificationService = emailVerificationService;
+        _userService = userService;
     }
 
     public override void Configure()
@@ -31,7 +34,14 @@ public class SendCodeEndpoint : Endpoint<SendCodeRequest>
             return;
         }
 
-        var result = await _emailVerificationService.SendCodeAsync(request.Email, request.Purpose);
+        var userResult = await _userService.GetByEmailAsync(request.Email);
+        if (userResult.IsFailure && request.Purpose != VerificationPurposeEnum.EmailChange)
+        {
+            await SendAsync(userResult.Error, (int)userResult.Error.Code, ct);
+            return;
+        }
+        
+        var result = await _emailVerificationService.SendCodeAsync(userResult.ValueOrDefault?.Id ?? User.GetUserId()!.Value, request.Email, userResult.ValueOrDefault?.EmailVerified ?? false, request.Purpose);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);
