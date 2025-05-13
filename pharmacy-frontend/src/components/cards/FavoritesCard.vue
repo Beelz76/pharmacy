@@ -100,39 +100,46 @@ const props = defineProps({ product: Object })
 const favoritesStore = useFavoritesStore()
 const cartStore = useCartStore()
 
-const isFavorite = computed(() => favoritesStore.ids.includes(props.product.productId))
-const cartQuantity = computed(() => cartStore.quantityById[props.product.productId] || 0)
+const isFavorite = computed(() =>
+  favoritesStore.ids.includes(props.product.productId)
+)
+
+const cartQuantity = computed(() =>
+  cartStore.quantityById[props.product.productId] || 0
+)
+
 const editableQuantity = ref(cartQuantity.value || 1)
 
 watch(cartQuantity, val => {
   editableQuantity.value = val || 1
 })
 
-function toggleFavorite() {
-  favoritesStore.toggle(props.product.productId, isFavorite.value)
+const toggleFavorite = async () => {
+  await favoritesStore.toggle(props.product.productId, isFavorite.value)
 }
 
-function addToCart() {
-  cartStore.addToCart(props.product.productId)
+const addToCart = async () => {
+  await cartStore.addToCart(props.product.productId)
 }
 
-function incrementQuantity() {
-  cartStore.increment(props.product.productId)
+const incrementQuantity = async () => {
+  await cartStore.increment(props.product.productId)
 }
 
-function decrementQuantity() {
-  cartStore.decrement(props.product.productId)
+const decrementQuantity = async () => {
+  await cartStore.decrement(props.product.productId)
 }
 
-function setQuantity() {
+const setQuantity = async () => {
   const quantity = Number(editableQuantity.value)
   if (!Number.isInteger(quantity) || quantity < 1) {
     editableQuantity.value = cartQuantity.value || 1
     return
   }
-  cartStore.setQuantity(props.product.productId, quantity)
+  await cartStore.setQuantity(props.product.productId, quantity)
 }
 </script>
+
 
 <style scoped>
 .line-clamp-2 {

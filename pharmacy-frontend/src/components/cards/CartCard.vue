@@ -80,15 +80,12 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useFavoritesStore } from '/src/stores/FavoritesStore'
 import { useCartStore } from '/src/stores/CartStore'
 
 const props = defineProps({ product: Object })
 
-const favoritesStore = useFavoritesStore()
 const cartStore = useCartStore()
 
-const isFavorite = computed(() => favoritesStore.ids.includes(props.product.productId))
 const cartQuantity = computed(() => cartStore.quantityById[props.product.productId] || 0)
 const editableQuantity = ref(cartQuantity.value || 1)
 
@@ -96,29 +93,25 @@ watch(cartQuantity, val => {
   editableQuantity.value = val || 1
 })
 
-const toggleFavorite = () => {
-  favoritesStore.toggle(props.product.productId, isFavorite.value)
+const incrementQuantity = async () => {
+  await cartStore.increment(props.product.productId)
 }
 
-const incrementQuantity = () => {
-  cartStore.increment(props.product.productId)
+const decrementQuantity = async () => {
+  await cartStore.decrement(props.product.productId)
 }
 
-const decrementQuantity = () => {
-  cartStore.decrement(props.product.productId)
-}
-
-const setQuantity = () => {
+const setQuantity = async () => {
   const quantity = Number(editableQuantity.value)
   if (!Number.isInteger(quantity) || quantity < 1) {
     editableQuantity.value = cartQuantity.value || 1
     return
   }
-  cartStore.setQuantity(props.product.productId, quantity)
+  await cartStore.setQuantity(props.product.productId, quantity)
 }
 
-const removeItem = () => {
-  cartStore.removeItem(props.product.productId)
+const removeItem = async () => {
+  await cartStore.removeItem(props.product.productId)
 }
 </script>
 

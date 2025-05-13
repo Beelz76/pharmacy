@@ -93,29 +93,29 @@ watch(cartQuantity, val => {
   editableQuantity.value = val || 1
 })
 
-const toggleFavorite = () => {
-  favoritesStore.toggle(props.product.id, isFavorite.value)
+const toggleFavorite = async () => {
+  await favoritesStore.toggle(props.product.id, isFavorite.value)
 }
 
-const addToCart = () => {
-  cartStore.addToCart(props.product.id)
+const addToCart = async() => {
+  await cartStore.addToCart(props.product.id)
 }
 
-const incrementQuantity = () => {
-  cartStore.increment(props.product.id)
+const incrementQuantity = async () => {
+  await cartStore.increment(props.product.id)
 }
 
-const decrementQuantity = () => {
-  cartStore.decrement(props.product.id)
+const decrementQuantity = async() => {
+  await cartStore.decrement(props.product.id)
 }
 
-const setQuantity = () => {
+const setQuantity = async() => {
   const quantity = Number(editableQuantity.value)
   if (!Number.isInteger(quantity) || quantity < 1) {
     editableQuantity.value = cartQuantity.value || 1
     return
   }
-  cartStore.setQuantity(props.product.id, quantity)
+  await cartStore.setQuantity(props.product.id, quantity)
 }
 </script>
 
