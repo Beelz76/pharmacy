@@ -1,16 +1,23 @@
 <template>
-  <div class="bg-white border border-gray-200 rounded-xl hover:shadow-md transition relative flex overflow-hidden">
+  <div class="bg-white border border-gray-200 rounded-xl hover:shadow-md transition flex relative overflow-hidden w-full min-h-[160px]">
+    <!-- Иконка избранного -->
+    <button
+      @click.stop="toggleFavorite"
+      class="absolute top-2 left-2 text-lg text-primary-600 hover:text-primary-700 z-10"
+    >
+      <i :class="['fas fa-heart', isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-500']"></i>
+    </button>
+
     <!-- Изображение -->
-    <div class="relative w-64 h-auto aspect-[4/3] flex-shrink-0 bg-gray-100 flex items-center justify-center overflow-hidden">
+    <div class="relative w-40 h-full flex items-center justify-center bg-gray-100 flex-shrink-0 overflow-hidden">
       <img
         v-if="product.imageUrl"
         :src="product.imageUrl"
-        alt="image"
+        alt="product image"
         class="w-full h-full object-cover"
       />
-      <i v-else class="fas fa-image text-5xl text-gray-400"></i>
+      <i v-else class="fas fa-image text-3xl text-gray-400"></i>
 
-      <!-- Плашка: только одна -->
       <div
         v-if="!product.isAvailable"
         class="absolute bottom-2 left-2 bg-gray-300 text-gray-800 text-xs font-medium px-2 py-0.5 rounded"
@@ -27,44 +34,57 @@
     </div>
 
     <!-- Контент -->
-    <div class="p-6 flex flex-col flex-grow justify-between relative w-full">
-      <!-- Значок избранного -->
-      <button @click="toggleFavorite" class="absolute top-4 right-6 text-3xl">
-        <i :class="['fas fa-heart', isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-500']"></i>
-      </button>
-
-      <div class="pr-10">
-        <h3 class="text-xl font-semibold text-gray-900 mb-1">{{ product.name }}</h3>
-        <p class="text-base text-gray-600 line-clamp-2">{{ product.description || 'Описание недоступно' }}</p>
-        <p class="text-base text-gray-500 mb-1">{{ product.manufacturerName }} ({{ product.manufacturerCountry }})</p>
+    <div class="p-5 flex flex-col justify-between flex-grow">
+      <!-- Название и описание -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900">{{ product.name }}</h3>
+        <p class="text-sm text-gray-500 mt-1 line-clamp-2">
+          {{ product.description || 'Описание недоступно' }}
+        </p>
+        <p class="text-xs text-gray-400 mt-1">
+          {{ product.manufacturerName }} ({{ product.manufacturerCountry }})
+        </p>
       </div>
 
-      <div class="mt-6 flex justify-between items-center">
-        <span class="text-lg font-bold text-gray-900">{{ product.price.toFixed(2) }} ₽</span>
+      <!-- Цена и корзина -->
+      <div class="mt-4 flex items-center justify-between flex-wrap gap-2">
+        <span class="text-base font-semibold text-gray-900">{{ product.price.toFixed(2) }} ₽</span>
 
         <template v-if="cartQuantity > 0">
-          <div class="flex items-center gap-2">
-            <button class="h-8 px-3 border rounded" @click="decrementQuantity">-</button>
+          <div class="flex items-center gap-1">
+            <button
+              @click="decrementQuantity"
+              class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 text-sm"
+            >
+              −
+            </button>
+
             <input
               v-model.number="editableQuantity"
               @change="setQuantity"
               type="number"
               min="1"
-              class="w-12 h-8 text-center border rounded appearance-none focus:outline-none"
+              class="w-10 h-8 text-center border rounded text-sm"
             />
 
-            <button class="h-8 px-3 border rounded" @click="incrementQuantity">+</button>
+            <button
+              @click="incrementQuantity"
+              class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 text-sm"
+            >
+              +
+            </button>
           </div>
         </template>
-        <template v-else>
-          <button
-            class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2 rounded"
-            :disabled="!product.isAvailable"
-            @click="addToCart"
-          >
-            В корзину
-          </button>
-        </template>
+
+        <el-button
+          v-else
+          size="small"
+          :disabled="!product.isAvailable"
+          @click="addToCart"
+          class="!bg-primary-600 hover:!bg-primary-700 text-white !px-4 !py-1.5 text-sm rounded disabled:opacity-50"
+        >
+          В корзину
+        </el-button>
       </div>
     </div>
   </div>
@@ -72,12 +92,10 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useFavoritesStore } from '/src/store/FavoritesStore'
-import { useCartStore } from '/src/store/CartStore'
+import { useFavoritesStore } from '/src/stores/FavoritesStore'
+import { useCartStore } from '/src/stores/CartStore'
 
-const props = defineProps({
-  product: Object
-})
+const props = defineProps({ product: Object })
 
 const favoritesStore = useFavoritesStore()
 const cartStore = useCartStore()

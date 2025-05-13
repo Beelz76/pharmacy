@@ -172,7 +172,7 @@ import api from '../utils/axios'
 import { ElMessage } from 'element-plus'
 import PhoneInput from '/src/components/inputs/PhoneInput.vue'
 import VerificationService from '/src/services/VerificationService.js'
-import { useAuthStore } from '../store/AuthStore'
+import { useAuthStore } from '../stores/AuthStore'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

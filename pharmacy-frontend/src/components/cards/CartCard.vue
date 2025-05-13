@@ -80,8 +80,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useFavoritesStore } from '/src/store/FavoritesStore'
-import { useCartStore } from '/src/store/CartStore'
+import { useFavoritesStore } from '/src/stores/FavoritesStore'
+import { useCartStore } from '/src/stores/CartStore'
 
 const props = defineProps({ product: Object })
 

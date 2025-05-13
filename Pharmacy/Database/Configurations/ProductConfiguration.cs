@@ -22,8 +22,13 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(x => x.Description)
             .IsRequired()
-            .HasMaxLength(1000);
+            .HasMaxLength(100);
 
+        builder.Property(x => x.ExtendedDescription)
+            .IsRequired()
+            .HasDefaultValue("")
+            .HasMaxLength(2000);
+        
         builder.Property(x => x.Price)
             .IsRequired()
             .HasPrecision(18, 2);

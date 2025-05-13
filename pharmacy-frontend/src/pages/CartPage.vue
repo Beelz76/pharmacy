@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-7xl mx-auto py-8">
+  <div class="max-w-7xl mx-auto py-8 px-2">
     <div class="flex items-center gap-3 mb-6">
       <h2 class="text-2xl font-bold">Корзина</h2>
     </div>
@@ -47,14 +47,17 @@
           <span>{{ totalPrice.toFixed(2) }} ₽</span>
         </div>
 
-        <el-button
-          type="primary"
-          size="large"
-          class="w-full !bg-primary-600 hover:!bg-primary-700"
-          :disabled="!allAvailable"
-        >
-          Перейти к оформлению
-        </el-button>
+<router-link to="/cart/checkout" class="block">
+  <el-button
+    type="primary"
+    size="large"
+    class="w-full !bg-primary-600 hover:!bg-primary-700"
+    :disabled="!allAvailable"
+  >
+    Перейти к оформлению
+  </el-button>
+</router-link>
+
       </div>
     </div>
 
@@ -68,7 +71,7 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useCartStore } from '/src/store/CartStore'
+import { useCartStore } from '/src/stores/CartStore'
 import CartCard from '/src/components/cards/CartCard.vue'
 
 const cart = useCartStore()

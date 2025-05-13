@@ -16,6 +16,7 @@ public record ProductDto(
     string ManufacturerName,
     string ManufacturerCountry,
     string Description,
+    string ExtendedDescription,
     bool IsAvailable,
     bool IsPrescriptionRequired,
     DateTime? ExpirationDate,

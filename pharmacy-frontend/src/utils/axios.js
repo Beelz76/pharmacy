@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-import { useAuthStore } from '../store/AuthStore'
+import { useAuthStore } from '../stores/AuthStore'
 
 const api = axios.create({
   baseURL: 'http://localhost:5068',

@@ -13,6 +13,10 @@ export const useCartStore = defineStore('cart', {
     isEmpty: (state) => state.items.length === 0
   },
 
+  persist: {
+    paths: ['items', 'totalPrice', 'cartCount'] // сохраняем только нужные поля
+  },
+
   actions: {
     async fetchCart() {
       try {
@@ -78,6 +82,13 @@ export const useCartStore = defineStore('cart', {
         await api.delete('/cart/clear')
         await this.fetchCart()
       } catch {}
+    },
+
+    resetCart() {
+      this.items = []
+      this.totalPrice = 0
+      this.cartCount = 0
+      this.quantityById = {}
     },
 
     syncFromProducts(products) {

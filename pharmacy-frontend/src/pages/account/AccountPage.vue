@@ -4,7 +4,7 @@
 
     <!-- Личные данные -->
     <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-      <h2 class="text-2xl font-bold mb-6">Личные данные</h2>
+      <h2 class="text-2xl font-bold mb-6">Персональные данные</h2>
 
       <div class="grid sm:grid-cols-2 gap-4">
         <el-form-item label="ФИО" prop="fullName">
@@ -159,8 +159,8 @@ import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import PhoneInput from '/src/components/inputs/PhoneInput.vue'
 import CodeVerificationModal from '/src/components/CodeVerificationModal.vue'
-import { useAccountStore } from '/src/store/AccountStore'
-import { useAuthStore } from '/src/store/AuthStore'
+import { useAccountStore } from '/src/stores/AccountStore'
+import { useAuthStore } from '/src/stores/AuthStore'
 import api from '/src/utils/axios'
 
 const auth = useAuthStore()

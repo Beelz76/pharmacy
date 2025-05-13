@@ -69,7 +69,7 @@ try
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()
-                .WithOrigins("http://localhost:5174");
+                .WithOrigins("http://localhost:5174", "http://localhost:5173");
         });
     });
 

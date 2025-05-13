@@ -189,6 +189,7 @@ public class ProductService : IProductService
             product.Manufacturer.Name,
             product.Manufacturer.Country,
             product.Description, 
+            product.ExtendedDescription,
             product.IsAvailable,
             product.IsPrescriptionRequired,
             product.ExpirationDate,

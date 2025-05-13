@@ -1,6 +1,6 @@
 <template>
   <section class="py-12 relative bg-gray-50">
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto px-2">
       <div class="text-center mb-8">
         <p class="text-primary-600 font-semibold uppercase">Последние товары</p>
         <h2 class="text-3xl font-extrabold text-gray-900 mt-2">Новинки</h2>
@@ -56,11 +56,12 @@
 
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import ProductCard from './cards/ProductCard.vue'
 import { getPaginatedProducts } from '../composables/useProducts'
-import { useCartStore } from '../store/CartStore'
-import { useFavoritesStore } from '../store/FavoritesStore'
+import { useCartStore } from '../stores/CartStore'
+import { useFavoritesStore } from '../stores/FavoritesStore'
+import { useAuthStore } from '../stores/AuthStore'
 import LoadingSpinner from './LoadingSpinner.vue'
 
 const visibleCount = 4
@@ -69,6 +70,7 @@ const products = ref([])
 const currentIndex = ref(0)
 const sliderRef = ref(null)
 
+const auth = useAuthStore()
 const cartStore = useCartStore()
 const favoritesStore = useFavoritesStore()
 
@@ -80,6 +82,16 @@ onMounted(async () => {
   await nextTick()
 })
 
+watch(
+  () => auth.isAuthenticated,
+  async (val) => {
+    if (val) {
+      await cartStore.fetchCart()
+      await favoritesStore.fetchFavorites()
+      applyFavoritesAndCart(products.value)
+    }
+  }
+)
 
 const renderedSlides = computed(() => {
   const extended = [...products.value, ...products.value, ...products.value]
@@ -88,6 +100,16 @@ const renderedSlides = computed(() => {
 })
 
 const slideOffset = computed(() => 0)
+
+function applyFavoritesAndCart(products) {
+  const ids = favoritesStore.ids
+  const quantityById = cartStore.quantityById
+
+  for (const p of products) {
+    p.isFavorite = ids.includes(p.id)
+    p.cartQuantity = quantityById[p.id] || 0
+  }
+}
 
 function nextSlide() {
   currentIndex.value = (currentIndex.value + 1) % products.value.length

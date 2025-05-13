@@ -10,7 +10,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import HeaderUser from '../src/components/HeaderUser.vue';
 import LoginRegisterModal from './components/LoginRegisterModal.vue'
-import { useAuthStore } from './store/AuthStore'
+import { useAuthStore } from './stores/AuthStore'
 
 const auth = useAuthStore()
 const showLoginModal = ref(false)

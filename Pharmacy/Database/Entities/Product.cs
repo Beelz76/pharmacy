@@ -10,6 +10,7 @@ public class Product
     public int CategoryId { get; set; }
     public int ManufacturerId { get; set; }
     public string Description { get; set; } = default!;
+    public string ExtendedDescription { get; set; } = default!;
     public bool IsAvailable { get; set; }
     public bool IsPrescriptionRequired { get; set; }
     public DateTime? ExpirationDate { get; set; }

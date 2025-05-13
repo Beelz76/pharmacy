@@ -75,8 +75,8 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { useFavoritesStore } from '/src/store/FavoritesStore'
-import { useCartStore } from '/src/store/CartStore'
+import { useFavoritesStore } from '/src/stores/FavoritesStore'
+import { useCartStore } from '/src/stores/CartStore'
 
 const props = defineProps({ product: Object })
 const defaultImage = 'https://via.placeholder.com/300x200?text=No+Image'

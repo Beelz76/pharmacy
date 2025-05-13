@@ -1,6 +1,6 @@
 <template>
   <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0">
+    <div class="max-w-7xl mx-auto px-2">
       <div class="flex items-center h-16 gap-6">
         <!-- Логотип -->
         <div class="flex items-center flex-shrink-0 space-x-6">
@@ -203,10 +203,10 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useAuthStore } from '../store/AuthStore'
-import { useFavoritesStore } from '../store/FavoritesStore'
-import { useCartStore } from '../store/CartStore'
-import { useCategoryStore } from '../store/CategoryStore'
+import { useAuthStore } from '../stores/AuthStore'
+import { useFavoritesStore } from '../stores/FavoritesStore'
+import { useCartStore } from '../stores/CartStore'
+import { useCategoryStore } from '../stores/CategoryStore'
 import api from '../utils/axios'
 
 const auth = useAuthStore()
@@ -240,12 +240,18 @@ watch(
   }
 )
 
+watch(
+  () => auth.role,
+  (newRole) => {
+    if (isAuthenticated.value && newRole === 'User') {
+      favorites.fetchCount()
+      cart.fetchCartCount()
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
-  if (isAuthenticated.value) {
-    favorites.fetchCount()
-    cart.fetchCartCount()
-  }
   categoryStore.fetchCategories()
 })
 
