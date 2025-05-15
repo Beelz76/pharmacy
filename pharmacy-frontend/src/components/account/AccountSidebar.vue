@@ -1,45 +1,74 @@
 <template>
-  <aside class="w-full md:w-64 py-4 border-r bg-white">
-    <nav class="space-y-4">
+  <aside class="w-full md:w-64 py-4 bg-white border-r shadow-sm rounded-r-xl">
+    <nav class="space-y-2">
       <RouterLink
         to="/account"
-        class="block font-medium text-base sm:text-lg md:text-lg"
-        :class="linkClass('/account')"
+        :class="navLinkClass('/account')"
       >
-        <i class="fas fa-user mr-2"></i> Личный кабинет
+        <i class="fas fa-user mr-3"></i>
+        Личный кабинет
       </RouterLink>
 
       <RouterLink
         to="/account/orders"
-        class="block font-medium text-base sm:text-lg md:text-lg"
-        :class="linkClass('/account/orders')"
+        :class="navLinkClass('/account/orders')"
       >
-        <i class="fas fa-box mr-2"></i> История заказов
+        <i class="fas fa-box mr-3"></i>
+        История заказов
       </RouterLink>
 
       <RouterLink
         to="/account/favorites"
-        class="block font-medium text-base sm:text-lg md:text-lg"
-        :class="linkClass('/account/favorites')"
+        :class="navLinkClass('/account/favorites')"
       >
-        <i class="fas fa-heart mr-2"></i> Избранное
+        <i class="fas fa-heart mr-3"></i>
+        Избранное
       </RouterLink>
 
       <RouterLink
         to="/cart"
-        class="block font-medium text-base sm:text-lg md:text-lg"
-        :class="linkClass('/cart')"
+        :class="navLinkClass('/cart')"
       >
-        <i class="fas fa-shopping-cart mr-2"></i> Корзина
+        <i class="fas fa-shopping-cart mr-3"></i>
+        Корзина
       </RouterLink>
+
+      <button
+        @click="logout"
+        class="w-full flex items-center gap-3 text-red-600 hover:text-red-700 font-semibold px-4 py-2 rounded-xl transition"
+      >
+        <i class="fas fa-sign-out-alt"></i> Выйти
+      </button>
     </nav>
   </aside>
 </template>
 
-<script setup>
-import { useRoute } from 'vue-router'
-const route = useRoute()
 
-const linkClass = (path) =>
-  route.path === path ? 'text-primary-600' : 'text-gray-600 hover:text-primary-600'
+<script setup>
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '/src/stores/AuthStore'
+
+const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
+
+const navLinkClass = (path) => {
+  const isActive =
+    path === '/account'
+      ? route.path === '/account'
+      : route.path.startsWith(path)
+
+  return (
+    'w-full flex items-center px-4 py-2 rounded-xl transition font-semibold text-base ' +
+    (isActive
+      ? 'bg-primary-50 text-primary-700'
+      : 'text-gray-600 hover:bg-gray-100 hover:text-primary-600')
+  )
+}
+
+
+const logout = async () => {
+  await auth.logout()
+  router.push('/')
+}
 </script>

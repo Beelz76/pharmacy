@@ -1,90 +1,103 @@
 <template>
-  <div class="bg-white border border-gray-200 rounded-xl hover:shadow-md transition flex relative overflow-hidden w-full min-h-[160px]">
-    <!-- Иконка избранного -->
+  <div class="relative w-full min-h-[160px]">
+    <!-- Иконка избранного — всегда видимая и цветная -->
     <button
       @click.stop="toggleFavorite"
-      class="absolute top-2 left-2 text-lg text-primary-600 hover:text-primary-700 z-10"
+      class="absolute top-2 left-2 text-lg z-20"
     >
       <i :class="['fas fa-heart', isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-500']"></i>
     </button>
 
-    <!-- Изображение -->
-    <div class="relative w-40 h-full flex items-center justify-center bg-gray-100 flex-shrink-0 overflow-hidden">
-      <img
-        v-if="product.imageUrl"
-        :src="product.imageUrl"
-        alt="product image"
-        class="w-full h-full object-cover"
-      />
-      <i v-else class="fas fa-image text-3xl text-gray-400"></i>
+    <!-- Основной контейнер -->
+    <div
+      class="bg-white border border-gray-200 rounded-xl hover:shadow-md transition flex overflow-hidden w-full h-full"
+      :class="{ 'opacity-60 grayscale': !product.isAvailable }"
+    >
+      <!-- Изображение с переходом -->
+      <router-link
+        :to="productLink"
+        class="relative w-44 h-44 flex items-center justify-center bg-gray-100 flex-shrink-0 overflow-hidden"
+      >
+        <img
+          v-if="product.imageUrl"
+          :src="product.imageUrl"
+          alt="product image"
+          class="w-full h-full object-contain"
+        />
+        <i v-else class="fas fa-image text-3xl text-gray-400"></i>
 
-      <div
-        v-if="!product.isAvailable"
-        class="absolute bottom-2 left-2 bg-gray-300 text-gray-800 text-xs font-medium px-2 py-0.5 rounded"
+        <div
+          v-if="!product.isAvailable"
+          class="absolute bottom-2 left-2 bg-gray-300 text-gray-800 text-xs font-medium px-2 py-0.5 rounded"
+        >
+          Нет в наличии
+        </div>
+        <div
+          v-else-if="product.isPrescriptionRequired"
+          class="absolute bottom-2 left-2 bg-blue-100 text-primary-600 text-xs font-medium px-2 py-0.5 rounded inline-flex items-center gap-1"
+        >
+          <i class="fas fa-file-prescription"></i>
+          По рецепту
+        </div>
+      </router-link>
+
+      <!-- Контент -->
+      <div class="p-5 flex flex-col justify-between flex-grow">
+        <div>
+          <router-link
+            :to="productLink"
+            class="text-lg font-semibold text-gray-900 hover:underline"
+          >
+            {{ product.name }}
+          </router-link>
+          <p class="text-sm text-gray-500 mt-1 line-clamp-2">
+            {{ product.description || 'Описание недоступно' }}
+          </p>
+          <p class="text-xs text-gray-400 mt-1">
+            {{ product.manufacturerName }} ({{ product.manufacturerCountry }})
+          </p>
+        </div>
+
+<!-- Цена и корзина -->
+<div class="mt-4 min-h-[42px] flex items-center justify-between gap-2">
+  <span class="text-base font-semibold text-gray-900">{{ product.price.toFixed(2) }} ₽</span>
+
+  <div class="flex items-center gap-1">
+    <!-- Управление количеством -->
+    <div v-show="cartQuantity > 0" class="flex items-center gap-1">
+      <button
+        @click="decrementQuantity"
+        class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 text-sm"
       >
-        Нет в наличии
-      </div>
-      <div
-        v-else-if="product.isPrescriptionRequired"
-        class="absolute bottom-2 left-2 bg-blue-100 text-primary-600 text-xs font-medium px-2 py-0.5 rounded inline-flex items-center gap-1"
+        −
+      </button>
+      <input
+        v-model.number="editableQuantity"
+        @change="setQuantity"
+        type="number"
+        min="1"
+        class="w-10 h-8 text-center border rounded text-sm"
+      />
+      <button
+        @click="incrementQuantity"
+        class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 text-sm"
       >
-        <i class="fas fa-file-prescription"></i>
-        По рецепту
-      </div>
+        +
+      </button>
     </div>
 
-    <!-- Контент -->
-    <div class="p-5 flex flex-col justify-between flex-grow">
-      <!-- Название и описание -->
-      <div>
-        <h3 class="text-lg font-semibold text-gray-900">{{ product.name }}</h3>
-        <p class="text-sm text-gray-500 mt-1 line-clamp-2">
-          {{ product.description || 'Описание недоступно' }}
-        </p>
-        <p class="text-xs text-gray-400 mt-1">
-          {{ product.manufacturerName }} ({{ product.manufacturerCountry }})
-        </p>
-      </div>
+    <!-- Кнопка "В корзину" -->
+    <button
+      v-show="cartQuantity === 0"
+      :disabled="!product.isAvailable"
+      @click="addToCart"
+      class="bg-primary-600 text-white px-3 py-1 rounded text-sm hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      В корзину
+    </button>
+  </div>
+</div>
 
-      <!-- Цена и корзина -->
-      <div class="mt-4 flex items-center justify-between flex-wrap gap-2">
-        <span class="text-base font-semibold text-gray-900">{{ product.price.toFixed(2) }} ₽</span>
-
-        <template v-if="cartQuantity > 0">
-          <div class="flex items-center gap-1">
-            <button
-              @click="decrementQuantity"
-              class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 text-sm"
-            >
-              −
-            </button>
-
-            <input
-              v-model.number="editableQuantity"
-              @change="setQuantity"
-              type="number"
-              min="1"
-              class="w-10 h-8 text-center border rounded text-sm"
-            />
-
-            <button
-              @click="incrementQuantity"
-              class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 text-sm"
-            >
-              +
-            </button>
-          </div>
-        </template>
-
-        <el-button
-          v-else
-          size="small"
-          :disabled="!product.isAvailable"
-          @click="addToCart"
-          class="!bg-primary-600 hover:!bg-primary-700 text-white !px-4 !py-1.5 text-sm rounded disabled:opacity-50"
-        >
-          В корзину
-        </el-button>
       </div>
     </div>
   </div>
@@ -94,50 +107,68 @@
 import { ref, computed, watch } from 'vue'
 import { useFavoritesStore } from '/src/stores/FavoritesStore'
 import { useCartStore } from '/src/stores/CartStore'
+import { toSlug } from '/src/utils/slugify'
 
 const props = defineProps({ product: Object })
 
 const favoritesStore = useFavoritesStore()
 const cartStore = useCartStore()
+const productId = props.product.productId
 
 const isFavorite = computed(() =>
-  favoritesStore.ids.includes(props.product.productId)
+  favoritesStore.ids.includes(productId)
 )
 
 const cartQuantity = computed(() =>
-  cartStore.quantityById[props.product.productId] || 0
+  cartStore.quantityById[productId] || 0
 )
+const productLink = computed(() => `/products/${toSlug(props.product.name)}`)
 
-const editableQuantity = ref(cartQuantity.value || 1)
-
-watch(cartQuantity, val => {
-  editableQuantity.value = val || 1
+const editableQuantity = computed({
+  get: () => cartQuantity.value || 1,
+  set: async (val) => {
+    const quantity = Number(val)
+    if (!Number.isInteger(quantity) || quantity < 1) return
+    try {
+      await cartStore.setQuantity(productId, quantity)
+    } catch (err) {
+      console.error('Ошибка при изменении количества:', err)
+    }
+  }
 })
 
 const toggleFavorite = async () => {
-  await favoritesStore.toggle(props.product.productId, isFavorite.value)
+  try {
+    await favoritesStore.toggle(productId, isFavorite.value)
+  } catch (err) {
+    console.error('Ошибка при обновлении избранного:', err)
+  }
 }
 
 const addToCart = async () => {
-  await cartStore.addToCart(props.product.productId)
+  try {
+    await cartStore.addToCart(productId)
+  } catch (err) {
+    console.error('Ошибка при добавлении в корзину:', err)
+  }
 }
 
 const incrementQuantity = async () => {
-  await cartStore.increment(props.product.productId)
+  try {
+    await cartStore.increment(productId)
+  } catch (err) {
+    console.error('Ошибка при увеличении количества:', err)
+  }
 }
 
 const decrementQuantity = async () => {
-  await cartStore.decrement(props.product.productId)
+  try {
+    await cartStore.decrement(productId)
+  } catch (err) {
+    console.error('Ошибка при уменьшении количества:', err)
+  }
 }
 
-const setQuantity = async () => {
-  const quantity = Number(editableQuantity.value)
-  if (!Number.isInteger(quantity) || quantity < 1) {
-    editableQuantity.value = cartQuantity.value || 1
-    return
-  }
-  await cartStore.setQuantity(props.product.productId, quantity)
-}
 </script>
 
 

@@ -3,9 +3,10 @@
     <div class="flex items-center gap-3 mb-8">
       <router-link
         to="/cart"
-        class="flex items-center text-primary-600 hover:text-primary-700 text-xl group"
+        class="flex items-center text-primary-600 hover:text-primary-700 text-lg group"
       >
         <i class="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform duration-150"></i>
+        <span>Назад</span>
       </router-link>
       <h2 class="text-2xl font-bold">Оформление заказа</h2>
     </div>
@@ -13,8 +14,8 @@
     <!-- Город + Улица -->
     <div class="mb-6 flex flex-col md:flex-row gap-4 items-end">
       <!-- Город -->
-      <div class="w-full md:w-[300px]">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Выберите город</label>
+      <div class="w-full md:w-[320px]">
+        <label class="block text-base font-medium text-gray-700 mb-2">Выберите город</label>
         <el-select
           v-model="selectedCity"
           filterable
@@ -36,7 +37,7 @@
 
       <!-- Улица -->
       <div v-if="selectedCity" class="flex-1">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Улица</label>
+        <label class="block text-base font-medium text-gray-700 mb-2">Улица</label>
         <el-select
           v-model="selectedStreet"
           filterable
@@ -59,10 +60,10 @@
     </div>
 
     <!-- Карта и список аптек -->
-    <div v-if="selectedCity" class="mb-8 grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
+    <div v-if="selectedCity" class="mb-8 grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6">
       <!-- Левая колонка -->
       <div class="flex flex-col gap-6">
-        <!-- Список аптек с фиксированной высотой -->
+        <!-- Список аптек -->
         <div class="space-y-3 h-[500px] overflow-y-auto rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
           <div
             v-for="pharmacy in pharmacyList"
@@ -74,36 +75,41 @@
             }"
             @click="scrollToAndSelect(pharmacy)"
           >
-            <p class="font-semibold text-gray-800">{{ pharmacy.name }}</p>
-            <p class="text-sm text-gray-500">{{ pharmacy.openingHours }}</p>
-            <p class="text-sm text-gray-500">{{ pharmacy.phone }}</p>
+            <div class="flex items-start gap-2">
+              <i class="fas fa-map-marker-alt text-primary-500 mt-1"></i>
+              <div>
+                <p class="font-semibold text-gray-800">{{ pharmacy.name }}</p>
+                <p class="text-sm text-gray-500">{{ pharmacy.openingHours }}</p>
+                <p class="text-sm text-gray-500">{{ pharmacy.phone }}</p>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Способ оплаты -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Способ оплаты</label>
-          <el-radio-group v-model="paymentMethod">
-            <el-radio-button label="Online">Онлайн картой</el-radio-button>
-            <el-radio-button label="OnDelivery">При получении</el-radio-button>
+        <div class="bg-white border rounded-xl shadow-sm p-4">
+          <h3 class="text-base font-semibold text-gray-800 mb-3">Способ оплаты</h3>
+          <el-radio-group v-model="paymentMethod" class="flex flex-col gap-3 w-full">
+            <el-radio-button
+              label="Online"
+              class="!w-full !h-12 !text-base !rounded-lg !shadow-sm text-center justify-center"
+            >
+              💳 Онлайн картой
+            </el-radio-button>
+            <el-radio-button
+              label="OnDelivery"
+              class="!w-full !h-12 !text-base !rounded-lg !shadow-sm text-center justify-center"
+            >
+              📦 При получении
+            </el-radio-button>
           </el-radio-group>
         </div>
-
-        <!-- Кнопка -->
-        <el-button
-          type="primary"
-          size="large"
-          class="w-full sm:w-auto !bg-primary-600 hover:!bg-primary-700"
-          @click="submitOrder"
-        >
-          Подтвердить заказ
-        </el-button>
       </div>
 
       <!-- Правая колонка -->
       <div class="flex flex-col gap-6">
         <!-- Карта -->
-        <div class="h-[500px] rounded-xl overflow-hidden border border-gray-200 shadow-sm relative">
+        <div class="h-[500px] rounded-xl overflow-hidden border border-gray-300 shadow-md relative bg-gray-50">
           <MapComponent
             ref="mapComponentRef"
             :city="selectedCity"
@@ -128,23 +134,36 @@
             v-if="selectedPharmacy"
             class="p-4 bg-white border rounded-xl shadow-sm"
           >
-            <p class="text-sm text-gray-500 mb-1">Выбранная аптека:</p>
+            <p class="text-base text-gray-500 mb-1">Выбранная аптека:</p>
             <p class="font-semibold text-gray-800">{{ selectedPharmacy.name }}</p>
-            <p class="text-sm text-gray-600">{{ selectedPharmacy.address || 'Адрес не найден' }}</p>
+            <p class="text-base text-gray-600">{{ selectedPharmacy.address || 'Адрес не найден' }}</p>
           </div>
+        </div>
+
+        <!-- Кнопка подтверждения справа -->
+        <div class="text-right">
+          <el-button
+            type="primary"
+            size="large"
+            class="!bg-primary-600 hover:!bg-primary-700 w-full sm:w-auto"
+            @click="submitOrder"
+          >
+            <i class="fas fa-check mr-2"></i> Подтвердить заказ
+          </el-button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
+
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import debounce from 'lodash/debounce'
 import { ElMessage } from 'element-plus'
-import MapComponent from '../components/MapComponent.vue'
-import { useOrderStore } from '../stores/OrderStore'
+import MapComponent from '/src/components/MapComponent.vue'
+import { useOrderStore } from '/src/stores/OrderStore'
 
 const router = useRouter()
 const mapComponentRef = ref(null)

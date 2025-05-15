@@ -10,7 +10,5 @@ public record OrderFilters(
     string? PharmacyCity,
     OrderStatusEnum? Status,
     DateTime? FromDate,
-    DateTime? ToDate,
-    string? SortBy,
-    string? SortOrder
+    DateTime? ToDate
     );

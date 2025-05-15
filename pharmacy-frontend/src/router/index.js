@@ -4,26 +4,35 @@ import ProductsPage from "../pages/ProductsPage.vue";
 import AccountLayout from "../layouts/AccountLayout.vue";
 import AccountPage from "../pages/account/AccountPage.vue";
 import CartPage from '../pages/CartPage.vue'
-import CheckoutPage from "../pages/CheckoutPage.vue"
-import OrderSummaryPage from "../pages/OrderSummaryPage.vue"
+import OrderCheckoutPage from "../pages/order/OrderCheckoutPage.vue"
+import OrderSummaryPage from "../pages/order/OrderSummaryPage.vue"
+import OrderPaymentPage from "../pages/order/OrderPaymentPage.vue"
 import OrderHistoryPage from "../pages/account/OrderHistoryPage.vue";
+import OrderDetailsPage from "../pages/account/OrderDetailsPage.vue";
 import FavoritesPage from "../pages/account/FavoritesPage.vue";
+import ProductDetailsPage from "../pages/ProductDetailsPage.vue";
 import { useAuthStore } from '../stores/AuthStore'
 import { useOrderStore } from '../stores/OrderStore'
+import { useCartStore } from '../stores/CartStore'
+import { ElMessage } from 'element-plus'
 
 const routes = [
   { path: "/", name: "Home", component: HomePage },
   { path: "/products", name: "Products", component: ProductsPage },
+  { path: "/products/:slug", name: "ProductDetails", component: ProductDetailsPage, props: route => ({ id: Number(route.params.id) }) },
   { path: "/cart", name: "Cart", component: CartPage, meta: { requiresAuth: true } },
-  { path: "/cart/checkout", name: "Checkout", component: CheckoutPage, meta: { requiresAuth: true }  },
-  { path: "/cart/summary", name: "OrderSummary", component: OrderSummaryPage, meta: { requiresAuth: true } },
+  { path: "/order/checkout", name: "OrderCheckout", component: OrderCheckoutPage, meta: { requiresAuth: true }  },
+  { path: "/order/summary", name: "OrderSummary", component: OrderSummaryPage, meta: { requiresAuth: true } },
+  { path: "/order/payment", name: "OrderPayment", component: OrderPaymentPage, meta: { requiresAuth: true } },
   {
     path: '/account',
     component: AccountLayout,
     meta: { requiresAuth: true },
     children: [
       { path: '', component: AccountPage },
-      { path: 'orders', component: OrderHistoryPage },
+      { path: 'orders', name: 'OrderHistory', component: OrderHistoryPage },
+      { path: 'orders/:id', name: 'OrderDetails', component: OrderDetailsPage },
+      { path: 'orders/:id/payment', name: 'OrderPaymentAccount', component: OrderPaymentPage },
       { path: 'favorites', component: FavoritesPage }
     ]
   }
@@ -43,12 +52,50 @@ router.beforeEach((to, from, next) => {
     return next(false)
   }
 
-  const fromOrderPages = ['/cart/checkout', '/cart/summary']
-  const toOrderPages = ['/cart/checkout', '/cart/summary']
+  const fromOrderPages = ['/order/checkout', '/order/summary']
+  const toOrderPages = ['/order/checkout', '/order/summary', '/order/payment']
 
-  if (fromOrderPages.includes(from.path) && !toOrderPages.includes(to.path)) {
+  const isFromAccountPaymentPage = from.path.startsWith('/account/order/') && from.path.endsWith('/payment')
+  const isLeavingCheckoutFlow = fromOrderPages.includes(from.path) || isFromAccountPaymentPage
+  const isToCheckoutFlow = toOrderPages.includes(to.path)
+
+  if (isLeavingCheckoutFlow && !isToCheckoutFlow) {
     const order = useOrderStore()
-    order.resetOrder()
+    order.resetCheckout()
+  }
+
+  const cart = useCartStore()
+  const order = useOrderStore()
+
+  const cartIsEmpty = cart.items.length === 0
+  const hasUnavailableItems = cart.items.some(item => !item.isAvailable)
+
+  // Защита для страницы Checkout
+  if (to.name === 'Checkout') {
+    if (cartIsEmpty) {
+      ElMessage.warning('Корзина пуста')
+      return next({ name: 'Cart' })
+    }
+    if (hasUnavailableItems) {
+      ElMessage.warning('Некоторые товары в корзине недоступны')
+      return next({ name: 'Cart' })
+    }
+  }
+
+  // Защита для страницы OrderSummary
+  if (to.name === 'OrderSummary') {
+    if (cartIsEmpty) {
+      ElMessage.warning('Корзина пуста')
+      return next({ name: 'Cart' })
+    }
+    if (hasUnavailableItems) {
+      ElMessage.warning('Некоторые товары в корзине недоступны')
+      return next({ name: 'Cart' })
+    }
+    if (!order.selectedPharmacy || !order.paymentMethod) {
+      ElMessage.warning('Выберите аптеку и способ оплаты')
+      return next({ name: 'Checkout' })
+    }
   }
 
   next()

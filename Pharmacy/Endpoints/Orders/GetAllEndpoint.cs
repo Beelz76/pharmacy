@@ -41,8 +41,10 @@ public class GetAllEndpoint : Endpoint<OrderFilters>
         
         int pageNumber = Query<int>("pageNumber", isRequired: false) == 0 ? 1 : Query<int>("pageNumber", isRequired: false);
         int pageSize = Query<int>("pageSize", isRequired: false) == 0 ? 20 : Query<int>("pageSize", isRequired: false);
+        string? sortBy = Query<string>("sortBy", isRequired: false);
+        string? sortOrder = Query<string>("sortOrder", isRequired: false);
         
-        var result = await _orderService.GetPaginatedAsync(filters, pageNumber, pageSize, userId);
+        var result = await _orderService.GetPaginatedAsync(filters, pageNumber, pageSize, sortBy, sortOrder, userId);
         if (result.IsSuccess)
         {
             await SendOkAsync(result.Value, ct);

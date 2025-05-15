@@ -2,15 +2,14 @@
   <div class="w-full h-full relative">
     <transition name="fade">
       <div
-        v-if="outsideCity"
-        class="absolute top-4 left-1/2 -translate-x-1/2 transform w-[90%] max-w-md z-[1000] bg-yellow-100 text-yellow-800 border border-yellow-400 px-4 py-2 rounded shadow"
+        v-if="isOutsideCity"
+        class="absolute top-4 left-1/2 -translate-x-1/2 transform bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded-md shadow flex items-center gap-3 text-sm z-[1000]"
       >
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
-          <span class="text-sm">Вы вышли за пределы выбранного города.</span>
-          <el-button type="warning" size="small" plain @click="returnToCity">
-            Вернуться в город
-          </el-button>
-        </div>
+        <i class="fas fa-triangle-exclamation text-yellow-600 text-lg"></i>
+        <span>Вы вышли за пределы выбранного города.</span>
+        <el-button type="warning" size="small" plain @click="returnToCity">
+          Вернуться
+        </el-button>
       </div>
     </transition>
 

@@ -167,7 +167,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, watch, computed } from 'vue'
+import { ref, reactive, nextTick, watch, computed, onUnmounted } from 'vue'
 import api from '../utils/axios'
 import { ElMessage } from 'element-plus'
 import PhoneInput from '/src/components/inputs/PhoneInput.vue'
@@ -195,6 +195,10 @@ const errorMessage = ref('')
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
+onUnmounted(() => {
+  clearInterval(resendInterval.value)
+})
+
 const showResetStep1 = computed(() =>
   isPasswordReset.value && !showVerification.value && !showResetPasswordFields.value
 )
@@ -217,27 +221,27 @@ const rules = {
     if (!trimmed) return cb(new Error('Email обязателен'))
     const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return pattern.test(trimmed) ? cb() : cb(new Error('Неверный формат email'))
-  }, trigger: 'change' }],
+  }, trigger: 'blur' }],
   password: [{ validator(_, val, cb) {
     const trimmed = val?.trim()
     if (!trimmed) return cb(new Error('Пароль обязателен'))
     return trimmed.length >= 6 ? cb() : cb(new Error('Пароль должен быть не менее 6 символов'))
-  }, trigger: 'change' }],
+  }, trigger: 'blur' }],
   firstName: [{ validator(_, val, cb) {
     return val?.trim() ? cb() : cb(new Error('Имя обязательно'))
-  }, trigger: 'change' }],
+  }, trigger: 'blur' }],
   lastName: [{ validator(_, val, cb) {
     return val?.trim() ? cb() : cb(new Error('Фамилия обязательна'))
-  }, trigger: 'change' }],
+  }, trigger: 'blur' }],
   newPassword: [{ validator(_, val, cb) {
     if (!val?.trim()) return cb()
     return val.length >= 6 ? cb() : cb(new Error('Пароль должен быть не менее 6 символов'))
-  }, trigger: 'change' }],
+  }, trigger: 'blur' }],
   confirmPassword: [{ validator(_, val, cb) {
     if (!val?.trim()) return cb()
     if (val !== form.newPassword) return cb(new Error('Пароли не совпадают'))
     return cb()
-  }, trigger: 'change' }]
+  }, trigger: 'blur' }]
 }
 
 watch(() => props.visible, val => {

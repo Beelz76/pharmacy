@@ -3,6 +3,7 @@ using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Products;
+using Pharmacy.ExternalServices;
 using Pharmacy.Helpers;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
@@ -18,8 +19,9 @@ public class ProductService : IProductService
     private readonly IFavoritesRepository _favoritesRepository;
     private readonly IManufacturerService _manufacturerService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IStorageProvider _storage;
     
-    public ProductService(IDateTimeProvider dateTimeProvider, IProductRepository repository, IProductCategoryService productCategoryService, IManufacturerService manufacturerService, ICartRepository cartRepository, IFavoritesRepository favoritesRepository)
+    public ProductService(IDateTimeProvider dateTimeProvider, IProductRepository repository, IProductCategoryService productCategoryService, IManufacturerService manufacturerService, ICartRepository cartRepository, IFavoritesRepository favoritesRepository, IStorageProvider storage)
     {
         _dateTimeProvider = dateTimeProvider;
         _repository = repository;
@@ -27,6 +29,7 @@ public class ProductService : IProductService
         _manufacturerService = manufacturerService;
         _cartRepository = cartRepository;
         _favoritesRepository = favoritesRepository;
+        _storage = storage;
     }
     
     public async Task<Result<CreatedDto>> CreateProductAsync(CreateProductRequest request)
@@ -193,7 +196,7 @@ public class ProductService : IProductService
             product.IsAvailable,
             product.IsPrescriptionRequired,
             product.ExpirationDate,
-            product.Images.Select(x => x.Url).ToList(),
+            product.Images.Select(x => _storage.GetPublicUrl(x.Url)).ToList(),
             product.Properties.Select(x => new ProductPropertyDto(x.Key, x.Value)).ToList()
         ));
     }
@@ -272,7 +275,7 @@ public class ProductService : IProductService
             p.Description,
             p.Price,
             p.StockQuantity,
-            p.ImageUrl,
+            _storage.GetPublicUrl(p.ImageUrl),
             p.IsAvailable,
             p.IsPrescriptionRequired,
             favoriteIds.Contains(p.Id),

@@ -74,7 +74,7 @@ const validationRules = [
       }
       cb()
     },
-    trigger: ['blur', 'change']
+    trigger: ['blur']
   }
 ]
 

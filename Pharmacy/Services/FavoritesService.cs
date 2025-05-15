@@ -1,5 +1,6 @@
 ﻿using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
+using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Result;
@@ -11,12 +12,14 @@ public class FavoritesService : IFavoritesService
     private readonly IFavoritesRepository _repository;
     private readonly IProductRepository _productRepository;
     private readonly ICartRepository _cartRepository;
+    private readonly IStorageProvider _storage;
 
-    public FavoritesService(IFavoritesRepository repository, IProductRepository productRepository, ICartRepository cartRepository)
+    public FavoritesService(IFavoritesRepository repository, IProductRepository productRepository, ICartRepository cartRepository, IStorageProvider storage)
     {
         _repository = repository;
         _productRepository = productRepository;
         _cartRepository = cartRepository;
+        _storage = storage;
     }
 
     public async Task<Result<IEnumerable<FavoriteItemDto>>> GetByUserAsync(int userId)
@@ -31,7 +34,7 @@ public class FavoritesService : IFavoritesService
             x.ManufacturerName,
             x.ManufacturerCountry,
             x.Price,
-            x.ImageUrl,
+            _storage.GetPublicUrl(x.ImageUrl),
             x.IsAvailable,
             x.IsPrescriptionRequired,
             cartItems.TryGetValue(x.ProductId, out int qty) ? qty : 0

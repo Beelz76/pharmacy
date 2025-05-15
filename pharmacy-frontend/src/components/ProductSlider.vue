@@ -75,7 +75,7 @@ const cartStore = useCartStore()
 const favoritesStore = useFavoritesStore()
 
 onMounted(async () => {
-  const data = await getPaginatedProducts({ page: 1, size: 20 })
+  const data = await getPaginatedProducts({ page: 1, size: 12 })
   products.value = data.items
   cartStore.syncFromProducts(products.value)
   favoritesStore.syncFromProducts(products.value)

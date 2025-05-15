@@ -4,6 +4,7 @@ using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Minio;
 using Pharmacy.BackgroundServices;
 using Pharmacy.Database;
 using Pharmacy.Database.Repositories;
@@ -85,6 +86,19 @@ try
             };
         });
     
+    builder.Services.AddSingleton(sp =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+
+        return new MinioClient()
+            .WithEndpoint(config["S3:ServiceUrl"])
+            .WithCredentials(config["S3:AccessKey"], config["S3:SecretKey"])
+            .WithSSL()
+            .Build();
+    });
+
+    builder.Services.AddSingleton<IStorageProvider, StorageProvider>();
+
     builder.Services.AddHostedService<EmailVerificationCleanupService>();
     
     builder.Services.AddSingleton<PasswordProvider>();
@@ -92,6 +106,7 @@ try
     builder.Services.AddSingleton<CodeGenerator>();
     builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
     
+    builder.Services.AddScoped<IProductImageService, ProductImageService>();
     builder.Services.AddScoped<IEmailSender, EmailSender>();
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IProductRepository, ProductRepository>();

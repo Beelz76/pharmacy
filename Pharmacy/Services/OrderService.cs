@@ -20,8 +20,9 @@ public class OrderService : IOrderService
     private readonly IUserRepository _userRepository;
     private readonly IEmailSender _emailSender;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IStorageProvider _storage;
 
-    public OrderService(ICartRepository cartRepository, IProductRepository productRepository, IOrderRepository orderRepository, IDateTimeProvider dateTimeProvider, IPaymentService paymentService, IUserRepository userRepository, IEmailSender emailSender)
+    public OrderService(ICartRepository cartRepository, IProductRepository productRepository, IOrderRepository orderRepository, IDateTimeProvider dateTimeProvider, IPaymentService paymentService, IUserRepository userRepository, IEmailSender emailSender, IStorageProvider storage)
     {
         _cartRepository = cartRepository;
         _productRepository = productRepository;
@@ -30,13 +31,14 @@ public class OrderService : IOrderService
         _paymentService = paymentService;
         _userRepository = userRepository;
         _emailSender = emailSender;
+        _storage = storage;
     }
 
-    public async Task<Result<CreatedDto>> CreateAsync(int userId, string pharmacyAddress, PaymentMethodEnum paymentMethod)
+    public async Task<Result<CreatedWithNumberDto>> CreateAsync(int userId, string pharmacyAddress, PaymentMethodEnum paymentMethod)
     {
         var cartItems = await _cartRepository.GetRawUserCartAsync(userId);
         if (!cartItems.Any())
-            return Result.Failure<CreatedDto>(Error.Failure("Корзина пуста"));
+            return Result.Failure<CreatedWithNumberDto>(Error.Failure("Корзина пуста"));
 
         var now = _dateTimeProvider.UtcNow;
         var orderItems = new List<OrderItem>();
@@ -47,7 +49,7 @@ public class OrderService : IOrderService
             var product = await _productRepository.GetByIdWithRelationsAsync(cartItem.ProductId);
             if (product is null || !product.IsAvailable || product.StockQuantity < cartItem.Quantity)
             {
-                return Result.Failure<CreatedDto>(Error.Failure($"Товар {cartItem.ProductId} недоступен"));
+                return Result.Failure<CreatedWithNumberDto>(Error.Failure($"Товар {cartItem.ProductId} недоступен"));
             }
 
             orderItems.Add(new OrderItem
@@ -97,7 +99,7 @@ public class OrderService : IOrderService
             await _emailSender.SendEmailAsync(user.Email, subject, body);
         }
         
-        return Result.Success(new CreatedDto(order.Id));
+        return Result.Success(new CreatedWithNumberDto(order.Id, order.Number));
     }
 
     public async Task<Result> PayAsync(int orderId, int userId)
@@ -159,7 +161,7 @@ public class OrderService : IOrderService
                 oi.Product.Name,
                 oi.Quantity,
                 oi.Price,
-                oi.Product.Images.OrderBy(i => i.Id).Select(i => i.Url).FirstOrDefault()
+                oi.Product.Images.OrderBy(i => i.Id).Select(i => _storage.GetPublicUrl(i.Url)).FirstOrDefault()
             )).ToList(),
             new PaymentDto(
                 order.Payment.Id,
@@ -171,7 +173,7 @@ public class OrderService : IOrderService
         ));
     }
     
-    public async Task<Result<PaginatedList<OrderDto>>> GetPaginatedAsync(OrderFilters filters, int pageNumber, int pageSize, int? userId = null)
+    public async Task<Result<PaginatedList<OrderDto>>> GetPaginatedAsync(OrderFilters filters, int pageNumber, int pageSize, string? sortBy, string? sortOrder, int? userId = null)
     {
         var query = _orderRepository.QueryWithStatus();
 
@@ -223,11 +225,11 @@ public class OrderService : IOrderService
 
         var totalCount = await query.CountAsync();
 
-        query = filters.SortBy switch
+        query = sortBy switch
         {
-            "number" => filters.SortOrder == "asc" ? query.OrderBy(o => o.Number) : query.OrderByDescending(o => o.Number),
-            "price" => filters.SortOrder == "asc" ? query.OrderBy(o => o.TotalPrice) : query.OrderByDescending(o => o.TotalPrice),
-            "date" or _ => filters.SortOrder == "asc" ? query.OrderBy(o => o.CreatedAt) : query.OrderByDescending(o => o.CreatedAt)
+            "number" => sortOrder == "asc" ? query.OrderBy(o => o.Number) : query.OrderByDescending(o => o.Number),
+            "price" => sortOrder == "asc" ? query.OrderBy(o => o.TotalPrice) : query.OrderByDescending(o => o.TotalPrice),
+            "date" or _ => sortOrder == "asc" ? query.OrderBy(o => o.CreatedAt) : query.OrderByDescending(o => o.CreatedAt)
         };
 
         var pageItems = await query
@@ -238,7 +240,7 @@ public class OrderService : IOrderService
                 o.Number,
                 o.CreatedAt,
                 o.TotalPrice,
-                o.Status.Name,
+                o.Status.Description,
                 o.PickupCode,
                 o.UserId,
                 $"{o.User.LastName} {o.User.FirstName} {o.User.Patronymic}".Trim(),
@@ -250,7 +252,7 @@ public class OrderService : IOrderService
     
     public async Task<Result> UpdateStatusAsync(int orderId, OrderStatusEnum newStatus)
     {
-        var order = await _orderRepository.GetByIdWithDetailsAsync(orderId);
+        var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true);
         if (order is null)
         {
             return Result.Failure(Error.NotFound("Заказ не найден"));
@@ -294,6 +296,12 @@ public class OrderService : IOrderService
                     </p>
                 </div>";
             await _emailSender.SendEmailAsync(user.Email, subject, body);
+        }
+
+        if (newStatus == OrderStatusEnum.Received &&
+            (PaymentMethodEnum)order.Payment.PaymentMethodId == PaymentMethodEnum.OnDelivery)
+        {
+            await _paymentService.UpdateStatusAsync(order.Id, PaymentStatusEnum.Completed);
         }
         
         await _orderRepository.UpdateAsync(order);

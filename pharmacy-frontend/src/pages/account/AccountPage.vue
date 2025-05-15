@@ -1,142 +1,101 @@
 <template>
-  <div>
-    <p class="text-red-600">Роль: {{ auth.role }}</p>
+    <!-- Персональные данные -->
+     <h2 class="text-xl font-semibold mb-6">{{auth.role}}</h2>
+    <div class="bg-white border rounded-xl shadow-sm p-6">
+      <h2 class="text-xl font-semibold mb-6">Персональные данные</h2>
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <el-form-item label="ФИО" prop="fullName">
+            <el-input
+              v-model="form.fullName"
+              :readonly="!isEditing"
+              placeholder="Фамилия Имя Отчество"
+              size="large"
+              class="!h-12 !rounded-md"
+              maxlength="100"
+              show-word-limit
+            />
+          </el-form-item>
 
-    <!-- Личные данные -->
-    <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-      <h2 class="text-2xl font-bold mb-6">Персональные данные</h2>
+          <el-form-item label="Телефон">
+            <PhoneInput
+              v-model="form.phoneFormatted"
+              :readonly="!isEditing"
+              :required="false"
+              :digitsOnly="true"
+              size="large"
+              class="w-full"
+            />
+          </el-form-item>
+        </div>
 
-      <div class="grid sm:grid-cols-2 gap-4">
-        <el-form-item label="ФИО" prop="fullName">
-          <el-input
-            v-model="form.fullName"
-            :readonly="!isEditing"
-            placeholder="Фамилия Имя Отчество"
-            size="large"
-            class="!h-12 !text-base !rounded-md"
-            maxlength="100"
-            show-word-limit
-          />
-        </el-form-item>
-
-        <el-form-item label="Телефон">
-          <PhoneInput
-            v-model="form.phoneFormatted"
-            :readonly="!isEditing"
-            :required="false"
-            :digitsOnly="true"
-            size="large"
-            class="w-full"
-          />
-        </el-form-item>
-      </div>
-
-      <div v-if="!isEmployee" class="mt-4 flex gap-2">
-        <el-button
-          v-if="!isEditing"
-          type="primary"
-          plain
-          class="!h-12 text-base"
-          @click="startProfileEdit"
-        >
-          Изменить
-        </el-button>
-        <template v-else>
-          <el-button
-            type="success"
-            plain
-            class="!h-12 text-base"
-            :loading="profileLoading"
-            :disabled="profileLoading"
-            @click="saveChanges"
-          >
-            Сохранить
+        <div v-if="!isEmployee" class="mt-6 flex justify-end gap-2">
+          <el-button v-if="!isEditing" @click="startProfileEdit" type="primary" plain>
+            <i class="fas fa-edit mr-1"></i> Изменить
           </el-button>
-          <el-button
-            type="info"
-            plain
-            class="!h-12 text-base"
-            @click="cancelProfileEdit"
-          >
-            Отмена
-          </el-button>
-        </template>
-      </div>
+          <template v-else>
+            <el-button @click="saveChanges" type="success" plain :loading="profileLoading">
+              <i class="fas fa-check mr-1"></i> Сохранить
+            </el-button>
+            <el-button @click="cancelProfileEdit" type="info" plain>
+              Отмена
+            </el-button>
+          </template>
+        </div>
 
-      <div v-else class="text-sm text-gray-500 mt-1">Для изменения данных обратитесь к администратору</div>
-    </el-form>
+        <div v-else class="text-sm text-gray-500 mt-2">Для изменения данных обратитесь к администратору</div>
+      </el-form>
+    </div>
 
     <!-- Email -->
-    <el-form :model="form" :rules="rules" ref="emailFormRef" label-position="top" class="mt-8">
-      <el-form-item label="Email" prop="email">
-        <el-input
-          v-model="form.email"
-          :readonly="!isEditingEmail"
-          size="large"
-          class="w-full !h-12 !text-base !rounded-md"
-        />
-      </el-form-item>
+    <div class="bg-white border rounded-xl shadow-sm p-6 mt-8">
+      <h2 class="text-xl font-semibold mb-6">Email</h2>
+      <el-form :model="form" :rules="rules" ref="emailFormRef" label-position="top">
+        <el-form-item label="Email" prop="email">
+          <el-input
+            v-model="form.email"
+            :readonly="!isEditingEmail"
+            size="large"
+            class="w-full !h-12 !rounded-md"
+          />
+        </el-form-item>
 
-      <div v-if="!isEmployee" class="mt-4 flex gap-2">
-        <el-button
-          v-if="!isEditingEmail"
-          type="primary"
-          plain
-          class="!h-12 text-base"
-          @click="startEmailEdit"
-        >
-          Изменить
-        </el-button>
-        <template v-else>
-          <el-button
-            type="success"
-            plain
-            class="!h-12 text-base"
-            :loading="emailLoading"
-            :disabled="emailLoading"
-            @click="submitEmailChange"
-          >
-            Сохранить
+        <div v-if="!isEmployee" class="mt-6 flex justify-end gap-2">
+          <el-button v-if="!isEditingEmail" @click="startEmailEdit" type="primary" plain>
+            <i class="fas fa-edit mr-1"></i> Изменить
           </el-button>
-          <el-button
-            type="info"
-            plain
-            class="!h-12 text-base"
-            @click="cancelEmailEdit"
-          >
-            Отмена
-          </el-button>
-        </template>
-      </div>
+          <template v-else>
+            <el-button @click="submitEmailChange" type="success" plain :loading="emailLoading">
+              <i class="fas fa-check mr-1"></i> Сохранить
+            </el-button>
+            <el-button @click="cancelEmailEdit" type="info" plain>
+              Отмена
+            </el-button>
+          </template>
+        </div>
 
-      <div v-else class="text-sm text-gray-500 mt-1">Для изменения email обратитесь к администратору</div>
-    </el-form>
+        <div v-else class="text-sm text-gray-500 mt-2">Для изменения email обратитесь к администратору</div>
+      </el-form>
+    </div>
 
-    <!-- Изменение пароля -->
-    <div v-if="!isEmployee" class="mt-12">
-      <h2 class="text-2xl font-bold mb-6">Изменить пароль</h2>
+    <!-- Пароль -->
+    <div v-if="!isEmployee" class="bg-white border rounded-xl shadow-sm p-6 mt-8">
+      <h2 class="text-xl font-semibold mb-6">Изменить пароль</h2>
       <el-form :model="form" :rules="rules" ref="passwordFormRef" label-position="top">
         <el-form-item label="Текущий пароль" prop="currentPassword">
-          <el-input v-model="form.currentPassword" type="password" size="large" show-password class="!h-12 !text-base !rounded-md" />
+          <el-input v-model="form.currentPassword" type="password" size="large" show-password class="!h-12 !rounded-md" />
         </el-form-item>
         <el-form-item label="Новый пароль" prop="newPassword">
-          <el-input v-model="form.newPassword" type="password" size="large" show-password class="!h-12 !text-base !rounded-md" />
+          <el-input v-model="form.newPassword" type="password" size="large" show-password class="!h-12 !rounded-md" />
         </el-form-item>
         <el-form-item label="Повторить пароль" prop="confirmPassword">
-          <el-input v-model="form.confirmPassword" type="password" size="large" show-password @paste.prevent class="!h-12 !text-base !rounded-md" />
+          <el-input v-model="form.confirmPassword" type="password" size="large" show-password class="!h-12 !rounded-md" @paste.prevent />
         </el-form-item>
       </el-form>
 
-      <div class="mt-4">
-        <el-button
-          type="primary"
-          plain
-          class="!h-12 text-base"
-          :loading="passwordLoading"
-          :disabled="passwordLoading"
-          @click="submitPasswordChange"
-        >
-          Изменить пароль
+      <div class="mt-6 flex justify-end">
+        <el-button @click="submitPasswordChange" type="primary" plain :loading="passwordLoading">
+          <i class="fas fa-key mr-1"></i> Изменить пароль
         </el-button>
       </div>
     </div>
@@ -151,7 +110,7 @@
       @success="onEmailChangeConfirmed"
       @close="onVerificationClose"
     />
-  </div>
+
 </template>
 
 <script setup>

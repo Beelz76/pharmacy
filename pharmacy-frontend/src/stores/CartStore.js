@@ -14,7 +14,7 @@ export const useCartStore = defineStore('cart', {
   },
 
   persist: {
-    paths: ['items', 'totalPrice', 'cartCount'] // сохраняем только нужные поля
+    paths: ['items', 'totalPrice', 'cartCount']
   },
 
   actions: {

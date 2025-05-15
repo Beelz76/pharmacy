@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
+using Pharmacy.ExternalServices;
 using Pharmacy.Shared.Dto;
 
 namespace Pharmacy.Database.Repositories;
@@ -8,10 +9,12 @@ namespace Pharmacy.Database.Repositories;
 public class CartRepository : ICartRepository
 {
     private readonly PharmacyDbContext _context;
-
-    public CartRepository(PharmacyDbContext context)
+    private readonly IStorageProvider _storage;
+    
+    public CartRepository(PharmacyDbContext context, IStorageProvider storage)
     {
         _context = context;
+        _storage = storage;
     }
 
     public async Task<List<CartItemDto>> GetByUserAsync(int userId)
@@ -28,7 +31,7 @@ public class CartRepository : ICartRepository
                 c.Quantity,
                 c.Product.Price,
                 c.Quantity * c.Product.Price,
-                c.Product.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
+                c.Product.Images.OrderBy(x => x.Id).Select(x => _storage.GetPublicUrl(x.Url)).FirstOrDefault(),
                 c.Product.IsAvailable,
                 c.Product.IsPrescriptionRequired
                 ))
