@@ -12,7 +12,7 @@
         :readonly="readonly"
         :disabled="disabled"
         maxlength="18"
-        class="w-full !h-12 !text-base !rounded-md"
+        class="w-full !h-12 !text-sm !rounded-md"
       />
       <div
         v-if="!required && wrapWithFormItem && !inputValue.trim()"

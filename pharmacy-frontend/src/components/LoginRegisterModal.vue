@@ -10,6 +10,7 @@
     :append-to-body="false"
     teleported="false"
   >
+    <!-- Заголовок -->
     <template #header>
       <div class="flex items-center justify-center relative h-10">
         <div
@@ -32,19 +33,21 @@
     </template>
 
     <div class="space-y-4 mt-2">
+      <!-- Этап 1: Ввод email для сброса -->
       <template v-if="showResetStep1">
         <el-form :model="form" :rules="rules" ref="formRef" label-position="top" size="large">
           <el-form-item prop="email">
-            <el-input v-model="form.email" placeholder="Email" class="!h-11 !text-base !rounded-md" />
+            <el-input v-model="form.email" placeholder="Email" class="!h-11 !rounded-md" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" class="w-full !h-11" :loading="loading" :disabled="loading" @click="() => validateAnd(sendResetCode)">
+            <el-button type="primary" class="w-full !h-11" :loading="loading" @click="() => validateAnd(sendResetCode)">
               Отправить код
             </el-button>
           </el-form-item>
         </el-form>
       </template>
 
+      <!-- Этап 2: Подтверждение кода -->
       <template v-else-if="showVerification && !showResetPasswordFields">
         <div class="flex justify-center gap-2 mb-2">
           <input
@@ -64,16 +67,14 @@
         </div>
         <el-button
           type="primary"
-          class="w-full mt-2 !h-11"
+          class="w-full !h-11"
           :disabled="verificationCode.length !== 6 || loading"
           :loading="loading"
           @click="confirmCode"
         >
           Подтвердить
         </el-button>
-        <div v-if="errorMessage" class="text-red-600 text-sm text-center mt-2">
-          {{ errorMessage }}
-        </div>
+
         <div class="text-center text-sm text-gray-500 mt-3">
           <template v-if="!canResend">
             Отправить код повторно через {{ resendTimer }} сек
@@ -86,33 +87,36 @@
         </div>
       </template>
 
+      <!-- Этап 3: Смена пароля -->
       <template v-else-if="showResetPasswordFields">
         <el-form :model="form" :rules="rules" ref="formRef" label-position="top" size="large" @keyup.enter="handleSubmit">
           <el-form-item prop="newPassword">
-            <el-input v-model="form.newPassword" placeholder="Новый пароль" type="password" class="!h-11 !rounded-md" />
+            <el-input v-model="form.newPassword" type="password" placeholder="Новый пароль" class="!h-11 !rounded-md" />
           </el-form-item>
           <el-form-item prop="confirmPassword">
-            <el-input v-model="form.confirmPassword" placeholder="Подтверждение пароля" type="password" class="!h-11 !rounded-md" />
+            <el-input v-model="form.confirmPassword" type="password" placeholder="Подтверждение пароля" class="!h-11 !rounded-md" @paste.prevent />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" class="w-full !h-11" :loading="loading" :disabled="loading" @click="() => validateAnd(resetPassword)">
+            <el-button type="primary" class="w-full !h-11" :loading="loading" @click="() => validateAnd(resetPassword)">
               Сохранить пароль
             </el-button>
           </el-form-item>
         </el-form>
       </template>
 
+      <!-- Этап 4: Авторизация / Регистрация -->
       <template v-else>
         <el-form :model="form" :rules="rules" ref="formRef" label-position="top" size="large" @keyup.enter="handleSubmit">
           <el-form-item prop="email">
-            <el-input v-model="form.email" placeholder="Email" class="!h-11 !text-base !rounded-md" />
+            <el-input v-model="form.email" placeholder="Email" class="!h-11 !rounded-md" />
           </el-form-item>
+
           <el-form-item prop="password">
             <el-input
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Пароль"
-              class="!h-11 !text-base !rounded-md"
+              class="!h-11 !rounded-md"
             >
               <template #suffix>
                 <i
@@ -123,38 +127,42 @@
               </template>
             </el-input>
           </el-form-item>
+
           <div v-if="isLogin" class="text-left text-sm -mt-2 mb-3">
-            <button type="button" class="text-primary-600 hover:underline ml-1" @click="startPasswordReset">
+            <button type="button" class="text-primary-600 hover:underline" @click="startPasswordReset">
               Забыли пароль?
             </button>
           </div>
+
+          <!-- Регистрация -->
           <template v-if="!isLogin">
             <el-form-item prop="lastName">
-              <el-input v-model="form.lastName" placeholder="Фамилия" class="!h-11 !text-base !rounded-md" />
+              <el-input v-model="form.lastName" placeholder="Фамилия" class="!h-11 !rounded-md" />
             </el-form-item>
             <el-form-item prop="firstName">
-              <el-input v-model="form.firstName" placeholder="Имя" class="!h-11 !text-base !rounded-md" />
+              <el-input v-model="form.firstName" placeholder="Имя" class="!h-11 !rounded-md" />
             </el-form-item>
             <el-form-item>
-              <el-input v-model="form.patronymic" placeholder="Отчество" class="!h-11 !text-base !rounded-md" />
-              <div v-if="form.patronymic.trim() === ''" class="text-xs text-gray-400 ml-1">Необязательное поле</div>
+              <el-input v-model="form.patronymic" placeholder="Отчество (необязательно)" class="!h-11 !rounded-md" />
             </el-form-item>
             <PhoneInput
               v-model="form.phone"
-              placeholder="Телефон"
+              placeholder="Телефон (необязательно)"
               :required="false"
               :wrapWithFormItem="false"
               :digitsOnly="true"
               size="large"
             />
-            <div v-if="form.phone.trim() === ''" class="text-xs text-gray-400 ml-1">Необязательное поле</div>
           </template>
+
           <el-form-item>
-            <el-button type="primary" class="w-full !h-11 mt-4" :loading="loading" :disabled="loading" @click="handleSubmit">
+            <el-button type="primary" class="w-full !h-11 mt-4" :loading="loading" @click="handleSubmit">
               {{ isLogin ? 'Войти' : 'Зарегистрироваться' }}
             </el-button>
           </el-form-item>
         </el-form>
+
+        <!-- Переключение -->
         <div class="text-center text-sm text-gray-500 mt-2">
           {{ isLogin ? 'Нет аккаунта?' : 'Уже есть аккаунт?' }}
           <button class="text-primary-600 hover:underline ml-1" :disabled="loading" @click="toggleMode">
@@ -165,6 +173,7 @@
     </div>
   </el-dialog>
 </template>
+
 
 <script setup>
 import { ref, reactive, nextTick, watch, computed, onUnmounted } from 'vue'

@@ -44,6 +44,7 @@ public record CreateProductRequest(
     int CategoryId,
     int ManufacturerId,
     string Description,
+    string ExtendedDescription,
     DateTime? ExpirationDate,
     bool IsAvailable,
     bool IsPrescriptionRequired,

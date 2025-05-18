@@ -1,117 +1,168 @@
 <template>
-    <!-- Персональные данные -->
-     <h2 class="text-xl font-semibold mb-6">{{auth.role}}</h2>
-    <div class="bg-white border rounded-xl shadow-sm p-6">
-      <h2 class="text-xl font-semibold mb-6">Персональные данные</h2>
-      <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-        <div class="grid sm:grid-cols-2 gap-4">
-          <el-form-item label="ФИО" prop="fullName">
-            <el-input
-              v-model="form.fullName"
-              :readonly="!isEditing"
-              placeholder="Фамилия Имя Отчество"
-              size="large"
-              class="!h-12 !rounded-md"
-              maxlength="100"
-              show-word-limit
-            />
-          </el-form-item>
+  <!-- Роль пользователя -->
+  <h2 class="text-xl font-semibold text-gray-700 mb-4 capitalize">
+    Роль: {{ auth.role }}
+  </h2>
 
-          <el-form-item label="Телефон">
-            <PhoneInput
-              v-model="form.phoneFormatted"
-              :readonly="!isEditing"
-              :required="false"
-              :digitsOnly="true"
-              size="large"
-              class="w-full"
-            />
-          </el-form-item>
-        </div>
+  <!-- Персональные данные -->
+  <div class="bg-white border rounded-xl shadow-sm p-6">
+    <h2 class="text-xl font-semibold text-gray-900 mb-6">Персональные данные</h2>
 
-        <div v-if="!isEmployee" class="mt-6 flex justify-end gap-2">
-          <el-button v-if="!isEditing" @click="startProfileEdit" type="primary" plain>
-            <i class="fas fa-edit mr-1"></i> Изменить
-          </el-button>
-          <template v-else>
-            <el-button @click="saveChanges" type="success" plain :loading="profileLoading">
-              <i class="fas fa-check mr-1"></i> Сохранить
-            </el-button>
-            <el-button @click="cancelProfileEdit" type="info" plain>
-              Отмена
-            </el-button>
-          </template>
-        </div>
-
-        <div v-else class="text-sm text-gray-500 mt-2">Для изменения данных обратитесь к администратору</div>
-      </el-form>
-    </div>
-
-    <!-- Email -->
-    <div class="bg-white border rounded-xl shadow-sm p-6 mt-8">
-      <h2 class="text-xl font-semibold mb-6">Email</h2>
-      <el-form :model="form" :rules="rules" ref="emailFormRef" label-position="top">
-        <el-form-item label="Email" prop="email">
+    <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <el-form-item label="ФИО" prop="fullName">
           <el-input
-            v-model="form.email"
-            :readonly="!isEditingEmail"
+            v-model="form.fullName"
+            :readonly="!isEditing"
+            placeholder="Фамилия Имя Отчество"
             size="large"
-            class="w-full !h-12 !rounded-md"
+            class="!h-12 !rounded-md"
+            maxlength="100"
+            show-word-limit
           />
         </el-form-item>
 
-        <div v-if="!isEmployee" class="mt-6 flex justify-end gap-2">
-          <el-button v-if="!isEditingEmail" @click="startEmailEdit" type="primary" plain>
-            <i class="fas fa-edit mr-1"></i> Изменить
-          </el-button>
-          <template v-else>
-            <el-button @click="submitEmailChange" type="success" plain :loading="emailLoading">
-              <i class="fas fa-check mr-1"></i> Сохранить
-            </el-button>
-            <el-button @click="cancelEmailEdit" type="info" plain>
-              Отмена
-            </el-button>
-          </template>
-        </div>
-
-        <div v-else class="text-sm text-gray-500 mt-2">Для изменения email обратитесь к администратору</div>
-      </el-form>
-    </div>
-
-    <!-- Пароль -->
-    <div v-if="!isEmployee" class="bg-white border rounded-xl shadow-sm p-6 mt-8">
-      <h2 class="text-xl font-semibold mb-6">Изменить пароль</h2>
-      <el-form :model="form" :rules="rules" ref="passwordFormRef" label-position="top">
-        <el-form-item label="Текущий пароль" prop="currentPassword">
-          <el-input v-model="form.currentPassword" type="password" size="large" show-password class="!h-12 !rounded-md" />
+        <el-form-item label="Телефон">
+          <PhoneInput
+            v-model="form.phoneFormatted"
+            :readonly="!isEditing"
+            :required="false"
+            :digitsOnly="true"
+            size="large"
+            class="w-full"
+          />
         </el-form-item>
-        <el-form-item label="Новый пароль" prop="newPassword">
-          <el-input v-model="form.newPassword" type="password" size="large" show-password class="!h-12 !rounded-md" />
-        </el-form-item>
-        <el-form-item label="Повторить пароль" prop="confirmPassword">
-          <el-input v-model="form.confirmPassword" type="password" size="large" show-password class="!h-12 !rounded-md" @paste.prevent />
-        </el-form-item>
-      </el-form>
-
-      <div class="mt-6 flex justify-end">
-        <el-button @click="submitPasswordChange" type="primary" plain :loading="passwordLoading">
-          <i class="fas fa-key mr-1"></i> Изменить пароль
-        </el-button>
       </div>
+
+      <div v-if="!isEmployee" class="mt-6 flex justify-end gap-3">
+        <el-button v-if="!isEditing" @click="startProfileEdit" type="primary" plain>
+          <i class="fas fa-edit mr-1"></i> Изменить
+        </el-button>
+        <template v-else>
+          <el-button @click="saveChanges" type="success" plain :loading="profileLoading">
+            <i class="fas fa-check mr-1"></i> Сохранить
+          </el-button>
+          <el-button @click="cancelProfileEdit" type="info" plain>
+            Отмена
+          </el-button>
+        </template>
+      </div>
+      <div v-else class="text-sm text-gray-500 mt-4">
+        Для изменения данных обратитесь к администратору
+      </div>
+    </el-form>
+  </div>
+
+  <!-- Email -->
+  <div class="bg-white border rounded-xl shadow-sm p-6 mt-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-6">Почта</h2>
+
+    <el-form :model="form" :rules="rules" ref="emailFormRef" label-position="top">
+      <el-form-item label="Email" prop="email">
+        <el-input
+          v-model="form.email"
+          :readonly="!isEditingEmail"
+          size="large"
+          class="w-full !h-12 !rounded-md"
+        />
+      </el-form-item>
+
+      <div v-if="!isEmployee" class="mt-6 flex justify-end gap-3">
+        <el-button v-if="!isEditingEmail" @click="startEmailEdit" type="primary" plain>
+          <i class="fas fa-edit mr-1"></i> Изменить
+        </el-button>
+        <template v-else>
+          <el-button @click="submitEmailChange" type="success" plain :loading="emailLoading">
+            <i class="fas fa-check mr-1"></i> Сохранить
+          </el-button>
+          <el-button @click="cancelEmailEdit" type="info" plain>
+            Отмена
+          </el-button>
+        </template>
+      </div>
+      <div v-else class="text-sm text-gray-500 mt-4">
+        Для изменения email обратитесь к администратору
+      </div>
+    </el-form>
+  </div>
+
+  <!-- Пароль -->
+  <div v-if="!isEmployee" class="bg-white border rounded-xl shadow-sm p-6 mt-8">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold text-gray-900">Изменить пароль</h2>
+      <button
+        class="text-sm text-primary-600 hover:underline"
+        @click="showPasswordResetModal = true"
+      >
+        Забыли пароль?
+      </button>
     </div>
 
-    <!-- Модалка подтверждения -->
-    <CodeVerificationModal
-      v-if="showVerificationModal"
-      :visible="showVerificationModal"
-      :email="form.email"
-      purpose="EmailChange"
-      @update:visible="showVerificationModal = $event"
-      @success="onEmailChangeConfirmed"
-      @close="onVerificationClose"
-    />
+    <el-form :model="form" :rules="rules" ref="passwordFormRef" label-position="top">
+      <el-form-item label="Текущий пароль" prop="currentPassword">
+        <el-input
+          v-model="form.currentPassword"
+          type="password"
+          show-password
+          size="large"
+          class="!h-12 !rounded-md"
+        />
+      </el-form-item>
 
+      <el-form-item label="Новый пароль" prop="newPassword">
+        <el-input
+          v-model="form.newPassword"
+          type="password"
+          show-password
+          size="large"
+          class="!h-12 !rounded-md"
+        />
+      </el-form-item>
+
+      <el-form-item label="Повторить пароль" prop="confirmPassword">
+        <el-input
+          v-model="form.confirmPassword"
+          type="password"
+          show-password
+          size="large"
+          @paste.prevent
+          class="!h-12 !rounded-md"
+        />
+      </el-form-item>
+    </el-form>
+
+    <div class="mt-6 flex justify-end">
+      <el-button
+        @click="submitPasswordChange"
+        type="primary"
+        plain
+        :loading="passwordLoading"
+      >
+        <i class="fas fa-key mr-1"></i> Изменить пароль
+      </el-button>
+    </div>
+  </div>
+
+  <!-- Модалка подтверждения -->
+  <CodeVerificationModal
+    v-if="showVerificationModal"
+    :visible="showVerificationModal"
+    :email="form.email"
+    purpose="EmailChange"
+    @update:visible="showVerificationModal = $event"
+    @success="onEmailChangeConfirmed"
+    @close="onVerificationClose"
+  />
+
+  <!-- Модалка сброса пароля -->
+  <PasswordResetModal
+    v-if="showPasswordResetModal"
+    :visible="showPasswordResetModal"
+    :email="form.email"
+    @update:visible="showPasswordResetModal = $event"
+  />
 </template>
+
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
@@ -121,6 +172,7 @@ import CodeVerificationModal from '/src/components/CodeVerificationModal.vue'
 import { useAccountStore } from '/src/stores/AccountStore'
 import { useAuthStore } from '/src/stores/AuthStore'
 import api from '/src/utils/axios'
+import PasswordResetModal from '/src/components/PasswordResetModal.vue'
 
 const auth = useAuthStore()
 const store = useAccountStore()
@@ -132,6 +184,7 @@ const passwordFormRef = ref()
 const isEditing = ref(false)
 const isEditingEmail = ref(false)
 const showVerificationModal = ref(false)
+const showPasswordResetModal = ref(false)
 
 const profileLoading = ref(false)
 const emailLoading = ref(false)

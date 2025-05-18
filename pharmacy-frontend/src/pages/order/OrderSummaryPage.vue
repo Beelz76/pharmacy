@@ -1,61 +1,72 @@
 <template>
   <div class="max-w-4xl mx-auto py-10 px-4">
-    <!-- Заголовок -->
-    <div class="flex items-center gap-3 mb-8">
+    <!-- Назад и заголовок -->
+    <div class="flex items-center gap-4 mb-8">
       <router-link
         :to="{ name: 'OrderCheckout' }"
-        class="flex items-center text-primary-600 hover:text-primary-700 text-lg group"
+        class="flex items-center text-primary-600 hover:text-primary-700 text-base group"
       >
-        <i class="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform duration-150"></i>
-        <span>Назад</span>
+        <i class="text-xl fas fa-arrow-left mr-2 group-hover:-translate-x-1 duration-150"></i>
       </router-link>
-      <h2 class="text-2xl font-bold ml-2">Подтверждение заказа</h2>
+      <h2 class="text-2xl font-bold tracking-tight">Подтверждение заказа</h2>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Информация об аптеке и оплате -->
-      <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Информация о заказе</h3>
+      <!-- Информация о заказе -->
+      <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-5">
+        <h3 class="text-lg font-semibold text-gray-800">
+          <i class="fas fa-file-alt mr-2 text-gray-400"></i>Информация о заказе
+        </h3>
+
         <div v-if="selectedPharmacy">
-          <p class="text-sm text-gray-500">Аптека</p>
-          <p class="text-base font-medium text-gray-800">{{ selectedPharmacy.name }}</p>
+          <p class="text-sm text-gray-500 uppercase tracking-wide">Аптека</p>
+          <p class="text-base font-medium text-gray-900">«{{ selectedPharmacy.name }}»</p>
           <p class="text-sm text-gray-600">{{ selectedPharmacy.address }}</p>
         </div>
-        <div v-if="paymentMethod">
-          <p class="text-sm text-gray-500 mt-4">Способ оплаты</p>
-          <p class="text-base font-medium text-gray-800">
+
+        <div v-if="paymentMethod" class="pt-4">
+          <p class="text-sm text-gray-500 uppercase tracking-wide">Оплата</p>
+          <p class="text-base font-medium text-gray-900">
             {{ paymentMethod === 'Online' ? 'Картой онлайн' : 'При получении' }}
           </p>
         </div>
       </div>
 
-      <!-- Состав заказа -->
-      <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Состав заказа</h3>
-        <div class="divide-y divide-gray-100">
-          <div
-            v-for="item in cartItems"
-            :key="item.productId"
-            class="py-4 flex justify-between items-start"
-          >
-            <div>
-              <p class="font-medium text-gray-900">{{ item.name }}</p>
-              <p class="text-sm text-gray-500 mt-0.5">{{ item.description }}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-sm text-gray-500">×{{ item.quantity }}</p>
-              <p class="text-base font-semibold text-gray-800">{{ item.totalPrice.toFixed(2) }} ₽</p>
-            </div>
-          </div>
-        </div>
-        <div class="text-right mt-6 text-xl font-bold text-gray-900 border-t pt-4">
-          Итого: {{ totalPrice.toFixed(2) }} ₽
-        </div>
+<!-- Состав заказа -->
+<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-5">
+  <h3 class="text-lg font-semibold text-gray-800">
+    <i class="fas fa-box mr-2 text-gray-400"></i>Состав заказа
+  </h3>
+
+  <!-- Прокручиваемый список -->
+  <div class="custom-scroll divide-y divide-gray-100 max-h-[360px] overflow-y-auto pr-3 -mr-3">
+  <div
+    v-for="item in cartItems"
+    :key="item.productId"
+    class="py-4 flex justify-between items-start text-sm"
+  >
+      <div class="pr-4">
+        <p class="font-medium text-gray-900">{{ item.name }}</p>
+        <p class="text-gray-500 mt-1">{{ item.description }}</p>
       </div>
+      <div class="text-right whitespace-nowrap">
+        <p class="text-gray-500">×{{ item.quantity }}</p>
+        <p class="font-semibold text-gray-900 text-base">
+          {{ item.totalPrice.toFixed(2) }} ₽
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pt-4 border-t text-right text-xl font-bold text-gray-900">
+    Итого: {{ totalPrice.toFixed(2) }} ₽
+  </div>
+</div>
+
     </div>
 
     <!-- Кнопка подтверждения -->
-    <div class="text-right mt-8">
+    <div class="text-right mt-10">
       <el-button
         type="primary"
         size="large"
@@ -63,7 +74,7 @@
         @click="submitOrder"
         class="!bg-primary-600 hover:!bg-primary-700 !px-10 !py-3 rounded-lg text-base"
       >
-        Подтвердить заказ
+        Перейти к оплате
       </el-button>
     </div>
   </div>
@@ -126,5 +137,15 @@ const submitOrder = async () => {
 <style scoped>
 .el-button {
   transition: background-color 0.2s ease-in-out;
+}
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background-color: transparent;
 }
 </style>

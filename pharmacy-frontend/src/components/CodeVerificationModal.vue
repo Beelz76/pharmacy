@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :model-value="visible"
-    @update:model-value="emit('update:visible', $event)"
+    @update:model-value="$emit('update:visible', $event)"
     width="420px"
     class="rounded-xl"
     :modal-append-to-body="false"
@@ -43,10 +43,6 @@
       >
         Подтвердить
       </el-button>
-
-      <div v-if="errorMessage" class="text-red-600 text-sm text-center mt-2">
-        {{ errorMessage }}
-      </div>
 
       <div class="text-center text-sm text-gray-500 mt-3">
         <template v-if="!canResend">

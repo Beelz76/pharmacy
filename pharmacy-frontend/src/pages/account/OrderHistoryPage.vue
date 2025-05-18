@@ -7,50 +7,59 @@
     </div>
 
     <div v-else>
-      <div class="overflow-x-auto rounded-xl shadow-sm border">
-        <table class="min-w-full divide-y divide-gray-200 bg-white">
+      <div class="overflow-x-auto rounded-xl shadow border">
+        <table class="min-w-full table-fixed divide-y divide-gray-200 bg-white text-base">
           <thead class="bg-gray-50">
-            <tr class="text-left text-sm text-gray-600">
-              <th class="px-4 py-3 font-semibold">
+            <tr class="text-left text-gray-600 uppercase text-sm tracking-wider">
+              <th class="w-[160px] px-6 py-6 font-semibold text-gray-600">
                 <i class="fas fa-hashtag mr-2 text-gray-400"></i>Номер
               </th>
-              <th class="px-4 py-3 font-semibold">
+              <th class="w-[180px] px-6 py-6 font-semibold text-gray-600">
                 <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>Дата
               </th>
-              <th class="px-4 py-3 font-semibold">
+              <th class="w-[120px] px-6 py-6 font-semibold text-gray-600">
                 <i class="fas fa-ruble-sign mr-2 text-gray-400"></i>Сумма
               </th>
-              <th class="px-4 py-3 font-semibold">
+              <th class="w-[180px] px-6 py-6 font-semibold text-gray-600">
                 <i class="fas fa-info-circle mr-2 text-gray-400"></i>Статус
               </th>
-              <th class="px-4 py-3 font-semibold">
-                <i class="fas fa-key mr-2 text-gray-400"></i>Код получения
+              <th class="w-[140px] px-6 py-6 font-semibold text-gray-600">
+                <i class="fas fa-key mr-2 text-gray-400"></i>Код
+              </th>
+              <th class="w-[40px] px-6 py-6 font-semibold text-right">
+                <span class="sr-only">Детали</span>
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100 text-sm">
+          <tbody class="divide-y divide-gray-100">
             <tr
               v-for="order in orders"
               :key="order.id"
-              class="hover:bg-gray-50 transition cursor-pointer"
+              class="hover:bg-gray-50 transition cursor-pointer group text-[15px] leading-relaxed"
               @click="goToOrder(order.id)"
             >
-              <td class="px-4 py-3 font-medium text-gray-900" @mousedown.stop>{{ order.number }}</td>
-              <td class="px-4 py-3 text-gray-700" @mousedown.stop>{{ formatDate(order.createdAt) }}</td>
-              <td class="px-4 py-3 text-gray-700 whitespace-nowrap" @mousedown.stop>
+              <td class="px-6 py-6 font-medium text-gray-900 whitespace-nowrap" @mousedown.stop>
+                {{ order.number }}
+              </td>
+              <td class="px-6 py-6 text-gray-700 whitespace-nowrap" @mousedown.stop>
+                {{ formatDate(order.createdAt) }}
+              </td>
+              <td class="px-6 py-6 text-gray-700 whitespace-nowrap" @mousedown.stop>
                 {{ order.totalPrice.toFixed(2) }} ₽
               </td>
-              <td class="px-4 py-3" @mousedown.stop>
+              <td class="px-6 py-6 whitespace-nowrap" @mousedown.stop>
                 <span
-                  class="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+                  class="inline-block w-full text-center px-3 py-2 rounded-full text-xs font-semibold"
                   :class="statusClass(order.status)"
                 >
                   {{ order.status }}
                 </span>
-
               </td>
-              <td class="px-4 py-3 text-gray-700" @mousedown.stop>
+              <td class="px-6 py-6 text-gray-700 whitespace-nowrap text-center" @mousedown.stop>
                 {{ order.pickupCode || '—' }}
+              </td>
+              <td class="px-6 py-6 text-right text-gray-400 group-hover:text-primary-600 transition w-8">
+                <i class="fas fa-chevron-right"></i>
               </td>
             </tr>
           </tbody>
@@ -69,8 +78,6 @@
     </div>
   </div>
 </template>
-
-
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '/src/stores/AuthStore'
@@ -78,6 +85,7 @@ import { useOrders } from '/src/composables/useOrders'
 import LoadingSpinner from '/src/components/LoadingSpinner.vue'
 import { useRouter } from 'vue-router'
 import { useOrderNavigationStore } from '/src/stores/OrderStore'
+import { statusClass } from '../../utils/statusClass'
 
 const navStore = useOrderNavigationStore()
 const router = useRouter()
@@ -89,8 +97,7 @@ const { orders, totalCount, loading, fetchOrders } = useOrders()
 const goToOrder = (orderId) => {
   router.push({
     name: 'OrderDetails',
-    params: { id: orderId },
-    query: { page: pageNumber.value }
+    params: { id: orderId }
   })
 }
 
@@ -102,24 +109,6 @@ const formatDate = (isoString) => {
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-const statusClass = (status) => {
-  switch (status) {
-    case 'Ожидает оплаты':
-    case 'Ожидает обработки':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'В обработке':
-    case 'Готов к получению':
-      return 'bg-blue-100 text-blue-800'
-    case 'Получен':
-      return 'bg-green-100 text-green-700'
-    case 'Отменен':
-    case 'Возврат средств':
-      return 'bg-red-100 text-red-700'
-    default:
-      return 'bg-gray-100 text-gray-600'
-  }
 }
 
 onMounted(() => {

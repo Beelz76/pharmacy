@@ -24,7 +24,11 @@ public class ProductRepository : BaseRepository, IProductRepository
             query = query.Include(x => x.Images);
 
         if (includeCategory)
-            query = query.Include(x => x.ProductCategory).ThenInclude(x => x.ParentCategory);
+            query = query
+                .Include(x => x.ProductCategory)
+                    .ThenInclude(c => c.ParentCategory)
+                .Include(x => x.ProductCategory)
+                    .ThenInclude(c => c.Fields);
         
         if (includeManufacturer)
             query = query.Include(x => x.Manufacturer);

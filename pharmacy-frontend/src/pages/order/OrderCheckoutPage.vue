@@ -5,8 +5,7 @@
         to="/cart"
         class="flex items-center text-primary-600 hover:text-primary-700 text-lg group"
       >
-        <i class="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform duration-150"></i>
-        <span>Назад</span>
+        <i class="text-xl fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform duration-150"></i>
       </router-link>
       <h2 class="text-2xl font-bold">Оформление заказа</h2>
     </div>
@@ -128,34 +127,41 @@
           </div>
         </div>
 
-        <!-- Выбранная аптека -->
-        <div class="min-h-[92px]">
-          <div
-            v-if="selectedPharmacy"
-            class="p-4 bg-white border rounded-xl shadow-sm"
-          >
-            <p class="text-base text-gray-500 mb-1">Выбранная аптека:</p>
-            <p class="font-semibold text-gray-800">{{ selectedPharmacy.name }}</p>
-            <p class="text-base text-gray-600">{{ selectedPharmacy.address || 'Адрес не найден' }}</p>
-          </div>
-        </div>
+<!-- Выбранная аптека + кнопка подтверждения -->
+<div class="min-h-[178px] p-4 bg-white border rounded-xl shadow-sm flex flex-col justify-between">
+  <div>
+    <h3 class="text-base font-semibold text-gray-800 mb-2">Выбранная аптека</h3>
 
-        <!-- Кнопка подтверждения справа -->
-        <div class="text-right">
-          <el-button
-            type="primary"
-            size="large"
-            class="!bg-primary-600 hover:!bg-primary-700 w-full sm:w-auto"
-            @click="submitOrder"
-          >
-            <i class="fas fa-check mr-2"></i> Подтвердить заказ
-          </el-button>
-        </div>
+<div class="space-y-1 min-h-[48px]">
+  <template v-if="selectedPharmacy">
+    <p class="text-base font-medium text-gray-900">«{{ selectedPharmacy.name }}»</p>
+    <p class="text-sm text-gray-600">{{ selectedPharmacy.address || 'Адрес не найден' }}</p>
+  </template>
+  <template v-else>
+    <p class="text-sm text-gray-400">
+      Выберите аптеку из списка или на карте, чтобы продолжить оформление заказа.
+    </p>
+  </template>
+</div>
+
+  </div>
+
+  <div class="text-right pt-2">
+    <el-button
+      type="primary"
+      size="large"
+      class="!bg-primary-600 hover:!bg-primary-700 w-full sm:w-auto"
+      :disabled="!selectedPharmacy || !paymentMethod"
+      @click="submitOrder"
+    >
+      Подтвердить заказ
+    </el-button>
+  </div>
+</div>
       </div>
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'

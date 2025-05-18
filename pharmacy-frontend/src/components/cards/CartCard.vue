@@ -1,9 +1,9 @@
 <template>
   <div
-    class="bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-all flex overflow-hidden relative group w-full min-h-[160px]"
+    class="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all flex overflow-hidden relative group w-full min-h-[160px]"
     :class="{ 'opacity-60 grayscale': !product.isAvailable }"
   >
-    <!-- Изображение с переходом -->
+    <!-- Изображение -->
     <router-link
       :to="productLink"
       class="relative w-40 aspect-[4/3] flex-shrink-0 bg-gray-100 flex items-center justify-center overflow-hidden"
@@ -11,7 +11,7 @@
       <img
         v-if="product.imageUrl"
         :src="product.imageUrl"
-        alt="image"
+        alt="product image"
         class="w-full h-full object-contain"
       />
       <i v-else class="fas fa-image text-4xl text-gray-400"></i>
@@ -25,7 +25,7 @@
       </div>
       <div
         v-else-if="product.isPrescriptionRequired"
-        class="absolute bottom-2 left-2 bg-blue-100 text-primary-600 text-xs font-medium px-2 py-0.5 rounded inline-flex items-center gap-1"
+        class="absolute bottom-2 left-2 bg-blue-100 text-primary-600 text-xs font-medium px-2 py-0.5 rounded flex items-center gap-1"
       >
         <i class="fas fa-file-prescription"></i>
         По рецепту
@@ -40,7 +40,7 @@
         class="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition"
         title="Удалить из корзины"
       >
-        <i class="fas fa-times text-lg"></i>
+        <i class="fas fa-trash-alt text-lg"></i>
       </button>
 
       <!-- Название и производитель -->
@@ -56,36 +56,40 @@
         </p>
       </div>
 
-      <!-- Цена и управление -->
+      <!-- Количество и цена -->
       <div class="flex items-end justify-between mt-auto">
         <!-- Кол-во -->
         <div class="flex items-center gap-2">
           <button
-            class="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300 transition"
+            class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition text-sm"
             @click="decrementQuantity"
             :disabled="editableQuantity <= 1"
           >
-            −
+            <i class="fas fa-minus text-xs"></i>
           </button>
           <input
             v-model.number="editableQuantity"
             @change="setQuantity"
             type="number"
             min="1"
-            class="w-12 h-8 text-center border rounded appearance-none focus:outline-none"
+            class="w-12 h-8 text-center border rounded text-sm focus:outline-none"
           />
           <button
-            class="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300 transition"
+            class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition text-sm"
             @click="incrementQuantity"
           >
-            +
+            <i class="fas fa-plus text-xs"></i>
           </button>
         </div>
 
-        <!-- Общая цена -->
+        <!-- Цена -->
         <div class="text-right ml-4">
-          <span class="text-lg font-bold text-gray-900 block">{{ product.totalPrice.toFixed(2) }} ₽</span>
-          <span class="text-xs text-gray-500">{{ product.unitPrice.toFixed(2) }} ₽ / шт.</span>
+          <span class="text-lg font-bold text-gray-900 block">
+            {{ product.totalPrice.toFixed(2) }} ₽
+          </span>
+          <span class="text-xs text-gray-500">
+            {{ product.unitPrice.toFixed(2) }} ₽ / шт.
+          </span>
         </div>
       </div>
     </div>
@@ -103,7 +107,7 @@ const cartStore = useCartStore()
 const productId = props.product.productId
 
 const cartQuantity = computed(() => cartStore.quantityById[productId] || 0)
-const productLink = computed(() => `/products/${toSlug(props.product.name)}`)
+const productLink = computed(() => `/products/${productId}-${toSlug(props.product.name)}`)
 
 const editableQuantity = computed({
   get: () => cartQuantity.value || 1,

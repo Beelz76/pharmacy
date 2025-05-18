@@ -1,19 +1,22 @@
 <template>
-  <div class="relative w-full">
+  <div class="relative w-full h-full">
     <!-- Избранное -->
-    <button @click="toggleFavorite" class="absolute top-2 right-4 text-2xl z-20">
-      <i :class="['fas fa-heart', isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-500']"></i>
+    <button @click="toggleFavorite" class="absolute top-3 right-4 z-20 text-xl transition">
+      <i
+        class="fas fa-heart"
+        :class="isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-500 transition'"
+      ></i>
     </button>
 
     <!-- Обёртка карточки -->
     <div
-      class="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden flex flex-col"
+      class="bg-white border rounded-xl shadow-sm hover:shadow-md transition overflow-hidden flex flex-col h-full min-h-[370px]"
       :class="{ 'opacity-60 grayscale': !product.isAvailable }"
     >
       <!-- Изображение -->
       <router-link
         :to="productLink"
-        class="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden"
+        class="relative h-52 bg-gray-100 flex items-center justify-center overflow-hidden"
       >
         <img
           v-if="product.imageUrl"
@@ -21,7 +24,7 @@
           alt="image"
           class="w-full h-full object-contain"
         />
-        <i v-else class="fas fa-image text-3xl text-gray-400"></i>
+        <i v-else class="fas fa-image text-4xl text-gray-400"></i>
 
         <!-- Плашки -->
         <div
@@ -32,68 +35,68 @@
         </div>
         <div
           v-else-if="product.isPrescriptionRequired"
-          class="absolute bottom-2 left-2 bg-blue-100 text-primary-600 text-xs font-medium px-2 py-0.5 rounded inline-flex items-center gap-1"
+          class="absolute bottom-2 left-2 bg-blue-100 text-primary-600 text-xs font-medium px-2 py-0.5 rounded flex items-center gap-1"
         >
-          <i class="fas fa-file-prescription"></i>
+          <i class="fas fa-prescription-bottle-alt"></i>
           По рецепту
         </div>
       </router-link>
 
       <!-- Контент -->
       <div class="p-4 flex flex-col flex-grow justify-between relative">
-        <div>
+        <div class="mb-2">
           <router-link
             :to="productLink"
-            class="text-base font-semibold text-gray-900 hover:underline"
+            class="text-base font-semibold text-gray-900 hover:underline block line-clamp-2"
           >
             {{ product.name }}
           </router-link>
-          <p class="text-sm text-gray-500 mt-1">
+          <p class="text-sm text-gray-500 mt-1 line-clamp-2">
             {{ product.description || 'Описание недоступно' }}
           </p>
         </div>
 
-<div class="mt-4 min-h-[42px] flex items-center justify-between gap-2">
-  <span class="font-semibold text-gray-900">{{ product.price.toFixed(2) }} ₽</span>
+        <!-- Цена и кнопки -->
+        <div class="pt-2 flex items-center justify-between gap-2 mt-auto">
+          <span class="font-semibold text-gray-900 text-lg">
+            {{ product.price.toFixed(2) }} ₽
+          </span>
 
-  <div class="flex items-center gap-1">
-    <!-- Контролы количества, если товар уже в корзине -->
-    <div v-show="cartQuantity > 0" class="flex items-center gap-1">
-      <button
-        @click="decrementQuantity"
-        class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
-      >
-        −
-      </button>
+          <div class="flex items-center gap-1">
+            <div v-show="cartQuantity > 0" class="flex items-center gap-1">
+              <button
+                @click="decrementQuantity"
+                class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
+              >
+                <i class="fas fa-minus text-xs"></i>
+              </button>
 
-      <input
-        v-model.number="editableQuantity"
-        @change="setQuantity"
-        type="number"
-        min="1"
-        class="w-12 h-8 text-center border rounded appearance-none focus:outline-none"
-      />
+              <input
+                v-model.number="editableQuantity"
+                @change="setQuantity"
+                type="number"
+                min="1"
+                class="w-12 h-8 text-center border rounded focus:outline-none text-sm"
+              />
 
-      <button
-        @click="incrementQuantity"
-        class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
-      >
-        +
-      </button>
-    </div>
+              <button
+                @click="incrementQuantity"
+                class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
+              >
+                <i class="fas fa-plus text-xs"></i>
+              </button>
+            </div>
 
-    <!-- Кнопка "В корзину", если товара ещё нет -->
-    <button
-      v-show="cartQuantity === 0"
-      :disabled="!product.isAvailable"
-      @click="addToCart"
-      class="bg-primary-600 text-white px-3 py-1 rounded text-sm hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      В корзину
-    </button>
-  </div>
-</div>
-
+            <button
+              v-show="cartQuantity === 0"
+              :disabled="!product.isAvailable"
+              @click="addToCart"
+              class="bg-primary-600 text-white px-3 py-1.5 rounded text-sm hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              В корзину
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -113,7 +116,7 @@ const cartStore = useCartStore()
 
 const isFavorite = computed(() => favoritesStore.ids.includes(props.product.id))
 const cartQuantity = computed(() => cartStore.quantityById[props.product.id] || 0)
-const productLink = computed(() => `/products/${toSlug(props.product.name)}`)
+const productLink = computed(() => `/products/${props.product.id}-${toSlug(props.product.name)}`)
 
 const editableQuantity = computed({
   get: () => cartQuantity.value || 1,

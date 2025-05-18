@@ -69,6 +69,7 @@ public class ProductService : IProductService
             CategoryId = request.CategoryId,
             ManufacturerId = request.ManufacturerId,
             Description = request.Description,
+            ExtendedDescription = request.ExtendedDescription,
             ExpirationDate = request.ExpirationDate,
             IsAvailable = request.IsAvailable,
             IsPrescriptionRequired = request.IsPrescriptionRequired,
@@ -176,28 +177,31 @@ public class ProductService : IProductService
         var category = product.ProductCategory;
         var parentCategory = category.ParentCategory;
         
+        var fieldLabels = category.Fields
+            .ToDictionary(f => f.FieldKey, f => f.FieldLabel);
+        
+        var propertyDtos = product.Properties.Select(prop =>
+        {
+            var label = fieldLabels.TryGetValue(prop.Key, out var l) ? l : prop.Key;
+            return new ProductPropertyDto(prop.Key, label, prop.Value);
+        }).ToList();
+        
         return Result.Success(new ProductDto(
             product.Id,
             product.Sku,
             product.Name, 
             product.Price, 
             product.StockQuantity, 
-            product.CategoryId,
-            product.ProductCategory.Name,
-            product.ProductCategory.Description,
-            parentCategory?.Id,
-            parentCategory?.Name,
-            parentCategory?.Description,
-            product.ManufacturerId,
-            product.Manufacturer.Name,
-            product.Manufacturer.Country,
+            new ProductCategoryDto(product.CategoryId, product.ProductCategory.Name, product.ProductCategory.Description),
+            new ProductCategoryNullableDto(parentCategory?.Id, parentCategory?.Name, parentCategory?.Description),
+            new ManufacturerDto(product.ManufacturerId, product.Manufacturer.Name, product.Manufacturer.Country),
             product.Description, 
             product.ExtendedDescription,
             product.IsAvailable,
             product.IsPrescriptionRequired,
             product.ExpirationDate,
             product.Images.Select(x => _storage.GetPublicUrl(x.Url)).ToList(),
-            product.Properties.Select(x => new ProductPropertyDto(x.Key, x.Value)).ToList()
+            propertyDtos
         ));
     }
     
@@ -226,6 +230,15 @@ public class ProductService : IProductService
             productsQuery = productsQuery.Where(p => p.Name.ToLower().Contains(query.Search.ToLower())); //EF.Functions.ILike(p.Name, $"%{query.Search}%")
         }
 
+        if (query.IsAvailable is not null)
+        {
+            productsQuery = productsQuery.Where(x => x.IsAvailable == query.IsAvailable);
+        }
+        if (query.IsPrescriptionRequired is not null)
+        {
+            productsQuery = productsQuery.Where(x => x.IsPrescriptionRequired == query.IsPrescriptionRequired);
+        }
+        
         if (query.PropertyFilters is not null && query.PropertyFilters.Any())
         {
             foreach (var filter in query.PropertyFilters)

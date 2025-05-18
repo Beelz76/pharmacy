@@ -29,6 +29,7 @@ public class GetAllEndpoint : Endpoint<ProductFilters>
         int pageSize = Query<int>("pageSize", isRequired: false) == 0 ? 20 : Query<int>("pageSize", isRequired: false);
         string? sortBy = Query<string>("sortBy", isRequired: false);
         string? sortOrder = Query<string>("sortOrder", isRequired: false);
+        string? search = Query<string>("search", isRequired: false);
      
         var userId = User.GetUserId();
         
@@ -40,8 +41,10 @@ public class GetAllEndpoint : Endpoint<ProductFilters>
             SortOrder = sortOrder,
             CategoryIds = filters.CategoryIds,
             ManufacturerIds = filters.ManufacturerIds,
-            Search = filters.Search,
-            PropertyFilters = filters.PropertyFilters
+            Search = search,
+            PropertyFilters = filters.PropertyFilters,
+            IsAvailable = filters.IsAvailable,
+            IsPrescriptionRequired = filters.IsPrescriptionRequired
         };
         
         var result = await _productService.GetPaginatedProductsAsync(parameters, userId);

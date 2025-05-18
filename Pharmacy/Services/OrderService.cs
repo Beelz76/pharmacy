@@ -42,6 +42,8 @@ public class OrderService : IOrderService
 
         var now = _dateTimeProvider.UtcNow;
         var orderItems = new List<OrderItem>();
+        var orderItemDetails = new List<(string Name, int Quantity, decimal Price)>();
+
         decimal totalPrice = 0;
 
         foreach (var cartItem in cartItems)
@@ -58,6 +60,7 @@ public class OrderService : IOrderService
                 Quantity = cartItem.Quantity,
                 Price = product.Price
             });
+            orderItemDetails.Add((product.Name, cartItem.Quantity, product.Price));
 
             totalPrice += cartItem.Quantity * product.Price;
         }
@@ -82,20 +85,51 @@ public class OrderService : IOrderService
         if (user is not null)
         {
             var subject = $"Заказ {order.Number} успешно оформлен";
+            var itemsTable = string.Join("", orderItemDetails.Select(item =>
+                $"<tr>" +
+                $"<td style='padding: 8px; border: 1px solid #ccc;'>{item.Name}</td>" +
+                $"<td style='padding: 8px; border: 1px solid #ccc;'>{item.Quantity}</td>" +
+                $"<td style='padding: 8px; border: 1px solid #ccc;'>{item.Price:C}</td>" +
+                $"<td style='padding: 8px; border: 1px solid #ccc;'>{(item.Price * item.Quantity):C}</td>" +
+                $"</tr>"
+            ));
+
+            var paymentText = paymentMethod == PaymentMethodEnum.Online ? "Картой онлайн" : "При получении";
+            var statusText = paymentMethod == PaymentMethodEnum.Online ? "Ожидает оплаты" : "Ожидает обработки";
+
             var body = $@"
-                <div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;"">
-                    <h2 style=""color: #2c3e50;"">Здравствуйте, {user.LastName} {user.FirstName}!</h2>
-                    <p style=""font-size: 16px; color: #333;"">
-                        Ваш заказ <strong>{order.Number}</strong> на сумму <strong>{totalPrice:C}</strong> успешно оформлен.
-                    </p>
-                    <p style=""font-size: 16px; color: #555;"">
-                        Текущий статус заказа: 
-                        <strong>{(paymentMethod == PaymentMethodEnum.Online ? "Ожидает оплаты" : "Ожидает обработки")}</strong>.
-                    </p>
-                    <p style=""font-size: 14px; color: #888;"">
-                        Спасибо, что выбрали нашу аптеку!
-                    </p>
-                </div>";
+            <div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;"">
+                <h2 style=""color: #2c3e50;"">Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                <p style=""font-size: 16px; color: #333;"">
+                    Ваш заказ <strong>{order.Number}</strong> успешно оформлен.
+                </p>
+
+                <h3 style=""color: #2c3e50;"">Состав заказа:</h3>
+                <table style=""width: 100%; border-collapse: collapse; font-size: 14px;"">
+                    <thead>
+                        <tr>
+                            <th style='padding: 8px; border: 1px solid #ccc; text-align: left;'>Товар</th>
+                            <th style='padding: 8px; border: 1px solid #ccc; text-align: left;'>Кол-во</th>
+                            <th style='padding: 8px; border: 1px solid #ccc; text-align: left;'>Цена</th>
+                            <th style='padding: 8px; border: 1px solid #ccc; text-align: left;'>Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {itemsTable}
+                    </tbody>
+                </table>
+
+                <p style=""font-size: 16px; margin-top: 16px;"">
+                    <strong>Сумма заказа:</strong> {totalPrice:C}<br/>
+                    <strong>Адрес аптеки:</strong> {order.PharmacyAddress}<br/>
+                    <strong>Способ оплаты:</strong> {paymentText}<br/>
+                    <strong>Статус заказа:</strong> {statusText}
+                </p>
+
+                <p style=""font-size: 14px; color: #888;"">
+                    Спасибо, что выбрали нашу аптеку!
+                </p>
+            </div>";
             await _emailSender.SendEmailAsync(user.Email, subject, body);
         }
         

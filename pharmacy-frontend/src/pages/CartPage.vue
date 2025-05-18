@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-7xl mx-auto py-8 px-2">
     <div class="flex items-center gap-3 mb-6">
-      <h2 class="text-2xl font-bold"><i class="fas fa-shopping-cart mr-2 text-primary-600"></i>Корзина</h2>
+      <h2 class="text-2xl font-bold">Корзина</h2>
     </div>
 
     <div v-if="items.length" class="flex flex-col lg:flex-row lg:items-start gap-8">
@@ -62,7 +62,7 @@
 
     <div v-else class="text-center text-gray-500 py-20">
       <p class="text-lg">Ваша корзина пуста</p>
-      <router-link to="/products" class="text-primary-600 hover:underline">Перейти к покупкам</router-link>
+      <router-link to="/products/catalog" class="text-primary-600 hover:underline">Перейти к покупкам</router-link>
     </div>
   </div>
 </template>
