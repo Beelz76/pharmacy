@@ -86,6 +86,8 @@ try
             };
         });
     
+    builder.Services.AddHttpClient<YooKassaHttpClient>();
+    
     builder.Services.AddSingleton(sp =>
     {
         var config = sp.GetRequiredService<IConfiguration>();

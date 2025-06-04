@@ -14,10 +14,12 @@ public class FavoriteItemConfiguration : IEntityTypeConfiguration<FavoriteItem>
         
         builder.HasOne(x => x.User)
             .WithMany(x => x.FavoriteItems)
-            .HasForeignKey(x => x.UserId);
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(x => x.Product)
             .WithMany(x => x.Favorites)
-            .HasForeignKey(x => x.ProductId);
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

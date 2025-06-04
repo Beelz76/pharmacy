@@ -13,11 +13,15 @@ public class User
     public string PasswordHash { get; set; }
     public bool EmailVerified  { get; set; }
     public UserRoleEnum Role { get; set; }
+    public int? PharmacyId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    public Pharmacy? Pharmacy { get; set; }
     
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<FavoriteItem> FavoriteItems { get; set; } = new List<FavoriteItem>();
     public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     public ICollection<EmailVerificationCode> EmailVerificationCodes { get; set; } = new List<EmailVerificationCode>();
+    public ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
 }

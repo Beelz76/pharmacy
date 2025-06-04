@@ -53,20 +53,53 @@ public class ProductImageService : IProductImageService
         return Result.Success(urls);
     }
 
-    public async Task<Result> DeleteProductImageAsync(int productId, int imageId)
+    public async Task<Result> DeleteProductImagesAsync(int productId, List<int> imageIds)
     {
-        var image = await _context.ProductImages
-            .FirstOrDefaultAsync(x => x.Id == imageId && x.ProductId == productId);
+        var images = await _context.ProductImages
+            .Where(x => x.ProductId == productId && imageIds.Contains(x.Id))
+            .ToListAsync();
 
-        if (image is null)
+        if (!images.Any())
         {
-            return Result.Failure(Error.NotFound("Изображение не найдено"));
+            return Result.Failure(Error.NotFound("Изображения не найдены"));
         }
 
-        await _storage.DeleteAsync(image.Url);
-        _context.ProductImages.Remove(image);
+        foreach (var image in images)
+        {
+            if (!image.Url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                await _storage.DeleteAsync(image.Url);
+            }
+        }
+
+        _context.ProductImages.RemoveRange(images);
         await _context.SaveChangesAsync();
 
         return Result.Success();
     }
+    
+    public async Task<Result> AddExternalImagesAsync(int productId, List<string> imageUrls)
+    {
+        var product = await _context.Products.FindAsync(productId);
+        if (product == null)
+        {
+            return Result.Failure(Error.NotFound("Товар не найден"));
+        }
+
+        var now = DateTime.UtcNow;
+
+        foreach (var imageUrl in imageUrls)
+        {
+            _context.ProductImages.Add(new ProductImage
+            {
+                ProductId = productId,
+                Url = imageUrl,
+                CreatedAt = now
+            });
+        }
+
+        await _context.SaveChangesAsync();
+        return Result.Success();
+    }
+
 }

@@ -52,5 +52,19 @@ public class PaymentService : IPaymentService
         await _paymentRepository.UpdateAsync(payment);
         return Result.Success();
     }
+    
+    public async Task<Result> SetExternalPaymentIdAsync(int orderId, string externalPaymentId)
+    {
+        var payment = await _paymentRepository.GetByOrderIdAsync(orderId);
+        if (payment is null)
+        {
+            return Result.Failure(Error.NotFound("Платёж не найден"));
+        }
 
+        payment.Number = externalPaymentId;
+        payment.UpdatedAt = _dateTimeProvider.UtcNow;
+
+        await _paymentRepository.UpdateAsync(payment);
+        return Result.Success();
+    }
 }

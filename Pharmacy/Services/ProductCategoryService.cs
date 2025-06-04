@@ -85,7 +85,7 @@ public class ProductCategoryService : IProductCategoryService
         return Result.Success(subcategories.Select(x => new ProductCategoryDto(x.Id, x.Name, x.Description)));
     }
     
-    public async Task<Result<CreatedDto>> CreateAsync(string name, string description, int? parentCategoryId, List<CategoryFieldDto> fields)
+    public async Task<Result<CreatedDto>> CreateAsync(string name, string description, int? parentCategoryId, List<CategoryFieldDto>? fields)
     {
         if (await _repository.ExistsAsync(name: name, description: description))
         {
@@ -96,42 +96,49 @@ public class ProductCategoryService : IProductCategoryService
         {
             return Result.Failure<CreatedDto>(Error.NotFound("Родительская категория не найдена"));
         }
-        
-        var duplicateKeys = fields
-            .GroupBy(x => x.Key.ToLower())
-            .Where(x => x.Count() > 1)
-            .Select(x => x.Key)
-            .ToList();
-        
-        if (duplicateKeys.Any())
-        {
-            return Result.Failure<CreatedDto>(Error.Failure($"Обнаружены дублирующиеся ключи: {string.Join(", ", duplicateKeys)}"));
-        }
 
-        if (parentCategoryId.HasValue)
+        if (fields is { Count: > 0 })
         {
-            var allFieldsResult = await GetAllFieldsIncludingParentAsync(parentCategoryId.Value);
-            var conflicts = fields.Where(x => allFieldsResult.Value.Any(f => f.Key.Equals(x.Key, StringComparison.OrdinalIgnoreCase))).ToList();
-            if (conflicts.Any())
+            var duplicateKeys = fields
+                .GroupBy(x => x.Key.ToLower())
+                .Where(x => x.Count() > 1)
+                .Select(x => x.Key)
+                .ToList();
+
+            if (duplicateKeys.Any())
             {
-                return Result.Failure<CreatedDto>(Error.Conflict($"Поля с такими ключами уже существуют: {string.Join(", ", conflicts.Select(c => c.Key))}"));
+                return Result.Failure<CreatedDto>(Error.Failure($"Обнаружены дублирующиеся ключи: {string.Join(", ", duplicateKeys)}"));
+            }
+
+            if (parentCategoryId.HasValue)
+            {
+                var allFieldsResult = await GetAllFieldsIncludingParentAsync(parentCategoryId.Value);
+                var conflicts = fields
+                    .Where(x => allFieldsResult.Value.Any(x => x.Key.Equals(x.Key, StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
+
+                if (conflicts.Any())
+                {
+                    return Result.Failure<CreatedDto>(Error.Conflict($"Поля с такими ключами уже существуют: {string.Join(", ", conflicts.Select(c => c.Key))}"));
+                }
             }
         }
-        
+
         var category = new ProductCategory
         {
-            Name = name, 
+            Name = name,
             Description = description,
             ParentCategoryId = parentCategoryId,
-            Fields = fields.Select(x => new ProductCategoryField
+            Fields = fields?.Select(x => new ProductCategoryField
             {
                 FieldKey = x.Key,
                 FieldLabel = x.Label,
                 FieldType = x.Type,
                 IsRequired = x.IsRequired,
                 IsFilterable = x.IsFilterable
-            }).ToList()
+            }).ToList() ?? new List<ProductCategoryField>()
         };
+
         await _repository.AddAsync(category);
         return Result.Success(new CreatedDto(category.Id));
     }
@@ -221,7 +228,7 @@ public class ProductCategoryService : IProductCategoryService
             return Result.Failure(Error.NotFound("Категория не найдена"));
         }
         
-        var existingIds = category.Fields.Select(f => f.Id).ToHashSet();
+        var existingIds = category.Fields.Select(x => x.Id).ToHashSet();
         var invalidIds = fieldIds.Except(existingIds).ToList();
         if (invalidIds.Any())
         {
@@ -230,7 +237,7 @@ public class ProductCategoryService : IProductCategoryService
         }
 
         var errors = new List<string>();
-        var toRemove = category.Fields.Where(f => fieldIds.Contains(f.Id)).ToList();
+        var toRemove = category.Fields.Where(x => fieldIds.Contains(x.Id)).ToList();
 
         foreach (var field in toRemove)
         {
@@ -285,14 +292,14 @@ public class ProductCategoryService : IProductCategoryService
                 continue;
             }
 
-            var currentField = category.Fields.FirstOrDefault(f => f.Id == fieldDto.Id);
+            var currentField = category.Fields.FirstOrDefault(x => x.Id == fieldDto.Id);
             if (currentField is null)
             {
                 errors.Add($"Поле с ID {fieldDto.Id.Value} не найдено в текущей категории");
                 continue;
             }
 
-            if (allFieldsResult.Value.Any(f => f.Key.Equals(fieldDto.Key, StringComparison.OrdinalIgnoreCase) && f.Id != fieldDto.Id))
+            if (allFieldsResult.Value.Any(x => x.Key.Equals(fieldDto.Key, StringComparison.OrdinalIgnoreCase) && x.Id != fieldDto.Id))
             {
                 errors.Add($"Поле с ключом '{fieldDto.Key}' уже существует");
                 continue;

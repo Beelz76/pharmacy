@@ -27,6 +27,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .IsRequired()
             .HasMaxLength(255);
         
+        builder.Property(x => x.IsDelivery)
+            .IsRequired();
+        
         builder.Property(x => x.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -37,11 +40,18 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.HasOne(x => x.User)
             .WithMany(x => x.Orders)
-            .HasForeignKey(x => x.UserId);
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.Status)
             .WithMany(x => x.Orders)
-            .HasForeignKey(x => x.StatusId);
+            .HasForeignKey(x => x.StatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasOne(x => x.Pharmacy)
+            .WithMany(x => x.Orders)
+            .HasForeignKey(x => x.PharmacyId)
+            .OnDelete(DeleteBehavior.Restrict);
         
         builder.HasIndex(x => x.Number).IsUnique();
     }

@@ -14,7 +14,7 @@ public class ProductImageConfiguration : IEntityTypeConfiguration<ProductImage>
         
         builder.Property(x => x.Url)
             .IsRequired()
-            .HasColumnType("text");
+            .HasMaxLength(1000);
         
         builder.Property(x => x.CreatedAt)
             .IsRequired()
@@ -22,6 +22,7 @@ public class ProductImageConfiguration : IEntityTypeConfiguration<ProductImage>
 
         builder.HasOne(x => x.Product)
             .WithMany(x => x.Images)
-            .HasForeignKey(x => x.ProductId);
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

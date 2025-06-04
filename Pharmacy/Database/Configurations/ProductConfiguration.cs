@@ -26,19 +26,15 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(x => x.ExtendedDescription)
             .IsRequired()
-            .HasDefaultValue("")
             .HasMaxLength(2000);
         
         builder.Property(x => x.Price)
             .IsRequired()
             .HasPrecision(18, 2);
 
-        builder.Property(x => x.StockQuantity)
-            .IsRequired();
-
         builder.Property(x => x.ExpirationDate);
         
-        builder.Property(x => x.IsAvailable)
+        builder.Property(x => x.IsGloballyDisabled)
             .IsRequired();
         
         builder.Property(x => x.IsPrescriptionRequired)
@@ -62,6 +58,21 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasForeignKey(x => x.ManufacturerId)
             .OnDelete(DeleteBehavior.Restrict);
         
+        builder.HasMany(x => x.Carts)
+            .WithOne(x => x.Product)
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasMany(x => x.Favorites)
+            .WithOne(x => x.Product)
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(x => x.OrderItems)
+            .WithOne(x => x.Product)
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
         builder.HasMany(x => x.Properties)
             .WithOne(x => x.Product)
             .HasForeignKey(x => x.ProductId)
@@ -73,6 +84,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasIndex(x => x.Name);
+        builder.HasIndex(x => x.CategoryId);
         builder.HasIndex(x => x.Sku).IsUnique();
     }
 }

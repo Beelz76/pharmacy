@@ -339,8 +339,10 @@ async function submitRegister() {
       patronymic: form.patronymic || undefined,
       phone: form.phone || undefined
     })
-    await sendCode('Registration')
     showVerification.value = true
+    startResendTimer()
+codeDigits.value = ['', '', '', '', '', '']
+nextTick(() => codeInputs.value[0]?.focus())
   } finally {
     loading.value = false
   }

@@ -36,7 +36,7 @@ public class PayEndpoint : EndpointWithoutRequest
         var result = await _orderService.PayAsync(orderId, userId.Value);
         if (result.IsSuccess)
         {
-            await SendOkAsync(ct);
+            await SendOkAsync(result.Value, ct);
         }
         else
         {

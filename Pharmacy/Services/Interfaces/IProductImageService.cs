@@ -5,5 +5,6 @@ namespace Pharmacy.Services.Interfaces;
 public interface IProductImageService
 {
     Task<Result<List<string>>> UploadImagesAsync(int productId, IReadOnlyList<IFormFile> files);
-    Task<Result> DeleteProductImageAsync(int productId, int imageId);
+    Task<Result> DeleteProductImagesAsync(int productId, List<int> imageIds);
+    Task<Result> AddExternalImagesAsync(int productId, List<string> imageUrls);
 }

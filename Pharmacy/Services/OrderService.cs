@@ -21,8 +21,9 @@ public class OrderService : IOrderService
     private readonly IEmailSender _emailSender;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IStorageProvider _storage;
+    private readonly YooKassaHttpClient _yooKassaClient;
 
-    public OrderService(ICartRepository cartRepository, IProductRepository productRepository, IOrderRepository orderRepository, IDateTimeProvider dateTimeProvider, IPaymentService paymentService, IUserRepository userRepository, IEmailSender emailSender, IStorageProvider storage)
+    public OrderService(ICartRepository cartRepository, IProductRepository productRepository, IOrderRepository orderRepository, IDateTimeProvider dateTimeProvider, IPaymentService paymentService, IUserRepository userRepository, IEmailSender emailSender, IStorageProvider storage, YooKassaHttpClient yooKassaClient)
     {
         _cartRepository = cartRepository;
         _productRepository = productRepository;
@@ -32,6 +33,7 @@ public class OrderService : IOrderService
         _userRepository = userRepository;
         _emailSender = emailSender;
         _storage = storage;
+        _yooKassaClient = yooKassaClient;
     }
 
     public async Task<Result<CreatedWithNumberDto>> CreateAsync(int userId, string pharmacyAddress, PaymentMethodEnum paymentMethod)
@@ -49,7 +51,7 @@ public class OrderService : IOrderService
         foreach (var cartItem in cartItems)
         {
             var product = await _productRepository.GetByIdWithRelationsAsync(cartItem.ProductId);
-            if (product is null || !product.IsAvailable || product.StockQuantity < cartItem.Quantity)
+            if (product is null || !product.IsGloballyDisabled /*|| product.StockQuantity < cartItem.Quantity*/)
             {
                 return Result.Failure<CreatedWithNumberDto>(Error.Failure($"Товар {cartItem.ProductId} недоступен"));
             }
@@ -136,34 +138,64 @@ public class OrderService : IOrderService
         return Result.Success(new CreatedWithNumberDto(order.Id, order.Number));
     }
 
-    public async Task<Result> PayAsync(int orderId, int userId)
+    public async Task<Result<string>> PayAsync(int orderId, int userId)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true);
         if (order is null || order.UserId != userId)
         {
-            return Result.Failure(Error.NotFound("Заказ не найден"));
+            return Result.Failure<string>(Error.NotFound("Заказ не найден"));
         }
 
         var payment = order.Payment;
         if (payment is null || (PaymentStatusEnum)payment.StatusId != PaymentStatusEnum.Pending)
         {
-            return Result.Failure(Error.Failure("Платёж не ожидает оплаты"));
+            return Result.Failure<string>(Error.Failure("Платёж не ожидает оплаты"));
         }
 
         if ((PaymentMethodEnum)payment.PaymentMethodId != PaymentMethodEnum.Online)
         {
-            return Result.Failure(Error.Failure("Оплата не требуется"));
+            return Result.Failure<string>(Error.Failure("Оплата не требуется"));
         }
 
+        var paymentRequest = new YooKassaCreatePaymentRequest
+        {
+            Amount = new YooKassaAmount
+            {
+                Value = payment.Amount,
+                Currency = "RUB"
+            },
+            Confirmation = new YooKassaConfirmation
+            {
+                Type = "redirect",
+                ReturnUrl = $"https://localhost:5068/account/orders/{orderId}"
+            },
+            Capture = true,
+            Description = $"Оплата заказа №{order.Number}",
+            Metadata = new Dictionary<string, string>
+            {
+                { "order_id", order.Id.ToString() }
+            }
+        };
+
+        var idempotenceKey = Guid.NewGuid().ToString();
+        
+        var createResult = await _yooKassaClient.CreatePaymentAsync(paymentRequest, idempotenceKey);
+        if (!createResult.IsSuccess)
+        {
+            return Result.Failure<string>(createResult.Error);
+        }
+
+        //Вместо коллбека
         payment.StatusId = (int)PaymentStatusEnum.Completed;
         payment.TransactionDate = _dateTimeProvider.UtcNow;
         payment.UpdatedAt = _dateTimeProvider.UtcNow;
+        payment.ExternalPaymentId = createResult.Value.Id;
 
         order.StatusId = (int)OrderStatusEnum.Pending;
         order.UpdatedAt = _dateTimeProvider.UtcNow;
 
         await _orderRepository.UpdateAsync(order);
-        return Result.Success();
+        return Result.Success(createResult.Value.ConfirmationUrl);
     }
     
     public async Task<Result<OrderDetailsDto>> GetByIdAsync(int orderId, int currentUserId, UserRoleEnum role)

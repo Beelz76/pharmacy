@@ -12,5 +12,7 @@ public enum OrderStatusEnum
     [Description("Готов к получению")] ReadyForReceive = 4,
     [Description("Получен")] Received = 5,
     [Description("Отменен")] Cancelled = 6,
-    [Description("Возврат средств")] Refunded = 7
+    [Description("Возврат средств")] Refunded = 7,
+    [Description("Передан в доставку")] OutForDelivery = 8,
+    [Description("Доставлен")] Delivered = 9,
 }

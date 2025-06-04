@@ -28,7 +28,7 @@ public class FavoritesRepository : IFavoritesRepository
                 ManufacturerCountry = f.Product.Manufacturer.Country,
                 Price = f.Product.Price,
                 ImageUrl = f.Product.Images.OrderBy(i => i.Id).Select(i => i.Url).FirstOrDefault(),
-                IsAvailable = f.Product.IsAvailable,
+                IsAvailable = f.Product.IsGloballyDisabled,
                 IsPrescriptionRequired = f.Product.IsPrescriptionRequired
             })
             .ToListAsync();
@@ -37,7 +37,7 @@ public class FavoritesRepository : IFavoritesRepository
     public async Task<int> CountByUserAsync(int userId)
     {
         return await _context.FavoriteItems
-            .Where(f => f.UserId == userId)
+            .Where(x => x.UserId == userId)
             .CountAsync();
     }
     
@@ -52,8 +52,8 @@ public class FavoritesRepository : IFavoritesRepository
     {
         return await _context.FavoriteItems
             .AsNoTracking()
-            .Where(f => f.UserId == userId)
-            .Select(f => f.ProductId)
+            .Where(x => x.UserId == userId)
+            .Select(x => x.ProductId)
             .ToListAsync();
     }
     

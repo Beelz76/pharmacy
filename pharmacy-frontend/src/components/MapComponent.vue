@@ -13,25 +13,7 @@
       </div>
     </transition>
 
-    <l-map
-      v-if="mapCenter"
-      :zoom="zoom"
-      :min-zoom="13"
-      :max-zoom="18"
-      :center="mapCenter"
-      ref="mapRef"
-      style="height: 100%; width: 100%"
-    >
-      <l-tile-layer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <l-marker
-        v-for="pharmacy in pharmacies"
-        :key="pharmacy.id"
-        :lat-lng="[pharmacy.lat, pharmacy.lon]"
-        @click="() => selectPharmacy(pharmacy)"
-      >
-        <l-popup>{{ pharmacy.name }}</l-popup>
-      </l-marker>
-    </l-map>
+    <div ref="mapContainer" class="w-full h-full"></div>
 
     <LoadingSpinner
       v-if="isLoading"
@@ -43,34 +25,26 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue'
-import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
-import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
+import { ref, watch, onMounted, nextTick } from 'vue'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import * as turf from '@turf/turf'
 import LoadingSpinner from './LoadingSpinner.vue'
 import { ElButton } from 'element-plus'
-
-// Leaflet icon fix
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
-  iconUrl: new URL('leaflet/dist/images/marker-icon.png', import.meta.url).href,
-  shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
-})
 
 const props = defineProps({
   city: Object,
   triggerInitialLoad: Boolean
 })
-const emit = defineEmits(['select', 'update:pharmacies'])
+const emit = defineEmits(['select', 'update:pharmacies', 'outside'])
 
 const zoom = 13
-const mapCenter = ref(null)
-const mapRef = ref(null)
+const mapContainer = ref(null)
+let map = null
 const pharmacies = ref([])
+const markers = ref([])
 const isLoading = ref(false)
-const outsideCity = ref(false)
+const isOutsideCity = ref(false)
 let fetchTimeout = null
 
 function isInsideCity(centerLat, centerLng) {
@@ -82,73 +56,92 @@ function isInsideCity(centerLat, centerLng) {
   return d <= 15
 }
 
-function setupMoveEndListener(map) {
-  map.off('moveend')
+function setupMoveEndListener() {
   map.on('moveend', () => {
     clearTimeout(fetchTimeout)
     fetchTimeout = setTimeout(() => {
       const center = map.getCenter()
       const currentZoom = map.getZoom()
       if (currentZoom >= 13 && isInsideCity(center.lat, center.lng)) {
-        outsideCity.value = false
+        isOutsideCity.value = false
+        emit('outside', false)
         fetchPharmaciesInBounds(map.getBounds())
       } else {
-        outsideCity.value = true
+        isOutsideCity.value = true
+        emit('outside', true)
         pharmacies.value = []
         emit('update:pharmacies', [])
+        clearMarkers()
       }
     }, 500)
   })
 }
 
 onMounted(() => {
-  watch(() => mapRef.value?.leafletObject, (map) => {
-    if (map) {
-      map.whenReady(() => {
-        setupMoveEndListener(map)
-        fetchPharmaciesInBounds(map.getBounds())
-      })
+  watch(() => props.city, (city) => {
+    if (city?.lat && city?.lng) {
+      if (!map) {
+        initMap(city.lat, city.lng)
+      } else {
+        map.flyTo({ center: [city.lng, city.lat], zoom, essential: true })
+      }
+    }
+  }, { immediate: true })
+
+  watch(() => props.triggerInitialLoad, async (newVal) => {
+    if (newVal && map) {
+      await nextTick()
+      fetchPharmaciesInBounds(map.getBounds())
+      isOutsideCity.value = false
     }
   }, { immediate: true })
 })
 
-watch(() => props.city, (city) => {
-  if (city?.lat && city?.lng) {
-    mapCenter.value = [city.lat, city.lng]
-    nextTick(() => {
-      const map = mapRef.value?.leafletObject
-      if (map) {
-        map.setView([city.lat, city.lng], zoom, { animate: true })
-      }
-    })
-  }
-}, { immediate: true })
-
-watch(() => props.triggerInitialLoad, async (newVal) => {
-  if (!newVal) return
-  await nextTick()
-  const map = mapRef.value?.leafletObject
-  if (!map) return
-
-  map.whenReady(() => {
-    const center = map.getCenter()
-    const currentZoom = map.getZoom()
-    if (currentZoom >= 13 && isInsideCity(center.lat, center.lng)) {
-      fetchPharmaciesInBounds(map.getBounds())
-      outsideCity.value = false
-    }
+function initMap(lat, lng) {
+  map = new maplibregl.Map({
+    container: mapContainer.value,
+    style: 'https://api.maptiler.com/maps/streets-v2/style.json?key=GzpelqhPkoQ06WlrAxV3',
+    center: [lng, lat],
+    zoom
   })
-})
+
+  map.addControl(new maplibregl.NavigationControl())
+  setupMoveEndListener()
+  map.on('load', () => {
+    fetchPharmaciesInBounds(map.getBounds())
+  })
+}
+
+function clearMarkers() {
+  markers.value.forEach(marker => marker.remove())
+  markers.value = []
+}
+
+function addMarkers(pharmaciesList) {
+  clearMarkers()
+  pharmaciesList.forEach(pharmacy => {
+    const marker = new maplibregl.Marker({ color: '#3b82f6' })
+      .setLngLat([pharmacy.lon, pharmacy.lat])
+      .addTo(map)
+
+    marker.getElement().addEventListener('click', () => {
+      selectPharmacy(pharmacy)
+    })
+
+    markers.value.push(marker)
+  })
+}
 
 async function fetchPharmaciesInBounds(bounds) {
-  const { _southWest, _northEast } = bounds
-  const latDiff = Math.abs(_northEast.lat - _southWest.lat)
-  const lngDiff = Math.abs(_northEast.lng - _southWest.lng)
+  const sw = bounds.getSouthWest()
+  const ne = bounds.getNorthEast()
+  const latDiff = Math.abs(ne.lat - sw.lat)
+  const lngDiff = Math.abs(ne.lng - sw.lng)
   if (latDiff > 1 || lngDiff > 1) return
 
   const query = `
     [out:json][timeout:10];
-    node["amenity"="pharmacy"]["name"](${_southWest.lat},${_southWest.lng},${_northEast.lat},${_northEast.lng});
+    node["amenity"="pharmacy"]["name"](${sw.lat},${sw.lng},${ne.lat},${ne.lng});
     out body;
   `
   isLoading.value = true
@@ -172,6 +165,7 @@ async function fetchPharmaciesInBounds(bounds) {
       }
     })
     emit('update:pharmacies', pharmacies.value)
+    addMarkers(pharmacies.value)
   } catch {
     pharmacies.value = []
   } finally {
@@ -213,45 +207,29 @@ async function selectPharmacy(pharmacy) {
 }
 
 function flyToPharmacy(pharmacy) {
-  const map = mapRef.value?.leafletObject
   if (map) {
-    map.setView([pharmacy.lat, pharmacy.lon], 17, { animate: true })
+    map.flyTo({ center: [pharmacy.lon, pharmacy.lat], zoom: 17, essential: true })
     selectPharmacy(pharmacy)
   }
 }
 
 function flyToCoordinates(lat, lon) {
-  const map = mapRef.value?.leafletObject
   if (map) {
-    map.setView([lat, lon], 16, { animate: true })
+    map.flyTo({ center: [lon, lat], zoom: 16, essential: true })
   }
 }
 
 function returnToCity() {
-  const map = mapRef.value?.leafletObject
   if (map && props.city?.lat && props.city?.lng) {
-    map.setView([props.city.lat, props.city.lng], zoom, { animate: true })
-    outsideCity.value = false
+    map.flyTo({ center: [props.city.lng, props.city.lat], zoom, essential: true })
+    isOutsideCity.value = false
+    emit('outside', false)
   }
 }
-
-defineExpose({
-  selectPharmacy,
-  flyToPharmacy,
-  flyToCoordinates,
-  fetchInitialPharmacies: () => {
-    const map = mapRef.value?.leafletObject
-    if (map) {
-      fetchPharmaciesInBounds(map.getBounds())
-      outsideCity.value = false
-    }
-  }
-})
 
 function formatOpeningHours(raw) {
   if (!raw) return ''
   if (raw === '24/7') return 'Круглосуточно'
-
   return raw
     .replace(/Mo/g, 'Пн')
     .replace(/Tu/g, 'Вт')
@@ -263,12 +241,20 @@ function formatOpeningHours(raw) {
     .replace(/-/g, '–')
     .replace(/;/g, ',')
 }
+
+defineExpose({
+  flyToPharmacy,
+  flyToCoordinates,
+  fetchInitialPharmacies: () => {
+    if (map) {
+      fetchPharmaciesInBounds(map.getBounds())
+      isOutsideCity.value = false
+    }
+  }
+})
 </script>
 
 <style scoped>
-.leaflet-container {
-  z-index: 0;
-}
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

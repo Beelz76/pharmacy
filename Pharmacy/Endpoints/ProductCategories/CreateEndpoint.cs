@@ -18,7 +18,7 @@ public class CreateEndpoint : Endpoint<CreateCategoryRequest>
     public override void Configure()
     {
         Post("categories");
-        //Roles("Admin");
+        Roles("Admin");
         Tags("ProductCategories");
         Summary(s => { s.Summary = "Добавить новую категорию товаров"; }); 
     }
@@ -50,6 +50,7 @@ public class CreateCategoryRequestValidator : Validator<CreateCategoryRequest>
             .NotEmpty();
         
         RuleFor(x => x.Fields)
-            .NotEmpty(); 
+            .NotEmpty()
+            .When(x => x.ParentCategoryId == 0 || x.ParentCategoryId is null); 
     }
 }

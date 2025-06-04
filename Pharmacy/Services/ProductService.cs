@@ -65,13 +65,12 @@ public class ProductService : IProductService
             Sku = sku,
             Name = request.Name,
             Price = request.Price,
-            StockQuantity = request.StockQuantity,
             CategoryId = request.CategoryId,
             ManufacturerId = request.ManufacturerId,
             Description = request.Description,
             ExtendedDescription = request.ExtendedDescription,
             ExpirationDate = request.ExpirationDate,
-            IsAvailable = request.IsAvailable,
+            IsGloballyDisabled = request.IsAvailable,
             IsPrescriptionRequired = request.IsPrescriptionRequired,
             CreatedAt = _dateTimeProvider.UtcNow,
             UpdatedAt = _dateTimeProvider.UtcNow,
@@ -120,12 +119,11 @@ public class ProductService : IProductService
 
         product.Name = request.Name;
         product.Price = request.Price;
-        product.StockQuantity = request.StockQuantity;
         product.CategoryId = request.CategoryId;
         product.ManufacturerId = request.ManufacturerId;
         product.Description = request.Description;
         product.ExpirationDate = request.ExpirationDate;
-        product.IsAvailable = request.IsAvailable;
+        product.IsGloballyDisabled = request.IsAvailable;
         product.IsPrescriptionRequired = request.IsPrescriptionRequired;
         product.UpdatedAt = _dateTimeProvider.UtcNow;
 
@@ -148,7 +146,7 @@ public class ProductService : IProductService
         }
         
         var requestKeys = request.Properties.Select(p => p.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var allowedFields = categoryFields.ToDictionary(f => f.Key, f => f, StringComparer.OrdinalIgnoreCase);
+        var allowedFields = categoryFields.ToDictionary(x => x.Key, x => x, StringComparer.OrdinalIgnoreCase);
         
         var propertiesToRemove = product.Properties
             .Where(p => 
@@ -178,7 +176,7 @@ public class ProductService : IProductService
         var parentCategory = category.ParentCategory;
         
         var fieldLabels = category.Fields
-            .ToDictionary(f => f.FieldKey, f => f.FieldLabel);
+            .ToDictionary(x => x.FieldKey, x => x.FieldLabel);
         
         var propertyDtos = product.Properties.Select(prop =>
         {
@@ -191,13 +189,12 @@ public class ProductService : IProductService
             product.Sku,
             product.Name, 
             product.Price, 
-            product.StockQuantity, 
             new ProductCategoryDto(product.CategoryId, product.ProductCategory.Name, product.ProductCategory.Description),
             new ProductCategoryNullableDto(parentCategory?.Id, parentCategory?.Name, parentCategory?.Description),
             new ManufacturerDto(product.ManufacturerId, product.Manufacturer.Name, product.Manufacturer.Country),
             product.Description, 
             product.ExtendedDescription,
-            product.IsAvailable,
+            product.IsGloballyDisabled,
             product.IsPrescriptionRequired,
             product.ExpirationDate,
             product.Images.Select(x => _storage.GetPublicUrl(x.Url)).ToList(),
@@ -232,7 +229,7 @@ public class ProductService : IProductService
 
         if (query.IsAvailable is not null)
         {
-            productsQuery = productsQuery.Where(x => x.IsAvailable == query.IsAvailable);
+            productsQuery = productsQuery.Where(x => x.IsGloballyDisabled == query.IsAvailable);
         }
         if (query.IsPrescriptionRequired is not null)
         {
@@ -271,9 +268,8 @@ public class ProductService : IProductService
                 p.Name,
                 p.Description,
                 p.Price,
-                p.StockQuantity,
                 ImageUrl = p.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
-                p.IsAvailable,
+                p.IsGloballyDisabled,
                 p.IsPrescriptionRequired,
             })
             .AsNoTracking()
@@ -287,9 +283,8 @@ public class ProductService : IProductService
             p.Name,
             p.Description,
             p.Price,
-            p.StockQuantity,
             _storage.GetPublicUrl(p.ImageUrl),
-            p.IsAvailable,
+            p.IsGloballyDisabled,
             p.IsPrescriptionRequired,
             favoriteIds.Contains(p.Id),
             cartItems.TryGetValue(p.Id, out var qty) ? qty : 0 ) 
@@ -357,7 +352,7 @@ public class ProductService : IProductService
 
         var finalResult = result.Select(r =>
         {
-            var field = fields.Value.FirstOrDefault(f => f.Key == r.Key);
+            var field = fields.Value.FirstOrDefault(x => x.Key == r.Key);
             var label = field?.Label ?? r.Key;
             return new FilterOptionDto(
                 r.Key,

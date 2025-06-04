@@ -21,11 +21,11 @@ public class EmailVerificationService : IEmailVerificationService
     private readonly IEmailVerificationCodeRepository _repository;
     private readonly IEmailSender _emailSender;
     private readonly CodeGenerator _codeGenerator;
+    private readonly IConfiguration _configuration;
     
     private const int CodeLength = 6;
-    private const int ExpirationMinutes = 5;
 
-    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserRepository userRepository, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator, IEmailSender emailSender)
+    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserRepository userRepository, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator, IEmailSender emailSender, IConfiguration configuration)
     {
         _tokenProvider = tokenProvider;
         _dateTimeProvider = dateTimeProvider;
@@ -34,6 +34,7 @@ public class EmailVerificationService : IEmailVerificationService
         _repository = repository;
         _codeGenerator = codeGenerator;
         _emailSender = emailSender;
+        _configuration = configuration;
     }
 
     public async Task<EmailVerificationCode> GenerateVerificationCodeAsync(int userId, string email, VerificationPurposeEnum purpose)
@@ -53,7 +54,7 @@ public class EmailVerificationService : IEmailVerificationService
             Code = _codeGenerator.GenerateDigits(CodeLength),
             Purpose = purpose,
             IsUsed = false,
-            ExpiresAt = now.AddMinutes(ExpirationMinutes)
+            ExpiresAt = now.AddMinutes(int.Parse(_configuration["EmailVerificationCodeLifeTimeInMinutes"]!))
         };
 
         await _repository.AddAsync(newCode);

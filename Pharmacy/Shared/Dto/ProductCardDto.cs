@@ -5,9 +5,8 @@ public record ProductCardDto(
     string Name,
     string Description,
     decimal Price,
-    int StockQuantity,
     string? ImageUrl,
-    bool IsAvailable,
+    bool IsGloballyDisabled,
     bool IsPrescriptionRequired,
     bool IsFavorite,
     int CartQuantity

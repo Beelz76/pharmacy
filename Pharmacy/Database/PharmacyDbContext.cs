@@ -24,6 +24,12 @@ public class PharmacyDbContext : DbContext
     public DbSet<PaymentStatus> PaymentStatus { get; set; }
     public DbSet<PaymentMethod> PaymentMethods { get; set; }
     public DbSet<EmailVerificationCode> EmailVerificationCodes { get; set; }
+    public DbSet<Delivery> Deliveries { get; set; }
+    public DbSet<Entities.Pharmacy> Pharmacies { get; set; }
+    public DbSet<PharmacyProduct> PharmacyProducts { get; set; }
+    public DbSet<UserAddress> UserAddresses { get; set; }
+    
+    //public DbSet<RefreshToken> RefreshTokens { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder) 
     {

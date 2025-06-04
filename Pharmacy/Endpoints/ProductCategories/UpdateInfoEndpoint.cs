@@ -59,13 +59,13 @@ public class UpdateCategoryRequestValidator : Validator<UpdateCategoryRequest>
         //
         //     RuleForEach(x => x.Fields!).ChildRules(fields =>
         //     {
-        //         fields.RuleFor(f => f.Key)
+        //         fields.RuleFor(x => x.Key)
         //             .NotEmpty().WithMessage("Ключ поля не должен быть пустым.");
         //
-        //         fields.RuleFor(f => f.Label)
+        //         fields.RuleFor(x => x.Label)
         //             .NotEmpty().WithMessage(f => $"Метка поля для \"{f.Key}\" не должна быть пустой.");
         //
-        //         // fields.RuleFor(f => f.Type)
+        //         // fields.RuleFor(x => x.Type)
         //         //     .NotEmpty().WithMessage(f => $"Тип поля для \"{f.Key}\" не должен быть пустым.")
         //         //     .Must(type => SupportedTypes.Contains(type.ToLower()))
         //         //     .WithMessage(f => $"Тип поля \"{f.Type}\" для ключа \"{f.Key}\" не поддерживается.");
@@ -75,7 +75,7 @@ public class UpdateCategoryRequestValidator : Validator<UpdateCategoryRequest>
     
     private bool HaveUniqueKeys(List<CategoryFieldDto> fields)
     {
-        var uniqueKeys = fields.Select(f => f.Key).Distinct().Count();
+        var uniqueKeys = fields.Select(x => x.Key).Distinct().Count();
         return uniqueKeys == fields.Count;
     }
 }

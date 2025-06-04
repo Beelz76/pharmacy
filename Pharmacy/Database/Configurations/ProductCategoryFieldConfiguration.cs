@@ -32,6 +32,7 @@ public class ProductCategoryFieldConfiguration : IEntityTypeConfiguration<Produc
 
         builder.HasOne(x => x.ProductCategory)
             .WithMany(x => x.Fields)
-            .HasForeignKey(x => x.CategoryId);
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

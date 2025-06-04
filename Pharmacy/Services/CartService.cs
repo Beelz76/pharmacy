@@ -33,7 +33,7 @@ public class CartService : ICartService
     public async Task<Result> AddToCartAsync(int userId, int productId)
     {
         var product = await _productRepository.GetByIdWithRelationsAsync(productId);
-        if (product is null || !product.IsAvailable || product.StockQuantity <= 0)
+        if (product is null || !product.IsGloballyDisabled)
         {
             return Result.Failure(Error.Failure("Товар недоступен для добавления в корзину"));
         }
@@ -50,11 +50,6 @@ public class CartService : ICartService
         }
         else
         {
-            if (existing.Quantity + 1 > product.StockQuantity)
-            {
-                return Result.Failure(Error.Failure("Недостаточно товара на складе"));
-            }
-
             existing.Quantity += 1;
             await _repository.UpdateAsync(existing);
         }
@@ -64,14 +59,9 @@ public class CartService : ICartService
     public async Task<Result> SetQuantityAsync(int userId, int productId, int quantity)
     {
         var product = await _productRepository.GetByIdWithRelationsAsync(productId);
-        if (product is null || !product.IsAvailable)
+        if (product is null || !product.IsGloballyDisabled)
         {
             return Result.Failure(Error.Failure("Товар недоступен"));
-        }
-        
-        if (quantity > product.StockQuantity)
-        {
-            return Result.Failure(Error.Failure("Недостаточно товара на складе"));
         }
         
         var existing = await _repository.GetAsync(userId, productId);
