@@ -47,7 +47,6 @@ public class UpdateManufacturerValidator : Validator<UpdateManufacturerRequest>
             .NotEmpty()
             .MinimumLength(3)
             .MaximumLength(100);
-            //.MustAsync(async (name));
 
         RuleFor(x => x.Country)
             .NotEmpty()

@@ -131,6 +131,8 @@ try
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
+    builder.Services.AddScoped<IUserAddressRepository, UserAddressRepository>();
+    builder.Services.AddScoped<IUserAddressService, UserAddressService>();
     
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();

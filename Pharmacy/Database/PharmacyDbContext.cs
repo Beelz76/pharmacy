@@ -28,6 +28,7 @@ public class PharmacyDbContext : DbContext
     public DbSet<Entities.Pharmacy> Pharmacies { get; set; }
     public DbSet<PharmacyProduct> PharmacyProducts { get; set; }
     public DbSet<UserAddress> UserAddresses { get; set; }
+    public DbSet<Address> Addresses { get; set; }
     
     //public DbSet<RefreshToken> RefreshTokens { get; set; }
     

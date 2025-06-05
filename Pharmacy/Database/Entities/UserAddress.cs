@@ -8,6 +8,7 @@ public class UserAddress
     public string? Apartment { get; set; }
     public string? Entrance { get; set; }
     public string? Floor { get; set; }
+    public string? Comment { get; set; }
     
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

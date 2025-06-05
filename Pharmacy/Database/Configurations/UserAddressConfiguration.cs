@@ -21,6 +21,9 @@ public class UserAddressConfiguration : IEntityTypeConfiguration<UserAddress>
         builder.Property(x => x.Floor)
             .HasMaxLength(20);
 
+        builder.Property(x => x.Comment)
+            .HasMaxLength(500);
+        
         builder.Property(x => x.CreatedAt)
             .IsRequired();
 

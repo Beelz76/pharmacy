@@ -15,4 +15,6 @@ public class Address
 
     public double Latitude { get; set; }
     public double Longitude { get; set; }
+    
+    public Pharmacy? Pharmacy { get; set; }
 }

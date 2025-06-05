@@ -27,6 +27,7 @@
 
     <ItemGroup>
       <Folder Include="Database\Migrations\" />
+      <Folder Include="Endpoints\Pharmacies\" />
     </ItemGroup>
 
 </Project>
