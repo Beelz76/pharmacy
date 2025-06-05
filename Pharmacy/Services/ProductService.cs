@@ -269,7 +269,7 @@ public class ProductService : IProductService
                 p.Description,
                 p.Price,
                 ImageUrl = p.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
-                p.IsGloballyDisabled,
+                IsAvailable = !p.IsGloballyDisabled,
                 p.IsPrescriptionRequired,
             })
             .AsNoTracking()
@@ -284,7 +284,7 @@ public class ProductService : IProductService
             p.Description,
             p.Price,
             _storage.GetPublicUrl(p.ImageUrl),
-            p.IsGloballyDisabled,
+            p.IsAvailable,
             p.IsPrescriptionRequired,
             favoriteIds.Contains(p.Id),
             cartItems.TryGetValue(p.Id, out var qty) ? qty : 0 ) 

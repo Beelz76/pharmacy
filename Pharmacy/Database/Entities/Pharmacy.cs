@@ -13,4 +13,5 @@ public class Pharmacy
 
     public ICollection<PharmacyProduct> PharmacyProducts  { get; set; } = new List<PharmacyProduct>();
     public ICollection<Order> Orders { get; set; } = new List<Order>();
+    public ICollection<User> Users { get; set; } = new List<User>();
 }
