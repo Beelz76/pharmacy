@@ -33,7 +33,7 @@ public class CartService : ICartService
     public async Task<Result> AddToCartAsync(int userId, int productId)
     {
         var product = await _productRepository.GetByIdWithRelationsAsync(productId);
-        if (product is null || !product.IsGloballyDisabled)
+        if (product is null || product.IsGloballyDisabled)
         {
             return Result.Failure(Error.Failure("Товар недоступен для добавления в корзину"));
         }
@@ -59,7 +59,7 @@ public class CartService : ICartService
     public async Task<Result> SetQuantityAsync(int userId, int productId, int quantity)
     {
         var product = await _productRepository.GetByIdWithRelationsAsync(productId);
-        if (product is null || !product.IsGloballyDisabled)
+        if (product is null || product.IsGloballyDisabled)
         {
             return Result.Failure(Error.Failure("Товар недоступен"));
         }

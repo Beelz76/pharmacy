@@ -70,7 +70,7 @@ public class ProductService : IProductService
             Description = request.Description,
             ExtendedDescription = request.ExtendedDescription,
             ExpirationDate = request.ExpirationDate,
-            IsGloballyDisabled = request.IsAvailable,
+            IsGloballyDisabled = !request.IsAvailable,
             IsPrescriptionRequired = request.IsPrescriptionRequired,
             CreatedAt = _dateTimeProvider.UtcNow,
             UpdatedAt = _dateTimeProvider.UtcNow,
@@ -123,7 +123,7 @@ public class ProductService : IProductService
         product.ManufacturerId = request.ManufacturerId;
         product.Description = request.Description;
         product.ExpirationDate = request.ExpirationDate;
-        product.IsGloballyDisabled = request.IsAvailable;
+        product.IsGloballyDisabled = !request.IsAvailable;
         product.IsPrescriptionRequired = request.IsPrescriptionRequired;
         product.UpdatedAt = _dateTimeProvider.UtcNow;
 
@@ -229,7 +229,7 @@ public class ProductService : IProductService
 
         if (query.IsAvailable is not null)
         {
-            productsQuery = productsQuery.Where(x => x.IsGloballyDisabled == query.IsAvailable);
+            productsQuery = productsQuery.Where(x => x.IsGloballyDisabled != query.IsAvailable);
         }
         if (query.IsPrescriptionRequired is not null)
         {

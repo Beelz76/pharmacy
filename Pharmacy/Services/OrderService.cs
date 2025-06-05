@@ -51,7 +51,7 @@ public class OrderService : IOrderService
         foreach (var cartItem in cartItems)
         {
             var product = await _productRepository.GetByIdWithRelationsAsync(cartItem.ProductId);
-            if (product is null || !product.IsGloballyDisabled /*|| product.StockQuantity < cartItem.Quantity*/)
+            if (product is null || product.IsGloballyDisabled /*|| product.StockQuantity < cartItem.Quantity*/)
             {
                 return Result.Failure<CreatedWithNumberDto>(Error.Failure($"Товар {cartItem.ProductId} недоступен"));
             }

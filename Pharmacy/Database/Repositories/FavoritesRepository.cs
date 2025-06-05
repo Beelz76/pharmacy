@@ -28,7 +28,7 @@ public class FavoritesRepository : IFavoritesRepository
                 ManufacturerCountry = f.Product.Manufacturer.Country,
                 Price = f.Product.Price,
                 ImageUrl = f.Product.Images.OrderBy(i => i.Id).Select(i => i.Url).FirstOrDefault(),
-                IsAvailable = f.Product.IsGloballyDisabled,
+                IsAvailable = !f.Product.IsGloballyDisabled,
                 IsPrescriptionRequired = f.Product.IsPrescriptionRequired
             })
             .ToListAsync();
