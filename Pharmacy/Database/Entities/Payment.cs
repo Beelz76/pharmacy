@@ -4,7 +4,7 @@ public class Payment
 {
     public int Id { get; set; }
     public string ExternalPaymentId { get; set; }
-    public string? Number { get; set; }
+    //public string? Number { get; set; }
     public int OrderId { get; set; }
     public decimal Amount { get; set; }
     public int StatusId { get; set; }

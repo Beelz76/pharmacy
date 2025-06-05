@@ -24,7 +24,6 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasMaxLength(4);
         
         builder.Property(x => x.PharmacyAddress)
-            .IsRequired()
             .HasMaxLength(255);
         
         builder.Property(x => x.IsDelivery)

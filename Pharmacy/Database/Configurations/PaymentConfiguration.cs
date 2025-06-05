@@ -15,9 +15,9 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(x => x.ExternalPaymentId)
             .HasMaxLength(100);
         
-        builder.Property(x => x.Number)
-            .IsRequired()
-            .HasMaxLength(20);
+        // builder.Property(x => x.Number)
+        //     .IsRequired()
+        //     .HasMaxLength(20);
         
         builder.Property(x => x.Amount)
             .IsRequired()
@@ -51,6 +51,6 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasForeignKey(x => x.StatusId)
             .OnDelete(DeleteBehavior.Restrict);
         
-        builder.HasIndex(x => x.Number).IsUnique();
+        //builder.HasIndex(x => x.Number).IsUnique();
     }
 }

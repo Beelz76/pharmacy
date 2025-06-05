@@ -26,7 +26,7 @@ public class PaymentService : IPaymentService
             Amount = amount,
             PaymentMethodId = (int)method,
             StatusId = method == PaymentMethodEnum.Online ? (int)PaymentStatusEnum.Pending : (int)PaymentStatusEnum.NotPaid,
-            Number = $"PAY-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+            //Number = $"PAY-{Guid.NewGuid().ToString()[..8].ToUpper()}",
             CreatedAt = _dateTimeProvider.UtcNow,
             UpdatedAt = _dateTimeProvider.UtcNow
         };
@@ -61,7 +61,7 @@ public class PaymentService : IPaymentService
             return Result.Failure(Error.NotFound("Платёж не найден"));
         }
 
-        payment.Number = externalPaymentId;
+        payment.ExternalPaymentId = externalPaymentId;
         payment.UpdatedAt = _dateTimeProvider.UtcNow;
 
         await _paymentRepository.UpdateAsync(payment);
