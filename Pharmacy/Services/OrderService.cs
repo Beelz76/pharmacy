@@ -318,7 +318,7 @@ public class OrderService : IOrderService
     
     public async Task<Result> UpdateStatusAsync(int orderId, OrderStatusEnum newStatus)
     {
-        var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true);
+        var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true, includePharmacy: true);
         if (order is null)
         {
             return Result.Failure(Error.NotFound("Заказ не найден"));
@@ -364,8 +364,7 @@ public class OrderService : IOrderService
             await _emailSender.SendEmailAsync(user.Email, subject, body);
         }
 
-        if (newStatus == OrderStatusEnum.Received &&
-            (PaymentMethodEnum)order.Payment.PaymentMethodId == PaymentMethodEnum.OnDelivery)
+        if (newStatus == OrderStatusEnum.Received && (PaymentMethodEnum)order.Payment.PaymentMethodId == PaymentMethodEnum.OnDelivery)
         {
             await _paymentService.UpdateStatusAsync(order.Id, PaymentStatusEnum.Completed);
         }

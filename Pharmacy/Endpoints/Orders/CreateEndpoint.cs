@@ -32,7 +32,7 @@ public class CreateEndpoint : Endpoint<CreateOrderRequest>
             await SendUnauthorizedAsync(ct);
             return;
         }
-            
+        
         var result = await _orderService.CreateAsync(userId.Value, request.PharmacyAddress, request.PaymentMethod);
         if (result.IsSuccess)
         {

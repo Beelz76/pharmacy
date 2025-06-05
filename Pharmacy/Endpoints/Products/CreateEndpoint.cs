@@ -18,7 +18,7 @@ public class CreateEndpoint : Endpoint<CreateProductRequest>
     public override void Configure()
     {
         Post("products");
-        //Roles("Admin");
+        Roles("Admin");
         Tags("Products");
         Summary(s => { s.Summary = "Добавить новый товар"; }); 
     }

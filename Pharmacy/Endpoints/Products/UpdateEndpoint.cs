@@ -18,7 +18,7 @@ public class UpdateEndpoint : Endpoint<UpdateProductRequest>
     public override void Configure()
     {
         Put("products/{productId:int}");
-        //Roles("Admin");
+        Roles("Admin");
         Tags("Products");
         Summary(s => { s.Summary = "Изменить товар"; }); 
     }

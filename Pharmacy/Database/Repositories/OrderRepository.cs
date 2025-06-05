@@ -25,7 +25,7 @@ public class OrderRepository : IOrderRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Order?> GetByIdWithDetailsAsync(int orderId, bool includeItems = true, bool includeStatus = true, bool includeProductImages = true, bool includePayment = false, bool includeUser = false)
+    public async Task<Order?> GetByIdWithDetailsAsync(int orderId, bool includeItems = true, bool includeStatus = true, bool includeProductImages = true, bool includePayment = false, bool includeUser = false, bool includePharmacy = false)
     {
         var query = _context.Orders.AsQueryable();
 
@@ -45,6 +45,9 @@ public class OrderRepository : IOrderRepository
         
         if (includeUser)
             query = query.Include(o => o.User);
+        
+        if (includePharmacy)
+            query = query.Include(o => o.Pharmacy);
 
         return await query.FirstOrDefaultAsync(o => o.Id == orderId);
     }

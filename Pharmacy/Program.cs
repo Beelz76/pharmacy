@@ -133,6 +133,8 @@ try
     builder.Services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
     builder.Services.AddScoped<IUserAddressRepository, UserAddressRepository>();
     builder.Services.AddScoped<IUserAddressService, UserAddressService>();
+    builder.Services.AddScoped<IPharmacyProductRepository, PharmacyProductRepository>();
+    builder.Services.AddScoped<IPharmacyProductService, PharmacyProductService>();
     
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
