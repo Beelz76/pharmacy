@@ -23,9 +23,6 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(x => x.PickupCode)
             .HasMaxLength(4);
         
-        builder.Property(x => x.PharmacyAddress)
-            .HasMaxLength(255);
-        
         builder.Property(x => x.IsDelivery)
             .IsRequired();
         

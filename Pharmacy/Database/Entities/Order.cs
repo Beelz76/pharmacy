@@ -11,7 +11,6 @@ public class Order
     public bool IsDelivery { get; set; }
     
     public int? PharmacyId { get; set; }
-    public string? PharmacyAddress { get; set; }
     
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
