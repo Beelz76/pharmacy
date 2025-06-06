@@ -45,19 +45,4 @@ public class UserAddressRepository : IUserAddressRepository
         _context.UserAddresses.Remove(address);
         await _context.SaveChangesAsync();
     }
-
-    public async Task<Address> GetOrCreateAddressAsync(Address address)
-    {
-        var existing = await _context.Addresses.FirstOrDefaultAsync(x =>
-            x.OsmId == address.OsmId &&
-            x.Latitude == address.Latitude &&
-            x.Longitude == address.Longitude);
-
-        if (existing != null)
-            return existing;
-
-        await _context.Addresses.AddAsync(address);
-        await _context.SaveChangesAsync();
-        return address;
-    }
 }

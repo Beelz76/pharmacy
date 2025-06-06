@@ -1,6 +1,7 @@
 ﻿using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.Endpoints.UserAddresses;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Result;
@@ -10,10 +11,12 @@ namespace Pharmacy.Services;
 public class UserAddressService : IUserAddressService
 {
     private readonly IUserAddressRepository _repository;
+    private readonly IAddressRepository _addressRepository;
 
-    public UserAddressService(IUserAddressRepository repository)
+    public UserAddressService(IUserAddressRepository repository, IAddressRepository addressRepository)
     {
         _repository = repository;
+        _addressRepository = addressRepository;
     }
 
     public async Task<Result<IEnumerable<UserAddressDto>>> GetAllAsync(int userId)
@@ -36,18 +39,18 @@ public class UserAddressService : IUserAddressService
 
     public async Task<Result<CreatedDto>> CreateAsync(int userId, CreateUserAddressRequest request)
     {
-        var address = await _repository.GetOrCreateAddressAsync(new Address
+        var address = await _addressRepository.GetOrCreateAddressAsync(new Address
         {
-            OsmId = request.OsmId,
-            Region = request.Region,
-            State = request.State,
-            City = request.City,
-            Suburb = request.Suburb,
-            Street = request.Street,
-            HouseNumber = request.HouseNumber,
-            Postcode = request.Postcode,
-            Latitude = request.Latitude,
-            Longitude = request.Longitude
+            OsmId = request.Address.OsmId,
+            Region = request.Address.Region,
+            State = request.Address.State,
+            City = request.Address.City,
+            Suburb = request.Address.Suburb,
+            Street = request.Address.Street,
+            HouseNumber = request.Address.HouseNumber,
+            Postcode = request.Address.Postcode,
+            Latitude = request.Address.Latitude,
+            Longitude = request.Address.Longitude
         });
         
         var existingAddresses = await _repository.GetByUserIdAsync(userId);
@@ -83,7 +86,7 @@ public class UserAddressService : IUserAddressService
             return Result.Failure(Error.NotFound("Адрес не найден"));
         }
 
-        var address = await _repository.GetOrCreateAddressAsync(new Address
+        var address = await _addressRepository.GetOrCreateAddressAsync(new Address
         {
             OsmId = request.OsmId,
             Region = request.Region,
@@ -135,6 +138,7 @@ public class UserAddressService : IUserAddressService
             ua.Id,
             new AddressDto(
                 ua.Address.Id,
+                ua.Address.OsmId,
                 ua.Address.Region,
                 ua.Address.State,
                 ua.Address.City,
@@ -149,26 +153,8 @@ public class UserAddressService : IUserAddressService
             ua.Entrance,
             ua.Floor,
             ua.Comment,
-            FormatAddress(ua)
+            AddressExtensions.FormatAddress(ua)
         );
-
-    private static string FormatAddress(UserAddress ua)
-    {
-        var a = ua.Address;
-        var parts = new[]
-        {
-            a.Region,
-            a.City,
-            a.Suburb,
-            a.Street,
-            a.HouseNumber,
-            string.IsNullOrWhiteSpace(ua.Entrance) ? null : $"подъезд {ua.Entrance}",
-            string.IsNullOrWhiteSpace(ua.Floor) ? null : $"этаж {ua.Floor}",
-            string.IsNullOrWhiteSpace(ua.Apartment) ? null : $"кв. {ua.Apartment}",
-            a.Postcode
-        };
-        return string.Join(", ", parts.Where(x => !string.IsNullOrWhiteSpace(x)));
-    }
     
     private bool IsSameUserAddress(UserAddress a, Address bAddress, CreateUserAddressRequest b)
     {
@@ -187,5 +173,4 @@ public class UserAddressService : IUserAddressService
                (a.Floor ?? "") == (b.Floor ?? "") &&
                (a.Comment ?? "") == (b.Comment ?? "");
     }
-
 }

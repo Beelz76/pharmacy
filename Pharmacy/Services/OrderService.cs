@@ -2,6 +2,7 @@
 using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
+using Pharmacy.Endpoints.Orders;
 using Pharmacy.Extensions;
 using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
@@ -14,7 +15,6 @@ namespace Pharmacy.Services;
 public class OrderService : IOrderService
 {
     private readonly ICartRepository _cartRepository;
-    private readonly IProductRepository _productRepository;
     private readonly IOrderRepository _orderRepository;
     private readonly IPaymentService _paymentService;
     private readonly IUserRepository _userRepository;
@@ -22,11 +22,19 @@ public class OrderService : IOrderService
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IStorageProvider _storage;
     private readonly YooKassaHttpClient _yooKassaClient;
+    private readonly IPharmacyService _pharmacyService;
+    private readonly IPharmacyProductService _pharmacyProductService;
+    private readonly IDeliveryService _deliveryService;
+    private readonly IUserAddressRepository _userAddressRepository;
 
-    public OrderService(ICartRepository cartRepository, IProductRepository productRepository, IOrderRepository orderRepository, IDateTimeProvider dateTimeProvider, IPaymentService paymentService, IUserRepository userRepository, IEmailSender emailSender, IStorageProvider storage, YooKassaHttpClient yooKassaClient)
+    public OrderService(ICartRepository cartRepository,
+        IOrderRepository orderRepository, IDateTimeProvider dateTimeProvider, IPaymentService paymentService,
+        IUserRepository userRepository, IEmailSender emailSender, IStorageProvider storage,
+        YooKassaHttpClient yooKassaClient, IPharmacyService pharmacyService,
+        IPharmacyProductService pharmacyProductService, IDeliveryService deliveryService,
+        IUserAddressRepository userAddressRepository)
     {
         _cartRepository = cartRepository;
-        _productRepository = productRepository;
         _orderRepository = orderRepository;
         _dateTimeProvider = dateTimeProvider;
         _paymentService = paymentService;
@@ -34,110 +42,126 @@ public class OrderService : IOrderService
         _emailSender = emailSender;
         _storage = storage;
         _yooKassaClient = yooKassaClient;
+        _pharmacyService = pharmacyService;
+        _pharmacyProductService = pharmacyProductService;
+        _deliveryService = deliveryService;
+        _userAddressRepository = userAddressRepository;
     }
 
-    public async Task<Result<CreatedWithNumberDto>> CreateAsync(int userId, string pharmacyAddress, PaymentMethodEnum paymentMethod)
+    public async Task<Result<CreatedWithNumberDto>> CreateAsync(int userId, CreateOrderRequest request)
     {
         var cartItems = await _cartRepository.GetRawUserCartAsync(userId);
         if (!cartItems.Any())
+        {
             return Result.Failure<CreatedWithNumberDto>(Error.Failure("Корзина пуста"));
+        }
 
         var now = _dateTimeProvider.UtcNow;
+        var productTuples = cartItems.Select(c => (c.ProductId, c.Quantity)).ToList();
+
+        // Получить или создать аптеку
+        int pharmacyId;
+        if (request.PharmacyId.HasValue)
+        {
+            pharmacyId = request.PharmacyId.Value;
+        }
+        else if (request.NewPharmacy is not null)
+        {
+            var pharmacyResult = await _pharmacyService.GetOrCreatePharmacyIdAsync(request.NewPharmacy);
+            if (pharmacyResult.IsFailure) return Result.Failure<CreatedWithNumberDto>(pharmacyResult.Error);
+            pharmacyId = pharmacyResult.Value;
+        }
+        else
+        {
+            return Result.Failure<CreatedWithNumberDto>(Error.Failure("Аптека не указана"));
+        }
+
+        // Проверка и добавление товаров
+        var pharmacyProductsResult = await _pharmacyProductService.ValidateOrAddProductsAsync(pharmacyId, productTuples);
+        if (pharmacyProductsResult.IsFailure)
+        {
+            return Result.Failure<CreatedWithNumberDto>(pharmacyProductsResult.Error);
+        }
+
+        var pharmacyProducts = pharmacyProductsResult.Value;
         var orderItems = new List<OrderItem>();
         var orderItemDetails = new List<(string Name, int Quantity, decimal Price)>();
-
         decimal totalPrice = 0;
 
         foreach (var cartItem in cartItems)
         {
-            var product = await _productRepository.GetByIdWithRelationsAsync(cartItem.ProductId);
-            if (product is null || product.IsGloballyDisabled /*|| product.StockQuantity < cartItem.Quantity*/)
-            {
-                return Result.Failure<CreatedWithNumberDto>(Error.Failure($"Товар {cartItem.ProductId} недоступен"));
-            }
-
+            var pharmacyProduct = pharmacyProducts.First(x => x.ProductId == cartItem.ProductId);
             orderItems.Add(new OrderItem
             {
-                ProductId = product.Id,
+                ProductId = cartItem.ProductId,
                 Quantity = cartItem.Quantity,
-                Price = product.Price
+                Price = pharmacyProduct.Price
             });
-            orderItemDetails.Add((product.Name, cartItem.Quantity, product.Price));
 
-            totalPrice += cartItem.Quantity * product.Price;
+            orderItemDetails.Add((pharmacyProduct.ProductName, cartItem.Quantity, pharmacyProduct.Price));
+            totalPrice += cartItem.Quantity * pharmacyProduct.Price;
         }
 
+        // Создание заказа
         var order = new Order
         {
             UserId = userId,
             Number = $"ORD-{Guid.NewGuid().ToString()[..8].ToUpper()}",
             TotalPrice = totalPrice,
-            StatusId = paymentMethod == PaymentMethodEnum.Online ? (int)OrderStatusEnum.WaitingForPayment : (int)OrderStatusEnum.Pending,
+            StatusId = request.PaymentMethod == PaymentMethodEnum.Online ? (int)OrderStatusEnum.WaitingForPayment : (int)OrderStatusEnum.Pending,
             CreatedAt = now,
             UpdatedAt = now,
             OrderItems = orderItems,
-            PharmacyAddress = pharmacyAddress.Trim()
+            IsDelivery = request.IsDelivery,
+            PharmacyId = pharmacyId,
+            ExpiresAt = request.PaymentMethod == PaymentMethodEnum.Online ? now.AddMinutes(30) : null
         };
 
         await _orderRepository.AddAsync(order);
         await _cartRepository.RemoveRangeAsync(cartItems);
-        await _paymentService.CreateInitialPaymentAsync(order.Id, totalPrice, paymentMethod);
 
+        // Платёж
+        await _paymentService.CreateInitialPaymentAsync(order.Id, totalPrice, request.PaymentMethod);
+
+        // Доставка
+        if (request.IsDelivery && request.UserAddressId.HasValue)
+        {
+            await _deliveryService.CreateAsync(new CreateDeliveryRequest(
+                order.Id,
+                request.UserAddressId.Value,
+                request.DeliveryComment,
+                null));
+        }
+
+        // Уведомление
         var user = await _userRepository.GetByIdAsync(userId);
         if (user is not null)
         {
-            var subject = $"Заказ {order.Number} успешно оформлен";
-            var itemsTable = string.Join("", orderItemDetails.Select(item =>
-                $"<tr>" +
-                $"<td style='padding: 8px; border: 1px solid #ccc;'>{item.Name}</td>" +
-                $"<td style='padding: 8px; border: 1px solid #ccc;'>{item.Quantity}</td>" +
-                $"<td style='padding: 8px; border: 1px solid #ccc;'>{item.Price:C}</td>" +
-                $"<td style='padding: 8px; border: 1px solid #ccc;'>{(item.Price * item.Quantity):C}</td>" +
-                $"</tr>"
-            ));
+            var addressString = request.IsDelivery && request.UserAddressId.HasValue
+                ? AddressExtensions.FormatAddress(await _userAddressRepository.GetByIdAsync(userId, request.UserAddressId.Value))
+                : $"Аптека: {order.Pharmacy?.Name ?? "неизвестно"}";
 
-            var paymentText = paymentMethod == PaymentMethodEnum.Online ? "Картой онлайн" : "При получении";
-            var statusText = paymentMethod == PaymentMethodEnum.Online ? "Ожидает оплаты" : "Ожидает обработки";
+            var itemsTable = string.Join("", orderItemDetails.Select(item =>
+                $"<tr><td>{item.Name}</td><td>{item.Quantity}</td><td>{item.Price:C}</td><td>{item.Quantity * item.Price:C}</td></tr>"));
 
             var body = $@"
-            <div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;"">
-                <h2 style=""color: #2c3e50;"">Здравствуйте, {user.LastName} {user.FirstName}!</h2>
-                <p style=""font-size: 16px; color: #333;"">
-                    Ваш заказ <strong>{order.Number}</strong> успешно оформлен.
-                </p>
-
-                <h3 style=""color: #2c3e50;"">Состав заказа:</h3>
-                <table style=""width: 100%; border-collapse: collapse; font-size: 14px;"">
-                    <thead>
-                        <tr>
-                            <th style='padding: 8px; border: 1px solid #ccc; text-align: left;'>Товар</th>
-                            <th style='padding: 8px; border: 1px solid #ccc; text-align: left;'>Кол-во</th>
-                            <th style='padding: 8px; border: 1px solid #ccc; text-align: left;'>Цена</th>
-                            <th style='padding: 8px; border: 1px solid #ccc; text-align: left;'>Сумма</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {itemsTable}
-                    </tbody>
+                <h3>Ваш заказ {order.Number} оформлен</h3>
+                <p>Состав заказа:</p>
+                <table border='1' cellpadding='4'>
+                    <tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr>
+                    {itemsTable}
                 </table>
+                <p><strong>Итого:</strong> {totalPrice:C}<br/>
+                <strong>Адрес:</strong> {addressString}<br/>
+                <strong>Оплата:</strong> {(request.PaymentMethod == PaymentMethodEnum.Online ? "Онлайн" : "При получении")}</p>";
 
-                <p style=""font-size: 16px; margin-top: 16px;"">
-                    <strong>Сумма заказа:</strong> {totalPrice:C}<br/>
-                    <strong>Адрес аптеки:</strong> {order.PharmacyAddress}<br/>
-                    <strong>Способ оплаты:</strong> {paymentText}<br/>
-                    <strong>Статус заказа:</strong> {statusText}
-                </p>
-
-                <p style=""font-size: 14px; color: #888;"">
-                    Спасибо, что выбрали нашу аптеку!
-                </p>
-            </div>";
-            await _emailSender.SendEmailAsync(user.Email, subject, body);
+            await _emailSender.SendEmailAsync(user.Email, $"Заказ {order.Number}", body);
         }
-        
+
         return Result.Success(new CreatedWithNumberDto(order.Id, order.Number));
     }
 
+    
     public async Task<Result<string>> PayAsync(int orderId, int userId)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true);
@@ -218,7 +242,7 @@ public class OrderService : IOrderService
             order.TotalPrice,
             order.Status.Description,
             order.PickupCode,
-            order.PharmacyAddress,
+            AddressExtensions.FormatAddress(order.Pharmacy.Address),
             order.UserId,
             $"{order.User.LastName} {order.User.FirstName} {order.User.Patronymic}".Trim(),
             order.User.Email,
@@ -266,7 +290,7 @@ public class OrderService : IOrderService
         
         if (!string.IsNullOrWhiteSpace(filters.PharmacyCity) && userId == null)
         {
-            query = query.Where(o => o.PharmacyAddress.ToLower().Contains(filters.PharmacyCity.ToLower()));
+            query = query.Where(o => o.Pharmacy.Address.City.ToLower().Contains(filters.PharmacyCity.ToLower()));
         }
         
         if (!string.IsNullOrWhiteSpace(filters.Number))
@@ -349,7 +373,7 @@ public class OrderService : IOrderService
                         Ваш заказ <strong>{order.Number}</strong> теперь готов к получению в аптеке.
                     </p>
                     <p style=\""font-size: 14px; color: #888;\"">
-                        Адрес аптеки: <strong>{order.PharmacyAddress}</strong>
+                        Адрес аптеки: <strong>{AddressExtensions.FormatAddress(order.Pharmacy!.Address)}</strong>
                     </p>
                     <p style=""font-size: 18px; color: #000; margin-top: 20px;"">
                         <strong>Код для получения:</strong>
@@ -403,7 +427,7 @@ public class OrderService : IOrderService
         await _orderRepository.UpdateAsync(order);
         return Result.Success();
     }
-
+    
     public async Task<Result> RefundAsync(int orderId)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true);
@@ -434,4 +458,49 @@ public class OrderService : IOrderService
         var statuses = await _orderRepository.GetAllOrderStatuses();
         return statuses.Select(s => new OrderStatusDto(s.Id, s.Name, s.Description));
     }
+
+    public async Task<Result> MarkAsDeliveredAsync(int orderId)
+    {
+        var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true, includePharmacy: true);
+        if (order is null)
+        {
+            return Result.Failure(Error.NotFound("Заказ не найден"));
+        }
+
+        if (order.StatusId == (int)OrderStatusEnum.Delivered)
+        {
+            return Result.Failure(Error.Failure("Заказ уже отмечен как доставленный"));
+        }
+
+        order.StatusId = (int)OrderStatusEnum.Delivered;
+        order.UpdatedAt = _dateTimeProvider.UtcNow;
+        
+        if ((PaymentMethodEnum)order.Payment.PaymentMethodId == PaymentMethodEnum.OnDelivery &&
+            (PaymentStatusEnum)order.Payment.StatusId != PaymentStatusEnum.Completed)
+        {
+            await _paymentService.UpdateStatusAsync(order.Id, PaymentStatusEnum.Completed);
+        }
+
+        await _orderRepository.UpdateAsync(order);
+        
+        var user = await _userRepository.GetByIdAsync(order.UserId);
+        if (user != null)
+        {
+            var subject = $"Ваш заказ {order.Number} доставлен";
+            var body = $@"
+            <div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;"">
+                <h2 style=""color: #2c3e50;"">Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                <p style=""font-size: 16px; color: #333;"">
+                    Ваш заказ <strong>{order.Number}</strong> успешно доставлен.
+                </p>
+                <p style=""font-size: 14px; color: #888;"">
+                    Спасибо, что выбрали нашу аптеку!
+                </p>
+            </div>";
+            await _emailSender.SendEmailAsync(user.Email, subject, body);
+        }
+
+        return Result.Success();
+    }
+
 }

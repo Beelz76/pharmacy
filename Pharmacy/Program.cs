@@ -102,6 +102,7 @@ try
     builder.Services.AddSingleton<IStorageProvider, StorageProvider>();
 
     builder.Services.AddHostedService<EmailVerificationCleanupService>();
+    builder.Services.AddHostedService<ExpiredOrderCleanupService>();
     
     builder.Services.AddSingleton<PasswordProvider>();
     builder.Services.AddSingleton<TokenProvider>();

@@ -25,6 +25,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         
         builder.Property(x => x.IsDelivery)
             .IsRequired();
+
+        builder.Property(x => x.ExpiresAt);
         
         builder.Property(x => x.CreatedAt)
             .IsRequired()

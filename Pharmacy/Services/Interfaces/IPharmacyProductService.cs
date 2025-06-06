@@ -1,4 +1,5 @@
-﻿using Pharmacy.Endpoints.PharmacyProducts;
+﻿using Pharmacy.Database.Entities;
+using Pharmacy.Endpoints.PharmacyProducts;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Result;
 
@@ -10,4 +11,5 @@ public interface IPharmacyProductService
     Task<Result<CreatedDto>> AddAsync(int pharmacyId, AddPharmacyProductRequest request);
     Task<Result> UpdateAsync(int pharmacyId, int productId, UpdatePharmacyProductRequest request);
     Task<Result> DeleteAsync(int pharmacyId, int productId);
+    Task<Result<List<PharmacyProductDto>>> ValidateOrAddProductsAsync(int pharmacyId, List<(int productId, int quantity)> items);
 }

@@ -29,5 +29,4 @@ public class PaymentRepository : IPaymentRepository
     {
         return await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == orderId);
     }
-
 }

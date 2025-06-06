@@ -1,6 +1,6 @@
 ﻿namespace Pharmacy.Extensions;
 
-public class EntityChangesExtensions
+public static class EntityChangesExtensions
 {
     public static bool HasChanges<TModel, TUpdate>(TModel model, TUpdate update, params Func<TModel, TUpdate, bool>[] comparisons)
     {

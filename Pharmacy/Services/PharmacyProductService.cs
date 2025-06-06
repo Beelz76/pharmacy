@@ -100,4 +100,62 @@ public class PharmacyProductService : IPharmacyProductService
         await _repository.DeleteAsync(entity);
         return Result.Success();
     }
+    
+    public async Task<Result<List<PharmacyProductDto>>> ValidateOrAddProductsAsync(int pharmacyId, List<(int productId, int quantity)> items)
+    {
+        var now = _dateTimeProvider.UtcNow;
+        var result = new List<PharmacyProductDto>();
+
+        var existingProducts = await _repository.GetByPharmacyIdAsync(pharmacyId);
+        var existingDict = existingProducts.ToDictionary(x => x.ProductId);
+
+        foreach (var (productId, quantity) in items)
+        {
+            if (existingDict.TryGetValue(productId, out var pharmacyProduct))
+            {
+                if (pharmacyProduct.Product.IsGloballyDisabled)
+                    return Result.Failure<List<PharmacyProductDto>>(Error.Failure($"Товар {productId} отключен глобально"));
+
+                if (!pharmacyProduct.IsAvailable)
+                    return Result.Failure<List<PharmacyProductDto>>(Error.Failure($"Товар {productId} недоступен в аптеке"));
+
+                if (pharmacyProduct.StockQuantity < quantity)
+                    return Result.Failure<List<PharmacyProductDto>>(Error.Failure($"Недостаточно товара {productId} на складе аптеки"));
+
+                result.Add(new PharmacyProductDto(
+                    pharmacyProduct.ProductId,
+                    pharmacyProduct.Product.Name,
+                    pharmacyProduct.StockQuantity,
+                    pharmacyProduct.LocalPrice ?? pharmacyProduct.Product.Price,
+                    true));
+            }
+            else
+            {
+                var product = await _productRepository.GetByIdWithRelationsAsync(productId);
+                if (product == null || product.IsGloballyDisabled)
+                    return Result.Failure<List<PharmacyProductDto>>(Error.Failure($"Товар {productId} недоступен"));
+
+                var newPharmacyProduct = new PharmacyProduct
+                {
+                    PharmacyId = pharmacyId,
+                    ProductId = productId,
+                    StockQuantity = quantity,
+                    LocalPrice = product.Price,
+                    IsAvailable = true,
+                    LastRestockedAt = now
+                };
+
+                await _repository.AddAsync(newPharmacyProduct);
+
+                result.Add(new PharmacyProductDto(
+                    newPharmacyProduct.ProductId,
+                    product.Name,
+                    quantity,
+                    newPharmacyProduct.LocalPrice!.Value,
+                    true));
+            }
+        }
+
+        return Result.Success(result);
+    }
 }

@@ -2,6 +2,7 @@
 using FluentValidation;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
+using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Enums;
 
 namespace Pharmacy.Endpoints.Orders;
@@ -33,7 +34,7 @@ public class CreateEndpoint : Endpoint<CreateOrderRequest>
             return;
         }
         
-        var result = await _orderService.CreateAsync(userId.Value, request.PharmacyAddress, request.PaymentMethod);
+        var result = await _orderService.CreateAsync(userId.Value, request);
         if (result.IsSuccess)
         {
             await SendOkAsync(result.Value, ct);
@@ -45,15 +46,19 @@ public class CreateEndpoint : Endpoint<CreateOrderRequest>
     }
 }
 
-public record CreateOrderRequest(string PharmacyAddress, PaymentMethodEnum PaymentMethod);
+public record CreateOrderRequest(
+    int? PharmacyId,
+    CreatePharmacyDto? NewPharmacy,
+    int? UserAddressId,
+    PaymentMethodEnum PaymentMethod,
+    bool IsDelivery,
+    string? DeliveryComment
+);
 
 public class CreateOrderRequestValidator : Validator<CreateOrderRequest>
 {
     public CreateOrderRequestValidator()
     {
-        RuleFor(x => x.PharmacyAddress)
-            .NotEmpty();
-        
         RuleFor(x => x.PaymentMethod)
             .NotEmpty();
     }

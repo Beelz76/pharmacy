@@ -9,5 +9,4 @@ public interface IUserAddressRepository
     Task AddAsync(UserAddress address);
     Task UpdateAsync(UserAddress address);
     Task DeleteAsync(UserAddress address);
-    Task<Address> GetOrCreateAddressAsync(Address address);
 }

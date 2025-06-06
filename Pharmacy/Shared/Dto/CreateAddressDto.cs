@@ -1,7 +1,6 @@
 ﻿namespace Pharmacy.Shared.Dto;
 
-public record AddressDto(
-    int Id,
+public record CreateAddressDto(
     string? OsmId,
     string? Region,
     string? State,
