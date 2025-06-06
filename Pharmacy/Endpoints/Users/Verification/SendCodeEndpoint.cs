@@ -28,7 +28,7 @@ public class SendCodeEndpoint : Endpoint<SendCodeRequest>
 
     public override async Task HandleAsync(SendCodeRequest request, CancellationToken ct)
     {
-        if (request.Purpose == VerificationPurposeEnum.EmailChange && !User.Identity?.IsAuthenticated == true)
+        if (request.Purpose == VerificationPurposeEnum.EmailChange && !(User.Identity?.IsAuthenticated ?? false))
         {
             await SendUnauthorizedAsync(ct);
             return;

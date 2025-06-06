@@ -10,4 +10,5 @@ public record CreateUserDto(
     string LastName,
     string? Patronymic,
     string? Phone,
-    UserRoleEnum Role);
+    UserRoleEnum Role,
+    int? PharmacyId);

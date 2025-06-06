@@ -34,12 +34,13 @@ public class AuthorizationService : IAuthorizationService
         var created = await _userService.CreateAsync(new CreateUserDto(
             request.Email, 
             passwordHash, 
-            false,
+            EmailVerified: false,
             request.FirstName, 
             request.LastName, 
             request.Patronymic, 
             request.Phone, 
-            UserRoleEnum.User));
+            UserRoleEnum.User,
+            PharmacyId: null));
         
         var sendResult = await _emailVerificationService.SendCodeAsync(created.Value.Id, request.Email, false, VerificationPurposeEnum.Registration);
         if (sendResult.IsFailure)

@@ -47,7 +47,8 @@ public class CreateEndpoint : Endpoint<CreateUserRequest>
             request.LastName,
             request.Patronymic,
             request.Phone,
-            request.Role
+            request.Role,
+            request.PharmacyId
         ));
         
         if (result.IsSuccess)
@@ -68,7 +69,8 @@ public record CreateUserRequest(
     string LastName,
     string? Patronymic,
     string? Phone,
-    UserRoleEnum Role);
+    UserRoleEnum Role,
+    int? PharmacyId);
 
 public class CreateUserRequestValidator : Validator<CreateUserRequest>
 {
@@ -101,5 +103,10 @@ public class CreateUserRequestValidator : Validator<CreateUserRequest>
         RuleFor(x => x.Role)
             .Must(role => role == UserRoleEnum.Employee || role == UserRoleEnum.Admin)
             .WithMessage("Роль должна быть Employee или Admin");
+        
+        RuleFor(x => x.PharmacyId)
+            .NotNull()
+            .When(x => x.Role == UserRoleEnum.Employee)
+            .WithMessage("Сотрудник должен быть привязан к аптеке");
     }
 }

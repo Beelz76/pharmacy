@@ -42,4 +42,9 @@ public class PharmacyRepository : IPharmacyRepository
                      Math.Abs(p.Address.Longitude - longitude) < 0.0001)
                 ));
     }
+    
+    public async Task<bool> ExistsByIdAsync(int pharmacyId)
+    {
+        return await _context.Pharmacies.AnyAsync(p => p.Id == pharmacyId);
+    }
 }

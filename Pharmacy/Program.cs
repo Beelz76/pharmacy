@@ -136,6 +136,11 @@ try
     builder.Services.AddScoped<IUserAddressService, UserAddressService>();
     builder.Services.AddScoped<IPharmacyProductRepository, PharmacyProductRepository>();
     builder.Services.AddScoped<IPharmacyProductService, PharmacyProductService>();
+    builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+    builder.Services.AddScoped<IPharmacyRepository, PharmacyRepository>();
+    builder.Services.AddScoped<IPharmacyService, PharmacyService>();
+    builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
+    builder.Services.AddScoped<IDeliveryService, DeliveryService>();
     
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();

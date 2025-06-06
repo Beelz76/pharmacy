@@ -17,16 +17,27 @@ public class UserService : IUserService
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly PasswordProvider _passwordProvider;
     private readonly IEmailVerificationService _emailVerificationService;
-    public UserService(IUserRepository repository, IDateTimeProvider dateTimeProvider, PasswordProvider passwordProvider, IEmailVerificationService emailVerificationService)
+    private readonly IPharmacyRepository _pharmacyRepository;
+    public UserService(IUserRepository repository, IDateTimeProvider dateTimeProvider, PasswordProvider passwordProvider, IEmailVerificationService emailVerificationService, IPharmacyRepository pharmacyRepository)
     {
         _repository = repository;
         _dateTimeProvider = dateTimeProvider;
         _passwordProvider = passwordProvider;
         _emailVerificationService = emailVerificationService;
+        _pharmacyRepository = pharmacyRepository;
     }
 
     public async Task<Result<CreatedDto>> CreateAsync(CreateUserDto dto)
     {
+        if (dto.Role == UserRoleEnum.Employee && dto.PharmacyId is not null)
+        {
+            var exists = await _pharmacyRepository.ExistsByIdAsync(dto.PharmacyId.Value);
+            if (!exists)
+            {
+                return Result.Failure<CreatedDto>(Error.NotFound("Указанная аптека не найдена"));
+            }
+        }
+        
         var user = new User
         {
             Email = dto.Email,
@@ -37,6 +48,7 @@ public class UserService : IUserService
             Phone = dto.Phone,
             EmailVerified = dto.EmailVerified,
             Role = dto.Role,
+            PharmacyId = dto.PharmacyId,
             CreatedAt = _dateTimeProvider.UtcNow,
             UpdatedAt = _dateTimeProvider.UtcNow
         };
