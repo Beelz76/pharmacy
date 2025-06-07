@@ -21,13 +21,14 @@
         <template v-if="isDelivery">
           <p class="text-sm text-gray-500 uppercase tracking-wide">Адрес доставки</p>
           <p class="text-base font-medium text-gray-900">{{ selectedAddress?.fullAddress }}</p>
+          <p v-if="selectedAddress?.comment" class="text-sm text-gray-600 mt-1">{{ selectedAddress.comment }}</p>
         </template>
         <template v-else>
           <p class="text-sm text-gray-500 uppercase tracking-wide">Аптека</p>
           <p class="text-base font-medium text-gray-900">«{{ selectedPharmacy.name }}»</p>
           <p class="text-sm text-gray-600">{{ selectedPharmacy.address }}</p>
         </template>
-
+        <p v-if="deliveryComment" class="text-sm text-gray-600 mt-1">{{ deliveryComment }}</p>
         <div v-if="paymentMethod" class="pt-4">
           <p class="text-sm text-gray-500 uppercase tracking-wide">Оплата</p>
           <p class="text-base font-medium text-gray-900">

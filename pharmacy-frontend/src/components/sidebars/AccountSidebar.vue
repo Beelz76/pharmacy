@@ -26,6 +26,14 @@
       </RouterLink>
 
       <RouterLink
+        to="/account/addresses"
+        :class="navLinkClass('/account/addresses')"
+      >
+        <i class="fas fa-map-marked-alt text-base w-5 text-center mr-3"></i>
+        Сохраненные адреса
+      </RouterLink>
+
+      <RouterLink
         to="/cart"
         :class="navLinkClass('/cart')"
       >

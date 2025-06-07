@@ -2,7 +2,7 @@
   <div class="w-full h-full relative">
     <transition name="fade">
       <div
-        v-if="isOutsideCity"
+        v-if="mode === 'pharmacy' &&isOutsideCity"
         class="absolute top-4 left-1/2 -translate-x-1/2 transform bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded-md shadow flex items-center gap-3 text-sm z-[1000]"
       >
         <i class="fas fa-triangle-exclamation text-yellow-600 text-lg"></i>
@@ -34,7 +34,8 @@ import { ElButton } from 'element-plus'
 
 const props = defineProps({
   city: Object,
-  triggerInitialLoad: Boolean
+  triggerInitialLoad: Boolean,
+  mode: { type: String, default: 'pharmacy' } // 'pharmacy' | 'address'
 })
 const emit = defineEmits(['select', 'update:pharmacies', 'outside'])
 
@@ -43,6 +44,7 @@ const mapContainer = ref(null)
 let map = null
 const pharmacies = ref([])
 const markers = ref([])
+let marker = null
 const isLoading = ref(false)
 const isOutsideCity = ref(false)
 let fetchTimeout = null
@@ -57,6 +59,7 @@ function isInsideCity(centerLat, centerLng) {
 }
 
 function setupMoveEndListener() {
+  if (props.mode !== 'pharmacy') return
   map.on('moveend', () => {
     clearTimeout(fetchTimeout)
     fetchTimeout = setTimeout(() => {
@@ -89,7 +92,7 @@ onMounted(() => {
   }, { immediate: true })
 
   watch(() => props.triggerInitialLoad, async (newVal) => {
-    if (newVal && map) {
+    if (props.mode === 'pharmacy' && newVal && map) {
       await nextTick()
       fetchPharmaciesInBounds(map.getBounds())
       isOutsideCity.value = false
@@ -106,10 +109,14 @@ function initMap(lat, lng) {
   })
 
   map.addControl(new maplibregl.NavigationControl())
-  setupMoveEndListener()
-  map.on('load', () => {
-    fetchPharmaciesInBounds(map.getBounds())
-  })
+    if (props.mode === 'pharmacy') {
+      setupMoveEndListener()
+      map.on('load', () => {
+        fetchPharmaciesInBounds(map.getBounds())
+      })
+    } else {
+      map.on('click', onAddressClick)
+    }
 }
 
 function clearMarkers() {
@@ -216,10 +223,43 @@ function flyToPharmacy(pharmacy) {
 function flyToCoordinates(lat, lon) {
   if (map) {
     map.flyTo({ center: [lon, lat], zoom: 16, essential: true })
+    if (props.mode === 'address') {
+      if (marker) marker.remove()
+      marker = new maplibregl.Marker({ color: '#3b82f6' })
+        .setLngLat([lon, lat])
+        .addTo(map)
+    }
+  }
+}
+
+async function onAddressClick(e) {
+  if (props.mode !== 'address') return
+  const { lat, lng } = e.lngLat
+  if (marker) marker.remove()
+  marker = new maplibregl.Marker({ color: '#3b82f6' })
+    .setLngLat([lng, lat])
+    .addTo(map)
+
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`,
+      { headers: { 'User-Agent': 'MediCare-App/1.0 (support@medicare.ru)' } }
+    )
+    const data = await res.json()
+    emit('select', {
+      display_name: data.display_name,
+      lat,
+      lon: lng,
+      address: data.address || {},
+      osm_id: data.osm_id
+    })
+  } catch {
+    emit('select', { lat, lon: lng })
   }
 }
 
 function returnToCity() {
+  if (props.mode !== 'pharmacy') return
   if (map && props.city?.lat && props.city?.lng) {
     map.flyTo({ center: [props.city.lng, props.city.lat], zoom, essential: true })
     isOutsideCity.value = false
@@ -246,7 +286,7 @@ defineExpose({
   flyToPharmacy,
   flyToCoordinates,
   fetchInitialPharmacies: () => {
-    if (map) {
+    if (map && props.mode === 'pharmacy') {
       fetchPharmaciesInBounds(map.getBounds())
       isOutsideCity.value = false
     }

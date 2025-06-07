@@ -1,6 +1,7 @@
 ﻿using FastEndpoints;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
+using Pharmacy.Shared.Dto;
 
 namespace Pharmacy.Endpoints.UserAddresses;
 
@@ -45,16 +46,7 @@ public class UpdateEndpoint : Endpoint<UpdateUserAddressRequest>
 }
 
 public record UpdateUserAddressRequest(
-    string? OsmId,
-    string? Region,
-    string? State,
-    string? City,
-    string? Suburb,
-    string? Street,
-    string? HouseNumber,
-    string? Postcode,
-    double Latitude,
-    double Longitude,
+    CreateAddressDto Address,
     string? Apartment,
     string? Entrance,
     string? Floor,

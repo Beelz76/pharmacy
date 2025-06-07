@@ -209,7 +209,12 @@
 
       <div class="flex flex-col gap-6">
         <div class="h-[500px] rounded-xl overflow-hidden border border-gray-300 shadow-md relative bg-gray-50">
-          <AddressMap ref="addressMapRef" :city="selectedCity" @select="onMapAddressSelect" />
+          <MapComponent
+            mode="address"
+            ref="addressMapRef"
+            :city="selectedCity"
+            @select="onMapAddressSelect"
+          />
         </div>
 
         <div class="min-h-[178px] p-4 bg-white border rounded-xl shadow-sm flex flex-col justify-between">
@@ -254,7 +259,6 @@ import { useRouter } from 'vue-router'
 import debounce from 'lodash/debounce'
 import { ElMessage } from 'element-plus'
 import MapComponent from '/src/components/MapComponent.vue'
-import AddressMap from '/src/components/AddressMap.vue'
 import { useOrderStore } from '/src/stores/OrderStore'
 import { getUserAddresses, createUserAddress } from '/src/services/UserAddressService'
 

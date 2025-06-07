@@ -8,6 +8,7 @@ import OrderCheckoutPage from "../pages/order/OrderCheckoutPage.vue";
 import OrderSummaryPage from "../pages/order/OrderSummaryPage.vue";
 import OrderPaymentPage from "../pages/order/OrderPaymentPage.vue";
 import OrderHistoryPage from "../pages/account/OrderHistoryPage.vue";
+import SavedAddressesPage from "../pages/account/SavedAddressesPage.vue";
 import OrderDetailsPage from "../pages/account/OrderDetailsPage.vue";
 import FavoritesPage from "../pages/account/FavoritesPage.vue";
 import ProductsMainPage from "../pages/product/ProductsMainPage.vue";
@@ -81,6 +82,11 @@ const routes = [
         component: OrderPaymentPage,
       },
       { path: "favorites", component: FavoritesPage },
+      {
+        path: "addresses",
+        name: "SavedAddresses",
+        component: SavedAddressesPage,
+      },
     ],
   },
 ];

@@ -88,16 +88,16 @@ public class UserAddressService : IUserAddressService
 
         var address = await _addressRepository.GetOrCreateAddressAsync(new Address
         {
-            OsmId = request.OsmId,
-            Region = request.Region,
-            State = request.State,
-            City = request.City,
-            Suburb = request.Suburb,
-            Street = request.Street,
-            HouseNumber = request.HouseNumber,
-            Postcode = request.Postcode,
-            Latitude = request.Latitude,
-            Longitude = request.Longitude
+            OsmId = request.Address.OsmId,
+            Region = request.Address.Region,
+            State = request.Address.State,
+            City = request.Address.City,
+            Suburb = request.Address.Suburb,
+            Street = request.Address.Street,
+            HouseNumber = request.Address.HouseNumber,
+            Postcode = request.Address.Postcode,
+            Latitude = request.Address.Latitude,
+            Longitude = request.Address.Longitude
         });
         
         var existingAddresses = await _repository.GetByUserIdAsync(userId);
