@@ -79,7 +79,7 @@
         @click="submitOrder"
         class="!bg-primary-600 hover:!bg-primary-700 !px-10 !py-3 rounded-lg text-base"
       >
-        Перейти к оплате
+        Оформить заказ
       </el-button>
     </div>
   </div>
@@ -165,7 +165,7 @@ const submitOrder = async () => {
 
     if (paymentMethod === 'OnDelivery') {
       orderStore.resetOrder()
-      router.push({ name: 'OrderHistory' })
+      router.push({ name: 'OrderDetails', params: { id } })
     } else {
       try {
         const payRes = await api.post(`/orders/${id}/pay`)
