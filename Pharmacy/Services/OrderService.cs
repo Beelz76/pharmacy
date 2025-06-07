@@ -185,7 +185,8 @@ public class OrderService : IOrderService
         {
             Amount = new YooKassaAmount
             {
-                Value = payment.Amount,
+                //Value = payment.Amount,
+                Value = 1,
                 Currency = "RUB"
             },
             Confirmation = new YooKassaConfirmation
@@ -219,7 +220,7 @@ public class OrderService : IOrderService
         order.UpdatedAt = _dateTimeProvider.UtcNow;
 
         await _orderRepository.UpdateAsync(order);
-        return Result.Success(createResult.Value.ConfirmationUrl);
+        return Result.Success(createResult.Value.Confirmation.ConfirmationUrl);
     }
     
     public async Task<Result<OrderDetailsDto>> GetByIdAsync(int orderId, int currentUserId, UserRoleEnum role)

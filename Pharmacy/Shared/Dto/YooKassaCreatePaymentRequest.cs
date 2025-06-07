@@ -1,4 +1,6 @@
-﻿namespace Pharmacy.Shared.Dto;
+﻿using System.Text.Json.Serialization;
+
+namespace Pharmacy.Shared.Dto;
 
 public class YooKassaCreatePaymentRequest
 {

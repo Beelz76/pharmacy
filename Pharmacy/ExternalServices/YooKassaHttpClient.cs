@@ -19,7 +19,7 @@ public class YooKassaHttpClient
         _logger = logger;
 
         _shopId = configuration["YooKassa:ShopId"]!;
-        _secretKey = configuration["YooKassa:SecretKey"]!;
+        _secretKey = configuration["YooKassa:ApiKey"]!;
 
         var authHeader = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_shopId}:{_secretKey}"));
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
@@ -27,7 +27,7 @@ public class YooKassaHttpClient
 
     public async Task<Result<YooKassaPaymentResult>> CreatePaymentAsync(YooKassaCreatePaymentRequest request, string idempotenceKey)
     {
-        var json = JsonSerializer.Serialize(request, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var json = JsonSerializer.Serialize(request, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "https://api.yookassa.ru/v3/payments");
@@ -45,7 +45,7 @@ public class YooKassaHttpClient
                 return Result.Failure<YooKassaPaymentResult>(Error.Failure("Ошибка при создании платежа"));
             }
 
-            var result = JsonSerializer.Deserialize<YooKassaPaymentResult>(responseBody, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })!;
+            var result = JsonSerializer.Deserialize<YooKassaPaymentResult>(responseBody, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower })!;
             return Result.Success(result);
         }
         catch (Exception ex)

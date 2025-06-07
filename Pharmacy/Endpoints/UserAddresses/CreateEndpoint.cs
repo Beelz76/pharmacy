@@ -16,7 +16,7 @@ public class CreateEndpoint : Endpoint<CreateUserAddressRequest>
 
     public override void Configure()
     {
-        Post("users/address");
+        Post("users/addresses");
         Roles("User");
         Tags("Users");
         Summary(s => { s.Summary = "Добавить адрес доставки"; });

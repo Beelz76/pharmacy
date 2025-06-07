@@ -43,6 +43,7 @@ public class PharmacyService : IPharmacyService
             Name = dto.Name,
             Phone = dto.Phone,
             AddressId = address.Id,
+            IsActive = true
         };
 
         await _pharmacyRepository.AddAsync(pharmacy);
