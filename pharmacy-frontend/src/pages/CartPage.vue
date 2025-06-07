@@ -72,11 +72,14 @@ import { onMounted, computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useCartStore } from '/src/stores/CartStore'
 import CartCard from '/src/components/cards/CartCard.vue'
+import { useAuthStore } from '/src/stores/AuthStore'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 
 const cart = useCartStore()
+const auth = useAuthStore()
 const { items, totalPrice } = storeToRefs(cart)
+const { isAuthenticated } = storeToRefs(auth)
 
 const currentPage = ref(1)
 const pageSize = 4
@@ -107,7 +110,9 @@ const handleCheckout = () => {
 }
 
 onMounted(() => {
-  cart.fetchCart()
+  if (isAuthenticated.value) {
+    cart.fetchCart()
+  }
 })
 
 const allAvailable = computed(() => items.value.every(p => p.isAvailable))
