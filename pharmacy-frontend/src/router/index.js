@@ -15,6 +15,9 @@ import ProductsLayout from "../layouts/ProductsLayout.vue";
 import ProductDetailsPage from "../pages/product/ProductDetailsPage.vue";
 import AdminLayout from "../layouts/AdminLayout.vue";
 import AdminProfilePage from "../pages/admin/AdminProfilePage.vue";
+import AdminUsersPage from "../pages/admin/AdminUsersPage.vue";
+import AdminUserDetailsPage from "../pages/admin/AdminUserDetailsPage.vue";
+import AdminCreateUserPage from "../pages/admin/AdminCreateUserPage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -83,7 +86,20 @@ const routes = [
     path: "/admin",
     component: AdminLayout,
     meta: { requiresAuth: true, roles: ["Admin"], layout: "admin" },
-    children: [{ path: "", name: "AdminProfile", component: AdminProfilePage }],
+    children: [
+      { path: "", name: "AdminProfile", component: AdminProfilePage },
+      { path: "users", name: "AdminUsers", component: AdminUsersPage },
+      {
+        path: "users/create",
+        name: "AdminUserCreate",
+        component: AdminCreateUserPage,
+      },
+      {
+        path: "users/:id",
+        name: "AdminUserDetails",
+        component: AdminUserDetailsPage,
+      },
+    ],
   },
 ];
 

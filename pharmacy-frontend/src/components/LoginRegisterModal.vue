@@ -316,7 +316,10 @@ async function submitLogin() {
       auth.setToken(token)
       emit('update:visible', false)
       nextTick(() => {
-        const target = auth.returnUrl || (auth.role === 'Admin' ? '/admin' : '/')
+        let target = auth.returnUrl
+        if (!target || target === '/') {
+          target = auth.role === 'Admin' ? '/admin' : '/'
+        }
         router.push(target)
         auth.clearReturnUrl()
       })
@@ -405,7 +408,10 @@ async function confirmCode() {
       auth.setToken(result.data.token)
       emit('update:visible', false)
       nextTick(() => {
-        const target = auth.returnUrl || (auth.role === 'Admin' ? '/admin' : '/')
+        let target = auth.returnUrl
+        if (!target || target === '/') {
+          target = auth.role === 'Admin' ? '/admin' : '/'
+        }
         router.push(target)
         auth.clearReturnUrl()
       })

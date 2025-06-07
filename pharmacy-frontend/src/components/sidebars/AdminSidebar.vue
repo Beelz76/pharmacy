@@ -5,6 +5,11 @@
         <i class="fas fa-user text-base w-5 text-center mr-3"></i>
         Профиль
       </RouterLink>
+
+      <RouterLink to="/admin/users" :class="navLinkClass('/admin/users')">
+        <i class="fas fa-users text-base w-5 text-center mr-3"></i>
+        Пользователи
+      </RouterLink>
     </nav>
     <div class="border-t mt-6 pt-4">
       <button
