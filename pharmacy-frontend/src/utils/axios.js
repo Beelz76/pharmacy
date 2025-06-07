@@ -3,7 +3,7 @@ import { ElMessage } from "element-plus";
 import { useAuthStore } from "../stores/AuthStore";
 
 const api = axios.create({
-  baseURL: "https://localhost:5068",
+  baseURL: "https://localhost:7107",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

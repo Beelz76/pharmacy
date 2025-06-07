@@ -12,8 +12,8 @@ public class StorageProvider : IStorageProvider
     public StorageProvider(IConfiguration config, IMinioClient minio)
     {
         _minio = minio;
-        _bucket = config["S3:Bucket"];
-        _publicBaseUrl = config["S3:PublicBaseUrl"];
+        _bucket = config["S3:Bucket"] ?? string.Empty;
+        _publicBaseUrl = config["S3:PublicBaseUrl"] ?? string.Empty;
     }
 
     public async Task UploadAsync(string path, Stream stream, string contentType)

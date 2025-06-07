@@ -51,9 +51,12 @@ public class PharmacyProductRepository : IPharmacyProductRepository
     
     public async Task UpdateStockQuantityAsync(int pharmacyId, int productId, int stockQuantity)
     {
-        await _context.PharmacyProducts
-            .Where(x => x.PharmacyId == pharmacyId && x.ProductId == productId)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.StockQuantity, stockQuantity));
+        var entity = await _context.PharmacyProducts.FirstOrDefaultAsync(x => x.PharmacyId == pharmacyId && x.ProductId == productId);
+        if (entity != null)
+        {
+            entity.StockQuantity = stockQuantity;
+            await _context.SaveChangesAsync();
+        }
     }
     
 }

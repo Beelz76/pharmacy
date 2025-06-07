@@ -20,7 +20,7 @@ public class Order
     public User User { get; set; } = null!;
     public OrderStatus Status { get; set; } = null!;
     public Payment Payment { get; set; } = null!;
-    public Pharmacy? Pharmacy { get; set; }
+    public Pharmacy Pharmacy { get; set; } = null!;
     public Delivery? Delivery { get; set; }
     
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

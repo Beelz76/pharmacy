@@ -47,7 +47,8 @@ public class OrderRepository : IOrderRepository
             query = query.Include(o => o.User);
         
         if (includePharmacy)
-            query = query.Include(o => o.Pharmacy);
+            query = query.Include(o => o.Pharmacy)
+                .ThenInclude(p => p.Address);
 
         return await query.FirstOrDefaultAsync(o => o.Id == orderId);
     }

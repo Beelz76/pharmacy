@@ -11,7 +11,7 @@ public class EmailVerificationCleanupService : BackgroundService
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IConfiguration _configuration;
 
-    private int _iteration = 0;
+    private int _iteration = 1;
     
     public EmailVerificationCleanupService(ILogger<EmailVerificationCleanupService> logger, IServiceScopeFactory serviceScopeFactory, IConfiguration configuration, IDateTimeProvider dateTimeProvider)
     {

@@ -41,5 +41,10 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
 
         builder.Property(a => a.Longitude)
             .IsRequired();
+        
+        builder.HasOne(a => a.Pharmacy)
+            .WithOne(p => p.Address)
+            .HasForeignKey<Entities.Pharmacy>(p => p.AddressId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -14,7 +14,7 @@ public class ExpiredOrderCleanupService : BackgroundService
     private readonly ILogger<ExpiredOrderCleanupService> _logger;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IConfiguration _configuration;
-    private int _iteration = 0;
+    private int _iteration = 1;
 
     public ExpiredOrderCleanupService(IServiceScopeFactory serviceScopeFactory,
         ILogger<ExpiredOrderCleanupService> logger,
