@@ -79,8 +79,12 @@ const favoritesStore = useFavoritesStore()
 onMounted(async () => {
   const data = await getPaginatedProducts({ page: 1, size: 12 })
   products.value = data.items
-  cartStore.syncFromProducts(products.value)
-  favoritesStore.syncFromProducts(products.value)
+  if (auth.isAuthenticated) {
+    cartStore.syncFromProducts(products.value)
+    favoritesStore.syncFromProducts(products.value)
+  } else {
+    applyFavoritesAndCart(products.value)
+  }
   await nextTick()
 })
 
