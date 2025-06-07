@@ -44,9 +44,9 @@ api.interceptors.response.use(
         ElMessage.warning("У вас нет прав для выполнения этого действия.");
         break;
 
-      case 404:
-        ElMessage.warning("Ресурс не найден.");
-        break;
+      // case 404:
+      //   ElMessage.warning("Ресурс не найден.");
+      //   break;
 
       case 500:
         ElMessage.error("Внутренняя ошибка сервера. Попробуйте позже.");

@@ -13,6 +13,8 @@ import FavoritesPage from "../pages/account/FavoritesPage.vue";
 import ProductsMainPage from "../pages/product/ProductsMainPage.vue";
 import ProductsLayout from "../layouts/ProductsLayout.vue";
 import ProductDetailsPage from "../pages/product/ProductDetailsPage.vue";
+import AdminLayout from "../layouts/AdminLayout.vue";
+import AdminProfilePage from "../pages/admin/AdminProfilePage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -77,6 +79,12 @@ const routes = [
       },
     ],
   },
+  {
+    path: "/admin",
+    component: AdminLayout,
+    meta: { requiresAuth: true, roles: ["Admin"], layout: "admin" },
+    children: [{ path: "", name: "AdminProfile", component: AdminProfilePage }],
+  },
 ];
 
 const router = createRouter({
@@ -91,6 +99,10 @@ router.beforeEach((to, from, next) => {
     auth.setReturnUrl(to.fullPath);
     window.dispatchEvent(new Event("unauthorized"));
     return next(false);
+  }
+
+  if (to.meta.roles && !to.meta.roles.includes(auth.role)) {
+    return next("/");
   }
 
   const fromOrderPages = ["/order/checkout", "/order/summary"];
