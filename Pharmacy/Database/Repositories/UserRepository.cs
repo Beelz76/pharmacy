@@ -24,6 +24,14 @@ public class UserRepository : BaseRepository, IUserRepository
         return await _context.Users.FirstOrDefaultAsync(m => m.Id == id);
     }
 
+    public async Task<User?> GetByIdWithPharmacyAsync(int id)
+    {
+        return await _context.Users
+            .Include(u => u.Pharmacy)
+            .ThenInclude(p => p.Address)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+    
     public async Task<User?> GetByEmailAsync(string email, int? excludeId = null)
     {
         return await _context.Users.FirstOrDefaultAsync(m => m.Email == email && (!excludeId.HasValue || m.Id != excludeId.Value));

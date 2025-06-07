@@ -17,6 +17,62 @@ public class PharmacyService : IPharmacyService
         _addressRepository = addressRepository;
     }
 
+    public async Task<Result<IEnumerable<PharmacyDto>>> GetAllAsync()
+    {
+        var pharmacies = (await _pharmacyRepository.GetAllAsync()).ToList();
+        if (!pharmacies.Any())
+        {
+            return Result.Failure<IEnumerable<PharmacyDto>>(Error.NotFound("Аптеки не найдены"));
+        }
+
+        var dto = pharmacies.Select(p => new PharmacyDto(
+            p.Id,
+            p.Name,
+            p.Phone,
+            new AddressDto(
+                p.Address.Id,
+                p.Address.OsmId,
+                p.Address.Region,
+                p.Address.State,
+                p.Address.City,
+                p.Address.Suburb,
+                p.Address.Street,
+                p.Address.HouseNumber,
+                p.Address.Postcode,
+                p.Address.Latitude,
+                p.Address.Longitude
+            ))).ToList();
+
+        return Result.Success<IEnumerable<PharmacyDto>>(dto);
+    }
+
+    public async Task<Result<PharmacyDto>> GetByIdAsync(int id)
+    {
+        var pharmacy = await _pharmacyRepository.GetByIdAsync(id);
+        if (pharmacy is null)
+            return Result.Failure<PharmacyDto>(Error.NotFound("Аптека не найдена"));
+
+        var dto = new PharmacyDto(
+            pharmacy.Id,
+            pharmacy.Name,
+            pharmacy.Phone,
+            new AddressDto(
+                pharmacy.Address.Id,
+                pharmacy.Address.OsmId,
+                pharmacy.Address.Region,
+                pharmacy.Address.State,
+                pharmacy.Address.City,
+                pharmacy.Address.Suburb,
+                pharmacy.Address.Street,
+                pharmacy.Address.HouseNumber,
+                pharmacy.Address.Postcode,
+                pharmacy.Address.Latitude,
+                pharmacy.Address.Longitude
+            ));
+
+        return Result.Success(dto);
+    }
+    
     public async Task<Result<CreatedDto>> CreateAsync(CreatePharmacyDto dto)
     {
         if (await _pharmacyRepository.ExistsAsync(dto.Name, dto.Address.OsmId, dto.Address.Latitude, dto.Address.Longitude))

@@ -5,5 +5,6 @@ public record UserProfileDto(
     string FirstName,
     string LastName,
     string? Patronymic,
-    string? Phone
+    string? Phone,
+    PharmacyDto? Pharmacy
 );

@@ -28,6 +28,11 @@
           <el-option label="Сотрудник" value="Employee" />
         </el-select>
       </el-form-item>
+      <el-form-item label="Аптека" prop="pharmacyId" v-if="form.role === 'Employee'">
+        <el-select v-model="form.pharmacyId" placeholder="Выберите аптеку" class="w-full" :loading="loadingPharmacies">
+          <el-option v-for="p in pharmacies" :key="p.id" :label="p.name" :value="p.id" />
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="submit" :loading="loading">Создать</el-button>
       </el-form-item>
@@ -36,9 +41,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { createUser } from '/src/services/UserService'
+import { getPharmacies } from '/src/services/PharmacyService'
 
 const router = useRouter()
 const formRef = ref()
@@ -58,7 +64,16 @@ const rules = {
   password: [{ required: true, message: 'Введите пароль', trigger: 'blur' }],
   firstName: [{ required: true, message: 'Введите имя', trigger: 'blur' }],
   lastName: [{ required: true, message: 'Введите фамилию', trigger: 'blur' }],
-  role: [{ required: true, message: 'Выберите роль', trigger: 'change' }]
+  role: [{ required: true, message: 'Выберите роль', trigger: 'change' }],
+  pharmacyId: [
+    {
+      validator(_, val, cb) {
+        if (form.value.role === 'Employee' && !val) return cb(new Error('Выберите аптеку'))
+        cb()
+      },
+      trigger: 'change'
+    }
+  ]
 }
 
 const submit = () => {
@@ -73,4 +88,25 @@ const submit = () => {
     }
   })
 }
+
+const pharmacies = ref([])
+const loadingPharmacies = ref(false)
+
+onMounted(async () => {
+  loadingPharmacies.value = true
+  try {
+    pharmacies.value = await getPharmacies()
+  } finally {
+    loadingPharmacies.value = false
+  }
+})
+
+watch(
+  () => form.value.role,
+  (role) => {
+    if (role !== 'Employee') {
+      form.value.pharmacyId = null
+    }
+  }
+)
 </script>

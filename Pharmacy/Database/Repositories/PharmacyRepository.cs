@@ -18,6 +18,21 @@ public class PharmacyRepository : IPharmacyRepository
         await _context.SaveChangesAsync();
     }
     
+    public async Task<IEnumerable<Entities.Pharmacy>> GetAllAsync()
+    {
+        return await _context.Pharmacies
+            .Include(p => p.Address)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<Entities.Pharmacy?> GetByIdAsync(int id)
+    {
+        return await _context.Pharmacies
+            .Include(p => p.Address)
+            .FirstOrDefaultAsync(p => p.Id == id);
+    }
+    
     public async Task<Entities.Pharmacy?> GetByOsmAndCoordinatesAsync(string name, string? osmId, double latitude, double longitude)
     {
         return await _context.Pharmacies

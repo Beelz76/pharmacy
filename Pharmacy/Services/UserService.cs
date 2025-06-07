@@ -77,14 +77,36 @@ public class UserService : IUserService
 
     public async Task<Result<UserDto>> GetByIdAsync(int userId)
     {
-        var user = await _repository.GetByIdAsync(userId);
+        var user = await _repository.GetByIdWithPharmacyAsync(userId);
         if (user is null)
         {
             return Result.Failure<UserDto>(Error.NotFound("Пользователь не найден"));
         }
 
-        return Result.Success(new UserDto(user.Id, user.Role, user.Email, user.PasswordHash, user.EmailVerified, user.FirstName,
-            user.LastName, user.Patronymic, user.Phone));
+        PharmacyDto? pharmacyDto = null;
+        if (user.Role == UserRoleEnum.Employee && user.Pharmacy is not null)
+        {
+            pharmacyDto = new PharmacyDto(
+                user.Pharmacy.Id,
+                user.Pharmacy.Name,
+                user.Pharmacy.Phone,
+                new AddressDto(
+                    user.Pharmacy.Address.Id,
+                    user.Pharmacy.Address.OsmId,
+                    user.Pharmacy.Address.Region,
+                    user.Pharmacy.Address.State,
+                    user.Pharmacy.Address.City,
+                    user.Pharmacy.Address.Suburb,
+                    user.Pharmacy.Address.Street,
+                    user.Pharmacy.Address.HouseNumber,
+                    user.Pharmacy.Address.Postcode,
+                    user.Pharmacy.Address.Latitude,
+                    user.Pharmacy.Address.Longitude
+                ));
+        }
+
+        return Result.Success(new UserDto(user.Id, user.Role, user.Email, user.PasswordHash, user.EmailVerified,
+            user.FirstName, user.LastName, user.Patronymic, user.Phone, pharmacyDto));
     }
 
     public async Task<Result<UserDto>> GetByEmailAsync(string email)
@@ -96,7 +118,7 @@ public class UserService : IUserService
         }
         
         return Result.Success(new UserDto(user.Id, user.Role, user.Email, user.PasswordHash, user.EmailVerified, user.FirstName,
-            user.LastName, user.Patronymic, user.Phone));
+            user.LastName, user.Patronymic, user.Phone, null));
     }
     
     public async Task<Result> UpdateEmailRequestAsync(int userId, string newEmail)
@@ -184,7 +206,8 @@ public class UserService : IUserService
                 u.FirstName, 
                 u.LastName,
                 u.Patronymic, 
-                u.Phone))
+                u.Phone,
+                null))
             .ToListAsync();
 
         return Result.Success(new PaginatedList<UserDto>(users, totalCount, pageNumber, pageSize));

@@ -10,6 +10,7 @@
       <p><b>Роль:</b> {{ user.role }}</p>
       <p><b>Имя:</b> {{ user.lastName }} {{ user.firstName }} {{ user.patronymic }}</p>
       <p><b>Телефон:</b> {{ user.phone || '—' }}</p>
+      <p v-if="user.pharmacy"><b>Аптека:</b> {{ user.pharmacy.name }}</p>
     </div>
   </div>
 </template>

@@ -40,7 +40,7 @@ public class GetProfileEndpoint : EndpointWithoutRequest
         else
         {
             var user = result.Value;
-            await SendOkAsync(new UserProfileDto(user.Email, user.FirstName, user.LastName, user.Patronymic, user.Phone), ct);
+            await SendOkAsync(new UserProfileDto(user.Email, user.FirstName, user.LastName, user.Patronymic, user.Phone, user.Pharmacy), ct);
         }
     }
 }
