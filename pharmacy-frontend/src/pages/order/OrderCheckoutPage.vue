@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-7xl mx-auto py-8 px-2">
-    <div class="flex items-center gap-3 mb-8">
+    <div class="flex items-center gap-3 mb-4">
       <router-link
         to="/cart"
         class="flex items-center text-primary-600 hover:text-primary-700 text-lg group"
@@ -8,6 +8,13 @@
         <i class="text-xl fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform duration-150"></i>
       </router-link>
       <h2 class="text-2xl font-bold">Оформление заказа</h2>
+    </div>
+
+    <div class="mb-6">
+      <el-radio-group v-model="isDelivery" class="flex gap-4">
+        <el-radio-button :label="false">Самовывоз</el-radio-button>
+        <el-radio-button :label="true">Доставка</el-radio-button>
+      </el-radio-group>
     </div>
 
     <!-- Город + Улица -->
@@ -59,7 +66,7 @@
     </div>
 
     <!-- Карта и список аптек -->
-    <div v-if="selectedCity" class="mb-8 grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6">
+    <div v-if="selectedCity && !isDelivery" class="mb-8 grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6">
       <!-- Левая колонка -->
       <div class="flex flex-col gap-6">
         <!-- Список аптек -->
@@ -160,6 +167,71 @@
 </div>
       </div>
     </div>
+
+
+    <!-- Адрес доставки -->
+    <div v-if="selectedCity && isDelivery" class="mb-8 grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6">
+      <div class="flex flex-col gap-6">
+        <div class="space-y-3 h-[500px] overflow-y-auto rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
+          <div
+            v-for="addr in addresses"
+            :key="addr.id"
+            class="p-3 rounded-lg cursor-pointer border transition"
+            :class="{ 'bg-primary-50 border-primary-600': selectedAddressId === addr.id, 'hover:bg-gray-50': selectedAddressId !== addr.id }"
+            @click="selectSavedAddress(addr)"
+          >
+            <p class="font-semibold text-gray-800">{{ addr.fullAddress }}</p>
+          </div>
+        </div>
+
+        <div class="bg-white border rounded-xl shadow-sm p-4" v-if="newAddress">
+          <p class="text-sm mb-2">{{ newAddress.display_name }}</p>
+          <el-button type="primary" size="small" @click="saveNewAddress">Сохранить адрес</el-button>
+        </div>
+        <div class="bg-white border rounded-xl shadow-sm p-4" v-else>
+          <p class="text-sm text-gray-500">Кликните на карту, чтобы выбрать новый адрес.</p>
+        </div>
+
+        <div class="bg-white border rounded-xl shadow-sm p-4">
+          <h3 class="text-base font-semibold text-gray-800 mb-3">Способ оплаты</h3>
+          <el-radio-group v-model="paymentMethod" class="flex flex-col gap-3 w-full">
+            <el-radio-button label="Online" class="!w-full !h-12 !text-base !rounded-lg !shadow-sm text-center justify-center">💳 Онлайн картой</el-radio-button>
+            <el-radio-button label="OnDelivery" class="!w-full !h-12 !text-base !rounded-lg !shadow-sm text-center justify-center">📦 При получении</el-radio-button>
+          </el-radio-group>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-6">
+        <div class="h-[500px] rounded-xl overflow-hidden border border-gray-300 shadow-md relative bg-gray-50">
+          <AddressMap ref="addressMapRef" :city="selectedCity" @select="onMapAddressSelect" />
+        </div>
+
+        <div class="min-h-[178px] p-4 bg-white border rounded-xl shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-semibold text-gray-800 mb-2">Выбранный адрес</h3>
+            <div class="min-h-[48px]" v-if="selectedAddressId">
+              <p class="text-sm text-gray-600">{{ selectedAddress?.fullAddress }}</p>
+            </div>
+            <template v-else>
+              <p class="text-sm text-gray-400">Выберите адрес из списка или на карте.</p>
+            </template>
+          </div>
+
+          <div class="text-right pt-2">
+            <el-button
+              type="primary"
+              size="large"
+              class="!bg-primary-600 hover:!bg-primary-700 w-full sm:w-auto"
+              :disabled="(!selectedAddressId && !newAddress) || !paymentMethod"
+              @click="submitOrder"
+            >
+              Подтвердить заказ
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -169,20 +241,28 @@ import { useRouter } from 'vue-router'
 import debounce from 'lodash/debounce'
 import { ElMessage } from 'element-plus'
 import MapComponent from '/src/components/MapComponent.vue'
+import AddressMap from '/src/components/AddressMap.vue'
 import { useOrderStore } from '/src/stores/OrderStore'
+import { getUserAddresses, createUserAddress } from '/src/services/UserAddressService'
 
 const router = useRouter()
 const mapComponentRef = ref(null)
+const addressMapRef = ref(null)
 const orderStore = useOrderStore()
 
 const selectedCity = ref(orderStore.selectedCity)
 const selectedStreet = ref(orderStore.selectedStreet)
 const selectedPharmacy = ref(orderStore.selectedPharmacy)
+const selectedAddressId = ref(orderStore.selectedAddressId)
+const selectedAddress = ref(orderStore.selectedAddress)
+const isDelivery = ref(orderStore.isDelivery)
 const paymentMethod = ref(orderStore.paymentMethod)
 
 const cityOptions = ref([])
 const streetOptions = ref([])
 const pharmacyList = ref([])
+const addresses = ref([])
+const newAddress = ref(null)
 const isOutsideCity = ref(false)
 const loadingCities = ref(false)
 const loadingStreets = ref(false)
@@ -191,6 +271,9 @@ const triggerInitialLoad = ref(false)
 watch(selectedCity, val => orderStore.selectedCity = val)
 watch(selectedStreet, val => orderStore.selectedStreet = val)
 watch(selectedPharmacy, val => orderStore.selectedPharmacy = val)
+watch(selectedAddressId, val => orderStore.selectedAddressId = val)
+watch(selectedAddress, val => orderStore.selectedAddress = val)
+watch(isDelivery, val => orderStore.isDelivery = val)
 watch(paymentMethod, val => orderStore.paymentMethod = val)
 
 function handleMapOutside(val) {
@@ -216,11 +299,69 @@ async function scrollToAndSelect(pharmacy) {
   await mapComponentRef.value?.flyToPharmacy(pharmacy)
 }
 
+async function loadAddresses() {
+  try {
+    addresses.value = await getUserAddresses()
+  } catch {
+    addresses.value = []
+  }
+}
+
+function selectSavedAddress(addr) {
+  selectedAddressId.value = addr.id
+  selectedAddress.value = addr
+  newAddress.value = null
+  addressMapRef.value?.flyToCoordinates(addr.address.latitude, addr.address.longitude)
+}
+
+function onMapAddressSelect(addr) {
+  newAddress.value = addr
+  selectedAddressId.value = null
+  selectedAddress.value = null
+}
+
+async function saveNewAddress() {
+  if (!newAddress.value) return
+  const a = newAddress.value.address || {}
+  const payload = {
+    address: {
+      osmId: newAddress.value.osm_id?.toString() || null,
+      region: a.region || a.state || null,
+      state: a.state || null,
+      city: a.city || a.town || a.village || null,
+      suburb: a.suburb || null,
+      street: a.road || null,
+      houseNumber: a.house_number || null,
+      postcode: a.postcode || null,
+      latitude: parseFloat(newAddress.value.lat),
+      longitude: parseFloat(newAddress.value.lon)
+    },
+    apartment: null,
+    entrance: null,
+    floor: null,
+    comment: null
+  }
+  try {
+    const res = await createUserAddress(payload)
+    selectedAddressId.value = res.id
+    await loadAddresses()
+    selectedAddress.value = addresses.value.find(a => a.id === res.id)
+    newAddress.value = null
+    ElMessage.success('Адрес сохранен')
+  } catch {}
+}
+
 function submitOrder() {
-  if (!selectedPharmacy.value) {
+  if (isDelivery.value) {
+    if (!selectedAddressId.value && !newAddress.value) {
+      ElMessage({ message: 'Выберите или сохраните адрес доставки.', type: 'warning' })
+      return
+    }
+  } else if (!selectedPharmacy.value) {
     ElMessage({ message: 'Пожалуйста, выберите аптеку.', type: 'warning' })
     return
   }
+
   if (!paymentMethod.value) {
     ElMessage({ message: 'Пожалуйста, выберите способ оплаты.', type: 'warning' })
     return
@@ -230,6 +371,9 @@ function submitOrder() {
     city: selectedCity.value,
     street: selectedStreet.value,
     pharmacy: selectedPharmacy.value,
+    address: selectedAddress.value,
+    addressId: selectedAddressId.value,
+    isDelivery: isDelivery.value,
     method: paymentMethod.value === 'Online' ? 'Online' : 'OnDelivery'
   })
 
@@ -243,6 +387,7 @@ onMounted(() => {
   } else {
     detectCity()
   }
+  loadAddresses()
 })
 
 function detectCity() {

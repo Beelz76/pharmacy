@@ -141,8 +141,16 @@ router.beforeEach((to, from, next) => {
       ElMessage.warning("Некоторые товары в корзине недоступны");
       return next({ name: "Cart" });
     }
-    if (!order.selectedPharmacy || !order.paymentMethod) {
-      ElMessage.warning("Выберите аптеку и способ оплаты");
+    const invalid =
+      (!order.isDelivery && !order.selectedPharmacy) ||
+      (order.isDelivery && !order.selectedAddressId) ||
+      !order.paymentMethod;
+    if (invalid) {
+      ElMessage.warning(
+        order.isDelivery
+          ? "Выберите адрес и способ оплаты"
+          : "Выберите аптеку и способ оплаты"
+      );
       return next({ name: "Checkout" });
     }
   }

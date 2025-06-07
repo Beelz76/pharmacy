@@ -18,11 +18,15 @@
           <i class="fas fa-file-alt mr-2 text-gray-400"></i>Информация о заказе
         </h3>
 
-        <div v-if="selectedPharmacy">
+        <template v-if="isDelivery">
+          <p class="text-sm text-gray-500 uppercase tracking-wide">Адрес доставки</p>
+          <p class="text-base font-medium text-gray-900">{{ selectedAddress?.fullAddress }}</p>
+        </template>
+        <template v-else>
           <p class="text-sm text-gray-500 uppercase tracking-wide">Аптека</p>
           <p class="text-base font-medium text-gray-900">«{{ selectedPharmacy.name }}»</p>
           <p class="text-sm text-gray-600">{{ selectedPharmacy.address }}</p>
-        </div>
+        </template>
 
         <div v-if="paymentMethod" class="pt-4">
           <p class="text-sm text-gray-500 uppercase tracking-wide">Оплата</p>
@@ -94,6 +98,9 @@ const orderStore = useOrderStore()
 const loading = ref(false)
 
 const selectedPharmacy = orderStore.selectedPharmacy
+const selectedAddressId = orderStore.selectedAddressId
+const selectedAddress = orderStore.selectedAddress
+const isDelivery = orderStore.isDelivery
 const paymentMethod = orderStore.paymentMethod
 const cartItems = cartStore.items
 const totalPrice = cartStore.totalPrice
@@ -106,10 +113,17 @@ const submitOrder = async () => {
   try {
     loading.value = true
 
-    const response = await api.post('/orders', {
-      pharmacyAddress: `${selectedPharmacy.address}, ${selectedPharmacy.name}`,
-      paymentMethod
-    })
+    const payload = {
+      paymentMethod,
+      isDelivery
+    }
+    if (isDelivery) {
+      payload.userAddressId = selectedAddressId
+    } else {
+      payload.pharmacyId = selectedPharmacy.id
+    }
+
+    const response = await api.post('/orders', payload)
 
     cartStore.resetCart()
     const { id, number } = response.data
