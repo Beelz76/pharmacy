@@ -250,7 +250,15 @@ public class OrderService : IOrderService
     
     public async Task<Result<OrderDetailsDto>> GetByIdAsync(int orderId, int currentUserId, UserRoleEnum role)
     {
-        var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, true, true, true, true, true, true);
+        var order = await _orderRepository.GetByIdWithDetailsAsync(orderId,
+            includeItems: true,
+            includeStatus: true,
+            includeProductImages: true,
+            includePayment: true,
+            includeUser: true,
+            includePharmacy: true,
+            includeDelivery: true);
+        
         if (order is null)
         {
             return Result.Failure<OrderDetailsDto>(Error.NotFound("Заказ не найден"));
@@ -269,6 +277,8 @@ public class OrderService : IOrderService
             order.Status.Description,
             order.PickupCode,
             AddressExtensions.FormatAddress(order.Pharmacy.Address)!,
+            order.IsDelivery ? AddressExtensions.FormatAddress(order.Delivery?.UserAddress) : null,
+            order.IsDelivery,
             order.UserId,
             $"{order.User.LastName} {order.User.FirstName} {order.User.Patronymic}".Trim(),
             order.User.Email,

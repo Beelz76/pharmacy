@@ -25,20 +25,26 @@
           </span>
         </div>
 
-        <!-- Аптека и код -->
+        <!-- Адрес -->
         <div class="bg-white border rounded-xl p-6 shadow-sm space-y-3">
           <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-            <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i> Аптека
+            <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>
+            {{ order?.isDelivery ? 'Адрес доставки' : 'Аптека' }}
           </h3>
-          <p class="text-base font-medium text-gray-900">«{{ pharmacyName }}»</p>
-          <p class="text-sm text-gray-600">{{ pharmacyAddress }}</p>
+          <template v-if="order?.isDelivery">
+            <p class="text-sm text-gray-600">{{ order.deliveryAddress }}</p>
+          </template>
+          <template v-else>
+            <p class="text-base font-medium text-gray-900">«{{ pharmacyName }}»</p>
+            <p class="text-sm text-gray-600">{{ pharmacyAddress }}</p>
 
-          <div v-if="order?.pickupCode" class="pt-4">
-            <h4 class="text-sm font-semibold text-gray-700 mb-1">Код получения</h4>
-            <div class="inline-block border border-dashed border-gray-400 rounded-lg px-4 py-2 text-xl font-bold tracking-wider text-gray-800 bg-gray-50">
-              {{ order.pickupCode }}
+            <div v-if="order?.pickupCode" class="pt-4">
+              <h4 class="text-sm font-semibold text-gray-700 mb-1">Код получения</h4>
+              <div class="inline-block border border-dashed border-gray-400 rounded-lg px-4 py-2 text-xl font-bold tracking-wider text-gray-800 bg-gray-50">
+                {{ order.pickupCode }}
+              </div>
             </div>
-          </div>
+          </template>
         </div>
 
         <!-- Состав заказа -->
@@ -116,6 +122,8 @@ const goBack = () => {
   navStore.savePage(Number(route.query.page) || 1)
   router.push({ name: 'OrderHistory' })
 }
+
+const isDelivery = computed(() => order.value?.isDelivery)
 
 const pharmacyName = computed(() => {
   if (!order.value?.pharmacyAddress) return ''
