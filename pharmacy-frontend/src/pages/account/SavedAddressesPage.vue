@@ -1,7 +1,10 @@
 <template>
   <div class="max-w-5xl mx-auto">
     <h2 class="text-2xl font-bold mb-6">Сохраненные адреса</h2>
-    <div class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
+    <div v-if="!auth.isAuthenticated" class="text-center text-gray-500 mb-4">
+      Необходимо авторизоваться
+    </div>
+    <div v-if="auth.isAuthenticated" class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
       <div class="space-y-3">
         <div
           v-for="addr in addresses"
@@ -48,6 +51,7 @@ import {
   updateUserAddress,
   deleteUserAddress
 } from '/src/services/UserAddressService'
+import { useAuthStore } from '/src/stores/AuthStore'
 
 const addresses = ref([])
 const selectedCity = ref(null)
@@ -59,8 +63,10 @@ const apartment = ref('')
 const entrance = ref('')
 const floor = ref('')
 const addressComment = ref('')
+const auth = useAuthStore()
 
 onMounted(() => {
+  if (!auth.isAuthenticated) return
   loadAddresses()
   detectCity()
 })

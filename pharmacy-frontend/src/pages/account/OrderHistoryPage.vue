@@ -2,13 +2,17 @@
   <div class="max-w-7xl mx-auto">
     <h2 class="text-2xl font-bold mb-6">История заказов</h2>
 
-    <div v-if="loading" class="text-center py-10">
+    <div v-if="!auth.isAuthenticated" class="text-gray-500 text-center">
+      Необходимо авторизоваться
+    </div>
+
+    <div v-if="auth.isAuthenticated && loading" class="text-center py-10">
       <LoadingSpinner size="lg" />
     </div>
 
-    <div v-else>
+    <div v-else-if="auth.isAuthenticated">
       <div class="overflow-x-auto rounded-xl shadow border">
-        <table class="min-w-full table-fixed divide-y divide-gray-200 bg-white text-base">
+        <table class="min-w-full table-fixed divide-y divide-gray-200 bg-white text-sm">
           <thead class="bg-gray-50">
             <tr class="text-left text-gray-600 uppercase text-sm tracking-wider">
               <th class="w-[160px] px-6 py-6 font-semibold text-gray-600">
@@ -112,6 +116,7 @@ const formatDate = (isoString) => {
 }
 
 onMounted(() => {
+  if (!auth.isAuthenticated) return
   const shouldRestore = navStore.consumeRestoreFlag()
   if (shouldRestore) {
     pageNumber.value = navStore.historyPage
@@ -119,19 +124,22 @@ onMounted(() => {
     pageNumber.value = 1
   }
 
-  fetchOrders({
-    userId: auth.user?.id,
-    page: pageNumber.value,
-    size: pageSize
-  })
+  fetchOrders({ page: pageNumber.value, size: pageSize })
 })
 
+watch(
+  () => auth.isAuthenticated,
+  (val) => {
+    if (val) {
+      fetchOrders({ page: pageNumber.value, size: pageSize })
+    }
+  }
+)
+
 watch(pageNumber, (val) => {
-  fetchOrders({
-    userId: auth.user?.id,
-    page: val,
-    size: pageSize
-  })
+  if (auth.isAuthenticated) {
+    fetchOrders({ page: val, size: pageSize })
+  }
 })
 </script>
 

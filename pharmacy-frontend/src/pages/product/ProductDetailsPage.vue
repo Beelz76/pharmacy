@@ -250,7 +250,7 @@ const formatDate = (dateString) => {
 
 const addToCart = async () => {
   try {
-    await cartStore.addToCart(product.value.id)
+    await cartStore.addToCart(product.value.id, product.value)
   } catch (err) {
     console.error('Ошибка при добавлении в корзину:', err)
   }
@@ -258,7 +258,7 @@ const addToCart = async () => {
 
 const incrementQuantity = async () => {
   try {
-    await cartStore.increment(product.value.id)
+    await cartStore.increment(product.value.id, product.value)
   } catch (err) {
     console.error('Ошибка при увеличении количества:', err)
   }

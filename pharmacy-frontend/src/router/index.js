@@ -47,7 +47,7 @@ const routes = [
     path: "/cart",
     name: "Cart",
     component: CartPage,
-    meta: { requiresAuth: true },
+    meta: {},
   },
   {
     path: "/order/checkout",
@@ -64,7 +64,7 @@ const routes = [
   {
     path: "/account",
     component: AccountLayout,
-    meta: { requiresAuth: true },
+    meta: {},
     children: [
       { path: "", component: AccountPage },
       { path: "orders", name: "OrderHistory", component: OrderHistoryPage },
@@ -111,7 +111,7 @@ router.beforeEach((to, from, next) => {
   const hasUnavailableItems = cart.items.some((item) => !item.isAvailable);
 
   // Защита для страницы Checkout
-  if (to.name === "Checkout") {
+  if (to.name === "OrderCheckout") {
     if (cartIsEmpty) {
       ElMessage.warning("Корзина пуста");
       return next({ name: "Cart" });
@@ -142,7 +142,7 @@ router.beforeEach((to, from, next) => {
           ? "Выберите адрес и способ оплаты"
           : "Выберите аптеку и способ оплаты"
       );
-      return next({ name: "Checkout" });
+      return next({ name: "OrderCheckout" });
     }
   }
 

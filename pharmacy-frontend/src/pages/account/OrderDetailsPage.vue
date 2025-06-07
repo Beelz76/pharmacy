@@ -11,7 +11,11 @@
       <h2 class="text-2xl font-bold tracking-tight">Заказ №{{ order?.number }}</h2>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div v-if="!auth.isAuthenticated" class="text-center text-gray-500 mb-4">
+      Необходимо авторизоваться
+    </div>
+
+    <div v-if="auth.isAuthenticated" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Левая часть -->
       <div class="lg:col-span-2 space-y-6">
         <!-- Дата и статус -->
@@ -103,6 +107,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useAuthStore } from '/src/stores/AuthStore'
 import { useRoute, useRouter } from 'vue-router'
 import { getOrderById, payOrder } from '/src/services/OrderService'
 import { useOrderStore } from '../../stores/OrderStore'
@@ -115,6 +120,7 @@ const orderStore = useOrderStore()
 const route = useRoute()
 const order = ref(null)
 const loading = ref(false)
+const auth = useAuthStore()
 
 const orderId = route.params.id
 
@@ -148,6 +154,7 @@ const formatDate = (isoString) => {
 }
 
 onMounted(async () => {
+  if (!auth.isAuthenticated) return
   try {
     loading.value = true
     order.value = await getOrderById(orderId)

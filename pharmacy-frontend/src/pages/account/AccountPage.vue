@@ -4,8 +4,12 @@
     Роль: {{ auth.role }}
   </h2>
 
+  <div v-if="!auth.isAuthenticated" class="text-center text-gray-500 mb-4">
+    Необходимо авторизоваться
+  </div>
+
   <!-- Персональные данные -->
-  <div class="bg-white border rounded-xl shadow-sm p-6">
+  <div v-if="auth.isAuthenticated" class="bg-white border rounded-xl shadow-sm p-6">
     <h2 class="text-xl font-semibold text-gray-900 mb-6">Персональные данные</h2>
 
     <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
@@ -54,7 +58,7 @@
   </div>
 
   <!-- Email -->
-  <div class="bg-white border rounded-xl shadow-sm p-6 mt-8">
+  <div v-if="auth.isAuthenticated" class="bg-white border rounded-xl shadow-sm p-6 mt-8">
     <h2 class="text-xl font-semibold text-gray-900 mb-6">Почта</h2>
 
     <el-form :model="form" :rules="rules" ref="emailFormRef" label-position="top">
@@ -87,7 +91,7 @@
   </div>
 
   <!-- Пароль -->
-  <div v-if="!isEmployee" class="bg-white border rounded-xl shadow-sm p-6 mt-8">
+  <div v-if="auth.isAuthenticated && !isEmployee" class="bg-white border rounded-xl shadow-sm p-6 mt-8">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-semibold text-gray-900">Изменить пароль</h2>
       <button
@@ -262,6 +266,7 @@ const rules = {
 }
 
 onMounted(async () => {
+  if (!auth.isAuthenticated) return
   await store.fetchProfile()
   if (store.account) {
     const { lastName, firstName, patronymic, phone, email } = store.account

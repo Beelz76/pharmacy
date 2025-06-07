@@ -153,7 +153,7 @@ const toggleFavorite = async () => {
 
 const addToCart = async () => {
   try {
-    await cartStore.addToCart(productId)
+    await cartStore.addToCart(productId, props.product)
   } catch (err) {
     console.error('Ошибка при добавлении в корзину:', err)
   }
@@ -161,7 +161,7 @@ const addToCart = async () => {
 
 const incrementQuantity = async () => {
   try {
-    await cartStore.increment(productId)
+    await cartStore.increment(productId, props.product)
   } catch (err) {
     console.error('Ошибка при увеличении количества:', err)
   }

@@ -70,6 +70,27 @@ public class FavoritesService : IFavoritesService
         return Result.Success();
     }
 
+    public async Task<Result> AddRangeAsync(int userId, IEnumerable<int> productIds)
+    {
+        foreach (var productId in productIds.Distinct())
+        {
+            if (await _repository.ExistsAsync(userId, productId))
+                continue;
+
+            var product = await _productRepository.GetByIdWithRelationsAsync(productId);
+            if (product is null)
+                continue;
+
+            await _repository.AddAsync(new FavoriteItem
+            {
+                UserId = userId,
+                ProductId = productId
+            });
+        }
+
+        return Result.Success();
+    }
+    
     public async Task<Result> RemoveAsync(int userId, int productId)
     {
         var toRemove = await _repository.GetAsync(userId, productId);

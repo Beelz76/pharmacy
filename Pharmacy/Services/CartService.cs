@@ -56,6 +56,36 @@ public class CartService : ICartService
         return Result.Success();
     }
 
+    public async Task<Result> AddRangeAsync(int userId, IEnumerable<CartItemQuantityDto> items)
+    {
+        foreach (var item in items)
+        {
+            if (item.Quantity < 1) continue;
+
+            var product = await _productRepository.GetByIdWithRelationsAsync(item.ProductId);
+            if (product is null || product.IsGloballyDisabled)
+                continue;
+
+            var existing = await _repository.GetAsync(userId, item.ProductId);
+            if (existing is null)
+            {
+                await _repository.AddAsync(new CartItem
+                {
+                    UserId = userId,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity
+                });
+            }
+            else
+            {
+                existing.Quantity += item.Quantity;
+                await _repository.UpdateAsync(existing);
+            }
+        }
+
+        return Result.Success();
+    }
+    
     public async Task<Result> SetQuantityAsync(int userId, int productId, int quantity)
     {
         var product = await _productRepository.GetByIdWithRelationsAsync(productId);

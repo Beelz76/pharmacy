@@ -34,38 +34,36 @@
 
         <!-- Иконки -->
         <div class="flex items-center space-x-6">
+          <!-- Избранное -->
+          <div class="relative flex flex-col items-center">
+            <router-link to="/account/favorites" class="text-2xl text-gray-600 hover:text-primary-600">
+              <i class="fas fa-heart"></i>
+            </router-link>
+            <span
+              v-if="favoritesCount > 0"
+              class="absolute top-6 text-[10px] text-gray-700 font-semibold"
+            >
+              {{ favoritesCount }}
+            </span>
+          </div>
+
+          <!-- Корзина -->
+          <div class="relative flex flex-col items-center">
+            <router-link
+              to="/cart"
+              class="text-2xl"
+              :class="$route.path === '/cart' ? 'text-primary-600' : 'text-gray-600 hover:text-primary-600'"
+            >
+              <i class="fas fa-shopping-cart"></i>
+            </router-link>
+            <span
+              v-if="cartCount > 0"
+              class="absolute top-6 text-[10px] text-gray-700 font-semibold"
+            >
+              {{ cartCount }}
+            </span>
+          </div>
           <template v-if="isAuthenticated">
-            <!-- Избранное -->
-            <div class="relative flex flex-col items-center">
-              <router-link to="/account/favorites" class="text-2xl text-gray-600 hover:text-primary-600">
-                <i class="fas fa-heart"></i>
-              </router-link>
-              <span
-                v-if="favoritesCount > 0"
-                class="absolute top-6 text-[10px] text-gray-700 font-semibold"
-              >
-                {{ favoritesCount }}
-              </span>
-            </div>
-
-            <!-- Корзина -->
-            <div class="relative flex flex-col items-center">
-              <router-link
-                to="/cart"
-                class="text-2xl"
-                :class="$route.path === '/cart' ? 'text-primary-600' : 'text-gray-600 hover:text-primary-600'"
-              >
-                <i class="fas fa-shopping-cart"></i>
-              </router-link>
-              <span
-                v-if="cartCount > 0"
-                class="absolute top-6 text-[10px] text-gray-700 font-semibold"
-              >
-                {{ cartCount }}
-              </span>
-            </div>
-
-            <!-- Профиль -->
             <el-dropdown>
               <template #default>
                 <button class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm flex items-center gap-2">
@@ -151,6 +149,8 @@ watch(
 
 onMounted(() => {
   categoryStore.fetchCategories()
+  favorites.fetchCount()
+  cart.fetchCartCount()
 })
 
 function openAuthModal() {
