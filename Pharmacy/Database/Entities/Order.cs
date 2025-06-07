@@ -10,7 +10,7 @@ public class Order
     public string? PickupCode { get; set; }
     public bool IsDelivery { get; set; }
     
-    public int? PharmacyId { get; set; }
+    public int PharmacyId { get; set; }
     
     public DateTime? ExpiresAt { get; set; }
     
@@ -19,7 +19,7 @@ public class Order
     
     public User User { get; set; } = null!;
     public OrderStatus Status { get; set; } = null!;
-    public Payment? Payment { get; set; }
+    public Payment Payment { get; set; } = null!;
     public Pharmacy? Pharmacy { get; set; }
     public Delivery? Delivery { get; set; }
     

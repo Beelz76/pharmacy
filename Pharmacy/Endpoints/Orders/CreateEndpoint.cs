@@ -61,5 +61,10 @@ public class CreateOrderRequestValidator : Validator<CreateOrderRequest>
     {
         RuleFor(x => x.PaymentMethod)
             .NotEmpty();
+        
+        RuleFor(x => x.UserAddressId)
+            .NotNull()
+            .When(x => x.IsDelivery)
+            .WithMessage("Адрес доставки не указан");
     }
 }

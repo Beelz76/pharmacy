@@ -122,8 +122,8 @@ try
     
     builder.Services.AddScoped<IProductImageService, ProductImageService>();
     builder.Services.AddScoped<IEmailSender, EmailSender>();
-    builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IProductRepository, ProductRepository>();
+    builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<ICartRepository, CartRepository>();
     builder.Services.AddScoped<ICartService, CartService>();
     builder.Services.AddScoped<IFavoritesRepository, FavoritesRepository>();
@@ -134,8 +134,6 @@ try
     builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
     builder.Services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
     builder.Services.AddScoped<IManufacturerService, ManufacturerService>();
-    builder.Services.AddScoped<IProductRepository, ProductRepository>();
-    builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();

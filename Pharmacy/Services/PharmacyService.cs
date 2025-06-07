@@ -68,4 +68,10 @@ public class PharmacyService : IPharmacyService
 
         return Result.Success(createResult.Value.Id);
     }
+    
+    public async Task<Result<int?>> GetNearestPharmacyIdAsync(double latitude, double longitude)
+    {
+        var nearest = await _pharmacyRepository.GetNearestAsync(latitude, longitude);
+        return Result.Success(nearest?.Id);
+    }
 }

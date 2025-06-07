@@ -10,4 +10,5 @@ public interface IPharmacyProductRepository
     Task AddAsync(PharmacyProduct pharmacyProduct);
     Task UpdateAsync(PharmacyProduct pharmacyProduct);
     Task DeleteAsync(PharmacyProduct pharmacyProduct);
+    Task UpdateStockQuantityAsync(int pharmacyId, int productId, int stockQuantity);
 }

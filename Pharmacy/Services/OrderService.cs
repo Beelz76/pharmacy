@@ -56,6 +56,11 @@ public class OrderService : IOrderService
             return Result.Failure<CreatedWithNumberDto>(Error.Failure("Корзина пуста"));
         }
 
+        if (request.IsDelivery && !request.UserAddressId.HasValue)
+        {
+            return Result.Failure<CreatedWithNumberDto>(Error.Failure("Адрес не указан"));
+        }
+        
         var now = _dateTimeProvider.UtcNow;
         var productTuples = cartItems.Select(c => (c.ProductId, c.Quantity)).ToList();
 
@@ -70,6 +75,18 @@ public class OrderService : IOrderService
             var pharmacyResult = await _pharmacyService.GetOrCreatePharmacyIdAsync(request.NewPharmacy);
             if (pharmacyResult.IsFailure) return Result.Failure<CreatedWithNumberDto>(pharmacyResult.Error);
             pharmacyId = pharmacyResult.Value;
+        }
+        else if (request.IsDelivery)
+        {
+            var userAddress = await _userAddressRepository.GetByIdAsync(userId, request.UserAddressId!.Value);
+            if (userAddress == null)
+                return Result.Failure<CreatedWithNumberDto>(Error.Failure("Адрес пользователя не найден"));
+
+            var nearestResult = await _pharmacyService.GetNearestPharmacyIdAsync(userAddress.Address.Latitude, userAddress.Address.Longitude);
+            if (nearestResult.Value == null)
+                return Result.Failure<CreatedWithNumberDto>(Error.Failure("Нет аптек поблизости"));
+
+            pharmacyId = nearestResult.Value.Value;
         }
         else
         {
@@ -118,6 +135,13 @@ public class OrderService : IOrderService
         };
 
         await _orderRepository.AddAsync(order);
+        
+        foreach (var item in orderItems)
+        {
+            var currentStock = pharmacyProducts.First(p => p.ProductId == item.ProductId).StockQuantity;
+            await _pharmacyProductService.UpdateStockQuantityAsync(pharmacyId, item.ProductId, currentStock - item.Quantity);
+        }
+        
         await _cartRepository.RemoveRangeAsync(cartItems);
 
         // Платёж
@@ -126,6 +150,8 @@ public class OrderService : IOrderService
         // Доставка
         if (request.IsDelivery && request.UserAddressId.HasValue)
         {
+            
+            
             await _deliveryService.CreateAsync(new CreateDeliveryRequest(
                 order.Id,
                 request.UserAddressId.Value,
@@ -185,8 +211,7 @@ public class OrderService : IOrderService
         {
             Amount = new YooKassaAmount
             {
-                //Value = payment.Amount,
-                Value = 1,
+                Value = payment.Amount,
                 Currency = "RUB"
             },
             Confirmation = new YooKassaConfirmation
@@ -422,6 +447,15 @@ public class OrderService : IOrderService
             order.Payment.StatusId = (int)PaymentStatusEnum.Cancelled;
             order.Payment.UpdatedAt = _dateTimeProvider.UtcNow;
         }
+        
+        foreach (var item in order.OrderItems)
+        {
+            var pharmacyProduct = await _pharmacyProductService.GetAsync(order.PharmacyId, item.ProductId);
+            if (pharmacyProduct != null)
+            {
+                await _pharmacyProductService.UpdateStockQuantityAsync(order.PharmacyId, item.ProductId, pharmacyProduct.StockQuantity + item.Quantity);
+            }
+        }
 
         order.StatusId = (int)OrderStatusEnum.Cancelled;
         order.UpdatedAt = _dateTimeProvider.UtcNow;
@@ -450,6 +484,15 @@ public class OrderService : IOrderService
         order.StatusId = (int)OrderStatusEnum.Refunded;
         order.UpdatedAt = _dateTimeProvider.UtcNow;
 
+        foreach (var item in order.OrderItems)
+        {
+            var pharmacyProduct = await _pharmacyProductService.GetAsync(order.PharmacyId, item.ProductId);
+            if (pharmacyProduct != null)
+            {
+                await _pharmacyProductService.UpdateStockQuantityAsync(order.PharmacyId, item.ProductId, pharmacyProduct.StockQuantity + item.Quantity);
+            }
+        }
+        
         await _orderRepository.UpdateAsync(order);
         return Result.Success();
     }

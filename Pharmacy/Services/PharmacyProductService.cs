@@ -34,6 +34,20 @@ public class PharmacyProductService : IPharmacyProductService
         return Result.Success(result);
     }
 
+    public async Task<PharmacyProductDto?> GetAsync(int pharmacyId, int productId)
+    {
+        var pharmacyProduct = await _repository.GetAsync(pharmacyId, productId);
+        return pharmacyProduct is null
+            ? null
+            : new PharmacyProductDto(
+                pharmacyProduct.ProductId,
+                pharmacyProduct.Product.Name,
+                pharmacyProduct.StockQuantity,
+                pharmacyProduct.LocalPrice ?? pharmacyProduct.Product.Price,
+                !pharmacyProduct.Product.IsGloballyDisabled && pharmacyProduct.IsAvailable
+            );
+    }
+    
     public async Task<Result<CreatedDto>> AddAsync(int pharmacyId, AddPharmacyProductRequest request)
     {
         var exists = await _repository.ExistsAsync(pharmacyId, request.ProductId);
@@ -157,5 +171,11 @@ public class PharmacyProductService : IPharmacyProductService
         }
 
         return Result.Success(result);
+    }
+
+    public async Task<Result> UpdateStockQuantityAsync(int pharmacyId, int productId, int stockQuantity)
+    {
+        await _repository.UpdateStockQuantityAsync(pharmacyId, productId, stockQuantity);
+        return Result.Success();
     }
 }

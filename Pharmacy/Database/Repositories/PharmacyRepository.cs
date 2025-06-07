@@ -47,4 +47,14 @@ public class PharmacyRepository : IPharmacyRepository
     {
         return await _context.Pharmacies.AnyAsync(p => p.Id == pharmacyId);
     }
+    
+    public async Task<Entities.Pharmacy?> GetNearestAsync(double latitude, double longitude)
+    {
+        return await _context.Pharmacies
+            .Include(p => p.Address)
+            .Where(p => p.IsActive)
+            .OrderBy(p =>
+                Math.Pow(p.Address.Latitude - latitude, 2) + Math.Pow(p.Address.Longitude - longitude, 2))
+            .FirstOrDefaultAsync();
+    }
 }

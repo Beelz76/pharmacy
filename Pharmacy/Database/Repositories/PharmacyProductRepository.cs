@@ -48,4 +48,12 @@ public class PharmacyProductRepository : IPharmacyProductRepository
         _context.PharmacyProducts.Remove(pharmacyProduct);
         await _context.SaveChangesAsync();
     }
+    
+    public async Task UpdateStockQuantityAsync(int pharmacyId, int productId, int stockQuantity)
+    {
+        await _context.PharmacyProducts
+            .Where(x => x.PharmacyId == pharmacyId && x.ProductId == productId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.StockQuantity, stockQuantity));
+    }
+    
 }
