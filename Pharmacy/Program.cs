@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text;
 using FastEndpoints;
 using FastEndpoints.Swagger;
@@ -86,7 +87,17 @@ try
             };
         });
     
-    builder.Services.AddHttpClient<YooKassaHttpClient>();
+    builder.Services.AddHttpClient<YooKassaHttpClient>((sp, client) =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        var shopId = config["YooKassa:ShopId"];
+        var apiKey = config["YooKassa:ApiKey"];
+
+        client.BaseAddress = new Uri("https://api.yookassa.ru/v3/");
+        var authHeader = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{shopId}:{apiKey}"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
+    });
+
     
     builder.Services.AddSingleton(sp =>
     {
