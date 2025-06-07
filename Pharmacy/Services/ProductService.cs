@@ -194,7 +194,7 @@ public class ProductService : IProductService
             new ManufacturerDto(product.ManufacturerId, product.Manufacturer.Name, product.Manufacturer.Country),
             product.Description, 
             product.ExtendedDescription,
-            product.IsGloballyDisabled,
+            !product.IsGloballyDisabled,
             product.IsPrescriptionRequired,
             product.ExpirationDate,
             product.Images.Select(x => _storage.GetPublicUrl(x.Url)).ToList(),

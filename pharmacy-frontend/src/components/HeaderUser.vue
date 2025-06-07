@@ -149,8 +149,8 @@ watch(
 
 onMounted(() => {
   categoryStore.fetchCategories()
-  favorites.fetchCount()
-  cart.fetchCartCount()
+  //favorites.fetchCount()
+  //cart.fetchCartCount()
 })
 
 function openAuthModal() {

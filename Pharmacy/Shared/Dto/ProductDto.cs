@@ -10,7 +10,7 @@ public record ProductDto(
     ManufacturerDto Manufacturer,
     string Description,
     string ExtendedDescription,
-    bool IsGloballyDisabled,
+    bool IsAvailable,
     bool IsPrescriptionRequired,
     DateTime? ExpirationDate,
     List<string>? Images,
