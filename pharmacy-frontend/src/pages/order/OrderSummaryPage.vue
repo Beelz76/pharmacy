@@ -123,7 +123,33 @@ const submitOrder = async () => {
     if (isDelivery) {
       payload.userAddressId = selectedAddressId
     } else {
-      payload.pharmacyId = selectedPharmacy.id
+      const existRes = await api.post('/pharmacy/existing', {
+        name: selectedPharmacy.name,
+        osmId: selectedPharmacy.osmId?.toString() || selectedPharmacy.id?.toString(),
+        latitude: selectedPharmacy.lat,
+        longitude: selectedPharmacy.lon
+      })
+      const pharmacyId = existRes.data
+      if (pharmacyId) {
+        payload.pharmacyId = pharmacyId
+      } else {
+        payload.newPharmacy = {
+          name: selectedPharmacy.name,
+          phone: selectedPharmacy.phone || null,
+          address: {
+            osmId: (selectedPharmacy.osmId || selectedPharmacy.id)?.toString() || null,
+            region: selectedPharmacy.addressData?.region || selectedPharmacy.addressData?.state || null,
+            state: selectedPharmacy.addressData?.state || null,
+            city: selectedPharmacy.addressData?.city || selectedPharmacy.addressData?.town || selectedPharmacy.addressData?.village || null,
+            suburb: selectedPharmacy.addressData?.suburb || null,
+            street: selectedPharmacy.addressData?.road || null,
+            houseNumber: selectedPharmacy.addressData?.house_number || null,
+            postcode: selectedPharmacy.addressData?.postcode || null,
+            latitude: selectedPharmacy.lat,
+            longitude: selectedPharmacy.lon
+          }
+        }
+      }
     }
 
     const response = await api.post('/orders', payload)
@@ -141,7 +167,13 @@ const submitOrder = async () => {
       orderStore.resetOrder()
       router.push({ name: 'OrderHistory' })
     } else {
-      router.push({ name: 'OrderPayment' })
+      try {
+        const payRes = await api.post(`/orders/${id}/pay`)
+        orderStore.resetOrder()
+        window.location.href = payRes.data
+      } catch (e) {
+        console.error('Ошибка оплаты:', e)
+      }
     }
   } catch (error) {
     console.error('Ошибка при оформлении заказа:', error)

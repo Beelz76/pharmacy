@@ -182,13 +182,16 @@ async function fetchPharmaciesInBounds(bounds) {
 
 async function selectPharmacy(pharmacy) {
   let address = ''
+  let addr = {}
+  let osmId = null
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${pharmacy.lat}&lon=${pharmacy.lon}&addressdetails=1`
     const res = await fetch(url, {
       headers: { 'User-Agent': 'MediCare-App/1.0 (support@medicare.ru)' }
     })
     const data = await res.json()
-    const addr = data.address || {}
+    addr = data.address || {}
+    osmId = data.osm_id || null
 
     const addressParts = [
       addr.city || addr.town || addr.village || '',
@@ -209,7 +212,9 @@ async function selectPharmacy(pharmacy) {
     lon: pharmacy.lon,
     openingHours: pharmacy.openingHours,
     phone: pharmacy.phone,
-    id: pharmacy.id
+    id: pharmacy.id,
+    addressData: addr,
+    osmId
   })
 }
 

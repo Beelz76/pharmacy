@@ -6,7 +6,6 @@ import AccountPage from "../pages/account/AccountPage.vue";
 import CartPage from "../pages/CartPage.vue";
 import OrderCheckoutPage from "../pages/order/OrderCheckoutPage.vue";
 import OrderSummaryPage from "../pages/order/OrderSummaryPage.vue";
-import OrderPaymentPage from "../pages/order/OrderPaymentPage.vue";
 import OrderHistoryPage from "../pages/account/OrderHistoryPage.vue";
 import SavedAddressesPage from "../pages/account/SavedAddressesPage.vue";
 import OrderDetailsPage from "../pages/account/OrderDetailsPage.vue";
@@ -63,12 +62,6 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: "/order/payment",
-    name: "OrderPayment",
-    component: OrderPaymentPage,
-    meta: { requiresAuth: true },
-  },
-  {
     path: "/account",
     component: AccountLayout,
     meta: { requiresAuth: true },
@@ -76,11 +69,6 @@ const routes = [
       { path: "", component: AccountPage },
       { path: "orders", name: "OrderHistory", component: OrderHistoryPage },
       { path: "orders/:id", name: "OrderDetails", component: OrderDetailsPage },
-      {
-        path: "orders/:id/payment",
-        name: "OrderPaymentAccount",
-        component: OrderPaymentPage,
-      },
       { path: "favorites", component: FavoritesPage },
       {
         path: "addresses",
@@ -106,12 +94,9 @@ router.beforeEach((to, from, next) => {
   }
 
   const fromOrderPages = ["/order/checkout", "/order/summary"];
-  const toOrderPages = ["/order/checkout", "/order/summary", "/order/payment"];
+  const toOrderPages = ["/order/checkout", "/order/summary"];
 
-  const isFromAccountPaymentPage =
-    from.path.startsWith("/account/order/") && from.path.endsWith("/payment");
-  const isLeavingCheckoutFlow =
-    fromOrderPages.includes(from.path) || isFromAccountPaymentPage;
+  const isLeavingCheckoutFlow = fromOrderPages.includes(from.path);
   const isToCheckoutFlow = toOrderPages.includes(to.path);
 
   if (isLeavingCheckoutFlow && !isToCheckoutFlow) {

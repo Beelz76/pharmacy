@@ -91,7 +91,7 @@
             type="primary"
             size="large"
             class="w-full !bg-blue-500 hover:!bg-blue-600"
-            @click="goToPayment"
+            @click="pay"
           >
             Перейти к оплате
           </el-button>
@@ -104,7 +104,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getOrderById } from '/src/services/OrderService'
+import { getOrderById, payOrder } from '/src/services/OrderService'
 import { useOrderStore } from '../../stores/OrderStore'
 import { useOrderNavigationStore } from '/src/stores/OrderStore'
 import { statusClass } from '../../utils/statusClass'
@@ -156,13 +156,13 @@ onMounted(async () => {
   }
 })
 
-const goToPayment = () => {
-  orderStore.setCreatedOrder({
-    id: order.value.id,
-    number: order.value.number,
-    total: order.value.totalPrice
-  })
-  router.push({ name: 'OrderPaymentAccount' })
+const pay = async () => {
+  try {
+    const url = await payOrder(order.value.id)
+    window.location.href = url
+  } catch (e) {
+    console.error('Ошибка оплаты', e)
+  }
 }
 </script>
 

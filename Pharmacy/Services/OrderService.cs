@@ -217,7 +217,7 @@ public class OrderService : IOrderService
             Confirmation = new YooKassaConfirmation
             {
                 Type = "redirect",
-                ReturnUrl = $"https://localhost:5068/account/orders/{orderId}"
+                ReturnUrl = $"http://localhost:5173/account/orders/{orderId}"
             },
             Capture = true,
             Description = $"Оплата заказа №{order.Number}",
