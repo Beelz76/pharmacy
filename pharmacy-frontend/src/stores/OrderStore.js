@@ -9,6 +9,7 @@ export const useOrderStore = defineStore("order", {
     selectedAddressId: null,
     isDelivery: false,
     paymentMethod: null,
+    deliveryComment: null,
     orderId: null,
     orderNumber: null,
     orderTotal: null,
@@ -23,6 +24,7 @@ export const useOrderStore = defineStore("order", {
       addressId,
       isDelivery,
       method,
+      deliveryComment,
     }) {
       this.selectedCity = city;
       this.selectedStreet = street;
@@ -31,6 +33,7 @@ export const useOrderStore = defineStore("order", {
       this.selectedAddressId = addressId;
       this.isDelivery = isDelivery;
       this.paymentMethod = method;
+      this.deliveryComment = deliveryComment;
     },
     setCreatedOrder({ id, number, total }) {
       this.orderId = id;
@@ -45,6 +48,7 @@ export const useOrderStore = defineStore("order", {
       this.selectedAddressId = null;
       this.isDelivery = false;
       this.paymentMethod = null;
+      this.deliveryComment = null;
     },
     resetCreatedOrder() {
       this.orderId = null;

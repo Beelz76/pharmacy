@@ -102,6 +102,7 @@ const selectedAddressId = orderStore.selectedAddressId
 const selectedAddress = orderStore.selectedAddress
 const isDelivery = orderStore.isDelivery
 const paymentMethod = orderStore.paymentMethod
+const deliveryComment = orderStore.deliveryComment
 const cartItems = cartStore.items
 const totalPrice = cartStore.totalPrice
 
@@ -115,7 +116,8 @@ const submitOrder = async () => {
 
     const payload = {
       paymentMethod,
-      isDelivery
+      isDelivery,
+      deliveryComment
     }
     if (isDelivery) {
       payload.userAddressId = selectedAddressId

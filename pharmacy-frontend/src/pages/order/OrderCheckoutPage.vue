@@ -169,7 +169,7 @@
     </div>
 
 
-    <!-- Адрес доставки -->
+<!-- Адрес доставки -->
     <div v-if="selectedCity && isDelivery" class="mb-8 grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6">
       <div class="flex flex-col gap-6">
         <div class="space-y-3 h-[500px] overflow-y-auto rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
@@ -185,7 +185,13 @@
         </div>
 
         <div class="bg-white border rounded-xl shadow-sm p-4" v-if="newAddress">
-          <p class="text-sm mb-2">{{ newAddress.display_name }}</p>
+          <p class="text-sm mb-3">{{ newAddress.display_name }}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+            <el-input v-model="entrance" placeholder="Подъезд" />
+            <el-input v-model="floor" placeholder="Этаж" />
+            <el-input v-model="apartment" placeholder="Квартира" />
+          </div>
+          <el-input v-model="addressComment" placeholder="Комментарий" class="mb-2" />
           <el-button type="primary" size="small" @click="saveNewAddress">Сохранить адрес</el-button>
         </div>
         <div class="bg-white border rounded-xl shadow-sm p-4" v-else>
@@ -212,12 +218,19 @@
             <div class="min-h-[48px]" v-if="selectedAddressId">
               <p class="text-sm text-gray-600">{{ selectedAddress?.fullAddress }}</p>
             </div>
-            <template v-else>
-              <p class="text-sm text-gray-400">Выберите адрес из списка или на карте.</p>
-            </template>
-          </div>
+          <template v-else>
+            <p class="text-sm text-gray-400">Выберите адрес из списка или на карте.</p>
+          </template>
+          <el-input
+            v-model="deliveryComment"
+            type="textarea"
+            rows="2"
+            placeholder="Комментарий к доставке"
+            class="mt-3"
+          />
+        </div>
 
-          <div class="text-right pt-2">
+        <div class="text-right pt-2">
             <el-button
               type="primary"
               size="large"
@@ -263,6 +276,11 @@ const streetOptions = ref([])
 const pharmacyList = ref([])
 const addresses = ref([])
 const newAddress = ref(null)
+const apartment = ref('')
+const entrance = ref('')
+const floor = ref('')
+const addressComment = ref('')
+const deliveryComment = ref(orderStore.deliveryComment || '')
 const isOutsideCity = ref(false)
 const loadingCities = ref(false)
 const loadingStreets = ref(false)
@@ -275,6 +293,7 @@ watch(selectedAddressId, val => orderStore.selectedAddressId = val)
 watch(selectedAddress, val => orderStore.selectedAddress = val)
 watch(isDelivery, val => orderStore.isDelivery = val)
 watch(paymentMethod, val => orderStore.paymentMethod = val)
+watch(deliveryComment, val => orderStore.deliveryComment = val)
 
 function handleMapOutside(val) {
   isOutsideCity.value = val
@@ -336,10 +355,10 @@ async function saveNewAddress() {
       latitude: parseFloat(newAddress.value.lat),
       longitude: parseFloat(newAddress.value.lon)
     },
-    apartment: null,
-    entrance: null,
-    floor: null,
-    comment: null
+    apartment: apartment.value || null,
+    entrance: entrance.value || null,
+    floor: floor.value || null,
+    comment: addressComment.value || null
   }
   try {
     const res = await createUserAddress(payload)
@@ -347,6 +366,10 @@ async function saveNewAddress() {
     await loadAddresses()
     selectedAddress.value = addresses.value.find(a => a.id === res.id)
     newAddress.value = null
+    apartment.value = ''
+    entrance.value = ''
+    floor.value = ''
+    addressComment.value = ''
     ElMessage.success('Адрес сохранен')
   } catch {}
 }
@@ -374,7 +397,11 @@ function submitOrder() {
     address: selectedAddress.value,
     addressId: selectedAddressId.value,
     isDelivery: isDelivery.value,
-    method: paymentMethod.value === 'Online' ? 'Online' : 'OnDelivery'
+    address: selectedAddress.value,
+    addressId: selectedAddressId.value,
+    isDelivery: isDelivery.value,
+    method: paymentMethod.value === 'Online' ? 'Online' : 'OnDelivery',
+    deliveryComment: deliveryComment.value
   })
 
   router.push({ name: 'OrderSummary' })
