@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.Services.Interfaces;
@@ -13,65 +14,83 @@ public class PharmacyService : IPharmacyService
 {
     private readonly IPharmacyRepository _pharmacyRepository;
     private readonly IAddressRepository _addressRepository;
+    private readonly HybridCache _cache;
 
-    public PharmacyService(IPharmacyRepository pharmacyRepository, IAddressRepository addressRepository)
+    public PharmacyService(IPharmacyRepository pharmacyRepository, IAddressRepository addressRepository, HybridCache cache)
     {
         _pharmacyRepository = pharmacyRepository;
         _addressRepository = addressRepository;
+        _cache = cache;
     }
 
     public async Task<Result<IEnumerable<PharmacyDto>>> GetAllAsync()
     {
-        var pharmacies = (await _pharmacyRepository.GetAllAsync()).ToList();
-        if (!pharmacies.Any())
+        var dto = await _cache.GetOrCreateAsync(
+            "pharmacies-all",
+            async ct =>
+            {
+                var pharmacies = (await _pharmacyRepository.GetAllAsync()).ToList();
+                if (!pharmacies.Any()) return null;
+
+                return pharmacies.Select(p => new PharmacyDto(
+                    p.Id,
+                    p.Name,
+                    p.Phone,
+                    new AddressDto(
+                        p.Address.Id,
+                        p.Address.OsmId,
+                        p.Address.Region,
+                        p.Address.State,
+                        p.Address.City,
+                        p.Address.Suburb,
+                        p.Address.Street,
+                        p.Address.HouseNumber,
+                        p.Address.Postcode,
+                        p.Address.Latitude,
+                        p.Address.Longitude
+                    ))).ToList();
+            });
+
+        if (dto is null)
         {
             return Result.Failure<IEnumerable<PharmacyDto>>(Error.NotFound("Аптеки не найдены"));
         }
-
-        var dto = pharmacies.Select(p => new PharmacyDto(
-            p.Id,
-            p.Name,
-            p.Phone,
-            new AddressDto(
-                p.Address.Id,
-                p.Address.OsmId,
-                p.Address.Region,
-                p.Address.State,
-                p.Address.City,
-                p.Address.Suburb,
-                p.Address.Street,
-                p.Address.HouseNumber,
-                p.Address.Postcode,
-                p.Address.Latitude,
-                p.Address.Longitude
-            ))).ToList();
-
+        
         return Result.Success<IEnumerable<PharmacyDto>>(dto);
     }
 
     public async Task<Result<PharmacyDto>> GetByIdAsync(int id)
     {
-        var pharmacy = await _pharmacyRepository.GetByIdAsync(id);
-        if (pharmacy is null)
-            return Result.Failure<PharmacyDto>(Error.NotFound("Аптека не найдена"));
+        var dto = await _cache.GetOrCreateAsync(
+            $"pharmacy-{id}",
+            async ct =>
+            {
+                var pharmacy = await _pharmacyRepository.GetByIdAsync(id);
+                if (pharmacy is null) return null;
 
-        var dto = new PharmacyDto(
-            pharmacy.Id,
-            pharmacy.Name,
-            pharmacy.Phone,
-            new AddressDto(
-                pharmacy.Address.Id,
-                pharmacy.Address.OsmId,
-                pharmacy.Address.Region,
-                pharmacy.Address.State,
-                pharmacy.Address.City,
-                pharmacy.Address.Suburb,
-                pharmacy.Address.Street,
-                pharmacy.Address.HouseNumber,
-                pharmacy.Address.Postcode,
-                pharmacy.Address.Latitude,
-                pharmacy.Address.Longitude
-            ));
+                return new PharmacyDto(
+                    pharmacy.Id,
+                    pharmacy.Name,
+                    pharmacy.Phone,
+                    new AddressDto(
+                        pharmacy.Address.Id,
+                        pharmacy.Address.OsmId,
+                        pharmacy.Address.Region,
+                        pharmacy.Address.State,
+                        pharmacy.Address.City,
+                        pharmacy.Address.Suburb,
+                        pharmacy.Address.Street,
+                        pharmacy.Address.HouseNumber,
+                        pharmacy.Address.Postcode,
+                        pharmacy.Address.Latitude,
+                        pharmacy.Address.Longitude
+                    ));
+            });
+
+        if (dto is null)
+        {
+            return Result.Failure<PharmacyDto>(Error.NotFound("Аптека не найдена"));
+        }
 
         return Result.Success(dto);
     }

@@ -9,5 +9,4 @@ public record FavoriteItemDto(
     decimal Price,
     string? ImageUrl,
     bool IsAvailable,
-    bool IsPrescriptionRequired,
     int QuantityInCart);

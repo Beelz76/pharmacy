@@ -4,6 +4,7 @@ using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.IdentityModel.Tokens;
 using Minio;
 using Pharmacy.BackgroundServices;
@@ -39,6 +40,19 @@ try
 
     builder.Services.AddDbContext<PharmacyDbContext>(options =>
         options.UseNpgsql(connectionString));
+    
+    builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddHybridCache(options =>
+    {
+        options.MaximumKeyLength = 512;
+        options.MaximumPayloadBytes = 1024 * 1024 * 10;
+
+        options.DefaultEntryOptions = new HybridCacheEntryOptions
+        {
+            Expiration = TimeSpan.FromMinutes(30),
+            LocalCacheExpiration = TimeSpan.FromMinutes(30)
+        };
+    });
     
     builder.Services.AddAuthentication(options =>
     {

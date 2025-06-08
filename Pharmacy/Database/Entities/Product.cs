@@ -11,8 +11,6 @@ public class Product
     public string Description { get; set; } = default!;
     public string ExtendedDescription { get; set; } = default!;
     public bool IsGloballyDisabled { get; set; }
-    public bool IsPrescriptionRequired { get; set; }
-    public DateTime? ExpirationDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

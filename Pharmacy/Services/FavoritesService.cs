@@ -37,7 +37,6 @@ public class FavoritesService : IFavoritesService
             x.Price,
             _storage.GetPublicUrl(x.ImageUrl),
             x.IsAvailable,
-            x.IsPrescriptionRequired,
             cartItems.TryGetValue(x.ProductId, out int qty) ? qty : 0
         ));
         

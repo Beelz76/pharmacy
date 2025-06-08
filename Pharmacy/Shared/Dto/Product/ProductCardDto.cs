@@ -7,11 +7,6 @@ public record ProductCardDto(
     decimal Price,
     string? ImageUrl,
     bool IsAvailable,
-    bool IsPrescriptionRequired,
     bool IsFavorite,
     int CartQuantity
 );
-// {
-//     public bool IsFavorite { get; set; }
-//     public int CartQuantity { get; set; }
-// };

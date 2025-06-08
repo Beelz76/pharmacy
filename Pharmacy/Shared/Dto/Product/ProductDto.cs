@@ -13,8 +13,6 @@ public record ProductDto(
     string Description,
     string ExtendedDescription,
     bool IsAvailable,
-    bool IsPrescriptionRequired,
-    DateTime? ExpirationDate,
     List<string>? Images,
     List<ProductPropertyDto> Properties
 );

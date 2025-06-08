@@ -33,8 +33,7 @@ public class CartRepository : ICartRepository
                 c.Product.Price,
                 c.Quantity * c.Product.Price,
                 c.Product.Images.OrderBy(x => x.Id).Select(x => _storage.GetPublicUrl(x.Url)).FirstOrDefault(),
-                !c.Product.IsGloballyDisabled,
-                c.Product.IsPrescriptionRequired
+                !c.Product.IsGloballyDisabled
                 ))
             .ToListAsync();
     }

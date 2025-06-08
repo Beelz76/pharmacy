@@ -31,13 +31,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(x => x.Price)
             .IsRequired()
             .HasPrecision(18, 2);
-
-        builder.Property(x => x.ExpirationDate);
         
         builder.Property(x => x.IsGloballyDisabled)
-            .IsRequired();
-        
-        builder.Property(x => x.IsPrescriptionRequired)
             .IsRequired();
         
         builder.Property(x => x.CreatedAt)

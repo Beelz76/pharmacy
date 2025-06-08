@@ -10,6 +10,5 @@ public record CartItemDto(
     decimal UnitPrice,
     decimal TotalPrice,
     string? ImageUrl,
-    bool IsAvailable,
-    bool IsPrescriptionRequired
+    bool IsAvailable
 );
