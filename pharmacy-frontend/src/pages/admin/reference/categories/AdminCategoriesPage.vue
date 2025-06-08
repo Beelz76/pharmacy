@@ -74,7 +74,7 @@ import {
   updateCategory,
   deleteCategory,
 } from '/src/services/CategoryService'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const categories = ref([])
 const flatCategories = ref([])
@@ -151,12 +151,19 @@ async function saveCategory() {
 
 async function removeCategory() {
   try {
+    await ElMessageBox.confirm(
+      'Вы уверены, что хотите удалить категорию?',
+      'Подтверждение',
+      { type: 'warning' }
+    )
     await deleteCategory(selectedId.value)
     ElMessage.success('Категория удалена')
     selected.value = null
     await load()
   } catch (e) {
-    ElMessage.error('Ошибка удаления')
+    if (e !== 'cancel') {
+      ElMessage.error('Ошибка удаления')
+    }
   }
 }
 

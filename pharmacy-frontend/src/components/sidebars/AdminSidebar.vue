@@ -24,10 +24,33 @@
         Доставки
       </RouterLink>
 
-      <RouterLink to="/admin/references" :class="navLinkClass('/admin/references')">
-        <i class="fas fa-book text-base w-5 text-center mr-3"></i>
-        Справочники
-      </RouterLink>
+      <button
+        @click="showRefs = !showRefs"
+        :class="navLinkClass('/admin/references') + ' w-full flex items-center gap-3'"
+      >
+      <span class="flex-1 text-left">Справочники</span>
+        <i :class="'fas fa-chevron-' + (showRefs ? 'down' : 'right')"></i>
+      </button>
+      <div v-show="showRefs" class="ml-6 space-y-1">
+        <RouterLink
+          to="/admin/references/categories"
+          :class="navLinkClass('/admin/references/categories')"
+        >
+          Категории
+        </RouterLink>
+        <RouterLink
+          to="/admin/references/manufacturers"
+          :class="navLinkClass('/admin/references/manufacturers')"
+        >
+          Производители
+        </RouterLink>
+        <RouterLink
+          to="/admin/references/order-statuses"
+          :class="navLinkClass('/admin/references/order-statuses')"
+        >
+          Статусы заказа
+        </RouterLink>
+      </div>
     </nav>
     <div class="border-t px-4 py-4">
       <button
@@ -44,10 +67,13 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '/src/stores/AuthStore'
+import { ref } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+
+const showRefs = ref(route.path.startsWith('/admin/references'))
 
 const navLinkClass = (path) => {
   const isActive = path === '/admin' ? route.path === '/admin' : route.path.startsWith(path)

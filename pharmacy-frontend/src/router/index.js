@@ -25,6 +25,7 @@ import AdminDeliveryDetailsPage from "../pages/admin/delivery/AdminDeliveryDetai
 import AdminReferencesPage from "../pages/admin/reference/AdminReferencesPage.vue";
 import AdminCategoriesPage from "../pages/admin/reference/categories/AdminCategoriesPage.vue";
 import AdminManufacturersPage from "../pages/admin/reference/manufacturers/AdminManufacturersPage.vue";
+import AdminOrderStatusesPage from "../pages/admin/reference/orderStatuses/AdminOrderStatusesPage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -126,6 +127,7 @@ const routes = [
         path: "references",
         component: AdminReferencesPage,
         children: [
+          { path: "", redirect: { name: "AdminCategories" } },
           {
             path: "categories",
             name: "AdminCategories",
@@ -135,6 +137,11 @@ const routes = [
             path: "manufacturers",
             name: "AdminManufacturers",
             component: AdminManufacturersPage,
+          },
+          {
+            path: "order-statuses",
+            name: "AdminOrderStatuses",
+            component: AdminOrderStatusesPage,
           },
         ],
       },

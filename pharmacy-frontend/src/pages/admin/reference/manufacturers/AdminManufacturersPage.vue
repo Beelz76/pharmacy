@@ -37,7 +37,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getManufacturers,
   createManufacturer,
@@ -84,11 +84,18 @@ async function save() {
 
 async function remove(id) {
   try {
+    await ElMessageBox.confirm(
+      'Удалить производителя?',
+      'Подтверждение',
+      { type: 'warning' }
+    )
     await deleteManufacturer(id)
     ElMessage.success('Удалено')
     await load()
   } catch (e) {
-    ElMessage.error('Ошибка удаления')
+    if (e !== 'cancel') {
+      ElMessage.error('Ошибка удаления')
+    }
   }
 }
 
