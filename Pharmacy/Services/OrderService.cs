@@ -325,7 +325,8 @@ public class OrderService : IOrderService
         if (!string.IsNullOrWhiteSpace(filters.UserFullName) && userId == null)
         {
             var name = filters.UserFullName.ToLower();
-            query = query.Where(o => $"{o.User.LastName} {o.User.FirstName} {o.User.Patronymic}".Trim().ToLower().Contains(name));
+            query = query.Where(o => ((o.User.LastName ?? "") + " " + (o.User.FirstName ?? "") + " " + (o.User.Patronymic ?? ""))
+                .Trim().ToLower().Contains(name));
         }
         
         if (!string.IsNullOrWhiteSpace(filters.PharmacyCity) && userId == null)

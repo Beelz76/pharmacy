@@ -42,7 +42,7 @@ public class CreateEndpoint : Endpoint<CreateOrderRequest>
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
     }
 }

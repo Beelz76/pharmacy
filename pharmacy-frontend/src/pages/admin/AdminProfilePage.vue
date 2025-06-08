@@ -1,168 +1,177 @@
 <template>
   <div>
     <h1 class="text-2xl font-semibold mb-6">Профиль администратора</h1>
-    <!-- Персональные данные -->
-    <div class="bg-white border rounded-xl shadow-sm p-6">
-      <h2 class="text-xl font-semibold text-gray-900 mb-6">
-        Персональные данные
-      </h2>
-
-      <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-        <div class="grid sm:grid-cols-2 gap-4">
-          <el-form-item label="ФИО" prop="fullName">
-            <el-input
-              v-model="form.fullName"
-              :readonly="!isEditing"
-              placeholder="Фамилия Имя Отчество"
-              size="large"
-              class="!h-12 !rounded-md"
-              maxlength="100"
-              show-word-limit
-            />
-          </el-form-item>
-
-          <el-form-item label="Телефон">
-            <PhoneInput
-              v-model="form.phoneFormatted"
-              :readonly="!isEditing"
-              :required="false"
-              :digitsOnly="true"
-              size="large"
-              class="w-full"
-            />
-          </el-form-item>
-        </div>
-
-        <div class="mt-6 flex justify-end gap-3">
-          <el-button
-            v-if="!isEditing"
-            @click="startProfileEdit"
-            type="primary"
-            plain
-          >
-            <i class="fas fa-edit mr-1"></i> Изменить
-          </el-button>
-          <template v-else>
-            <el-button
-              @click="saveChanges"
-              type="success"
-              plain
-              :loading="profileLoading"
-            >
-              <i class="fas fa-check mr-1"></i> Сохранить
-            </el-button>
-            <el-button @click="cancelProfileEdit" type="info" plain>
-              Отмена
-            </el-button>
-          </template>
-        </div>
-      </el-form>
-    </div>
-
-    <!-- Email -->
-    <div class="bg-white border rounded-xl shadow-sm p-6 mt-8">
-      <h2 class="text-xl font-semibold text-gray-900 mb-6">Почта</h2>
-
-      <el-form
-        :model="form"
-        :rules="rules"
-        ref="emailFormRef"
-        label-position="top"
-      >
-        <el-form-item label="Email" prop="email">
-          <el-input
-            v-model="form.email"
-            :readonly="!isEditingEmail"
-            size="large"
-            class="w-full !h-12 !rounded-md"
-          />
-        </el-form-item>
-
-        <div class="mt-6 flex justify-end gap-3">
-          <el-button
-            v-if="!isEditingEmail"
-            @click="startEmailEdit"
-            type="primary"
-            plain
-          >
-            <i class="fas fa-edit mr-1"></i> Изменить
-          </el-button>
-          <template v-else>
-            <el-button
-              @click="submitEmailChange"
-              type="success"
-              plain
-              :loading="emailLoading"
-            >
-              <i class="fas fa-check mr-1"></i> Сохранить
-            </el-button>
-            <el-button @click="cancelEmailEdit" type="info" plain>
-              Отмена
-            </el-button>
-          </template>
-        </div>
-      </el-form>
-    </div>
-
-    <!-- Пароль -->
-    <div class="bg-white border rounded-xl shadow-sm p-6 mt-8">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-semibold text-gray-900">Изменить пароль</h2>
-        <button
-          class="text-sm text-primary-600 hover:underline"
-          @click="showPasswordResetModal = true"
+    <div class="grid lg:grid-cols-2 gap-8">
+      <!-- Персональные данные -->
+      <el-card class="!p-6">
+        <template #header>
+          <h2 class="text-xl font-semibold text-gray-900">
+            Персональные данные
+          </h2>
+        </template>
+        <el-form
+          :model="form"
+          :rules="rules"
+          ref="formRef"
+          label-position="top"
         >
-          Забыли пароль?
-        </button>
-      </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <el-form-item label="ФИО" prop="fullName">
+              <el-input
+                v-model="form.fullName"
+                :readonly="!isEditing"
+                placeholder="Фамилия Имя Отчество"
+                size="large"
+                class="!h-12 !rounded-md"
+                maxlength="100"
+                show-word-limit
+              />
+            </el-form-item>
+            <el-form-item label="Телефон">
+              <PhoneInput
+                v-model="form.phoneFormatted"
+                :readonly="!isEditing"
+                :required="false"
+                :digits-only="true"
+                size="large"
+                class="w-full"
+              />
+            </el-form-item>
+          </div>
+          <div class="mt-6 flex justify-end gap-3">
+            <el-button
+              v-if="!isEditing"
+              @click="startProfileEdit"
+              type="primary"
+              plain
+            >
+              <i class="fas fa-edit mr-1"></i> Изменить
+            </el-button>
+            <template v-else>
+              <el-button
+                @click="saveChanges"
+                type="success"
+                plain
+                :loading="profileLoading"
+              >
+                <i class="fas fa-check mr-1"></i> Сохранить
+              </el-button>
+              <el-button @click="cancelProfileEdit" type="info" plain
+                >Отмена</el-button
+              >
+            </template>
+          </div>
+        </el-form>
+      </el-card>
 
-      <el-form
-        :model="form"
-        :rules="rules"
-        ref="passwordFormRef"
-        label-position="top"
-      >
-        <el-form-item label="Текущий пароль" prop="currentPassword">
-          <el-input
-            v-model="form.currentPassword"
-            type="password"
-            show-password
-            size="large"
-            class="!h-12 !rounded-md"
-          />
-        </el-form-item>
+      <!-- Почта и пароль -->
+      <div class="space-y-8">
+        <!-- Почта -->
+        <el-card class="!p-6">
+          <template #header>
+            <h2 class="text-xl font-semibold text-gray-900">Почта</h2>
+          </template>
+          <el-form
+            :model="form"
+            :rules="rules"
+            ref="emailFormRef"
+            label-position="top"
+          >
+            <el-form-item label="Email" prop="email">
+              <el-input
+                v-model="form.email"
+                :readonly="!isEditingEmail"
+                size="large"
+                class="w-full !h-12 !rounded-md"
+              />
+            </el-form-item>
+            <div class="mt-6 flex justify-end gap-3">
+              <el-button
+                v-if="!isEditingEmail"
+                @click="startEmailEdit"
+                type="primary"
+                plain
+              >
+                <i class="fas fa-edit mr-1"></i> Изменить
+              </el-button>
+              <template v-else>
+                <el-button
+                  @click="submitEmailChange"
+                  type="success"
+                  plain
+                  :loading="emailLoading"
+                >
+                  <i class="fas fa-check mr-1"></i> Сохранить
+                </el-button>
+                <el-button @click="cancelEmailEdit" type="info" plain
+                  >Отмена</el-button
+                >
+              </template>
+            </div>
+          </el-form>
+        </el-card>
 
-        <el-form-item label="Новый пароль" prop="newPassword">
-          <el-input
-            v-model="form.newPassword"
-            type="password"
-            show-password
-            size="large"
-            class="!h-12 !rounded-md"
-          />
-        </el-form-item>
-
-        <el-form-item label="Повторить пароль" prop="confirmPassword">
-          <el-input
-            v-model="form.confirmPassword"
-            type="password"
-            show-password
-            size="large"
-            @paste.prevent
-            class="!h-12 !rounded-md"
-          />
-        </el-form-item>
-      </el-form>
-
-      <div class="mt-6 flex justify-end">
-        <el-button
-          @click="submitPasswordChange"
-          type="primary"
-          plain
-          :loading="passwordLoading"
-        >
-          <i class="fas fa-key mr-1"></i> Изменить пароль
-        </el-button>
+        <!-- Пароль -->
+        <el-card class="!p-6">
+          <template #header>
+            <div class="flex justify-between items-center">
+              <h2 class="text-xl font-semibold text-gray-900">
+                Изменить пароль
+              </h2>
+              <button
+                class="text-sm text-primary-600 hover:underline"
+                @click="showPasswordResetModal = true"
+              >
+                Забыли пароль?
+              </button>
+            </div>
+          </template>
+          <el-form
+            :model="form"
+            :rules="rules"
+            ref="passwordFormRef"
+            label-position="top"
+          >
+            <el-form-item label="Текущий пароль" prop="currentPassword">
+              <el-input
+                v-model="form.currentPassword"
+                type="password"
+                show-password
+                size="large"
+                class="!h-12 !rounded-md"
+              />
+            </el-form-item>
+            <el-form-item label="Новый пароль" prop="newPassword">
+              <el-input
+                v-model="form.newPassword"
+                type="password"
+                show-password
+                size="large"
+                class="!h-12 !rounded-md"
+              />
+            </el-form-item>
+            <el-form-item label="Повторить пароль" prop="confirmPassword">
+              <el-input
+                v-model="form.confirmPassword"
+                type="password"
+                show-password
+                @paste.prevent
+                size="large"
+                class="!h-12 !rounded-md"
+              />
+            </el-form-item>
+            <div class="mt-6 flex justify-end">
+              <el-button
+                @click="submitPasswordChange"
+                type="primary"
+                plain
+                :loading="passwordLoading"
+              >
+                <i class="fas fa-key mr-1"></i> Изменить пароль
+              </el-button>
+            </div>
+          </el-form>
+        </el-card>
       </div>
     </div>
 
@@ -185,6 +194,7 @@
     />
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";

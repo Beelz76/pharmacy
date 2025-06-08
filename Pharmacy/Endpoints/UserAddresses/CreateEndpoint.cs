@@ -39,7 +39,7 @@ public class CreateEndpoint : Endpoint<CreateUserAddressRequest>
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
     }
 }

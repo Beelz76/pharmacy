@@ -52,7 +52,7 @@ public class GetAllEndpoint : Endpoint<OrderFilters>
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
     }
 }

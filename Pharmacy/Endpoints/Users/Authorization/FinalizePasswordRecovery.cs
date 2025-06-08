@@ -31,7 +31,7 @@ public class FinalizePasswordRecovery : Endpoint<RecoveryPasswordRequest>
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
     }
     

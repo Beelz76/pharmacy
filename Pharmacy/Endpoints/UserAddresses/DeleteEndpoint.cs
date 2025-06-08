@@ -35,7 +35,7 @@ public class DeleteEndpoint : EndpointWithoutRequest
         var result = await _service.DeleteAsync(userId.Value, userAddressId);
         if (!result.IsSuccess)
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
         else
         {

@@ -32,7 +32,7 @@ public class AddEndpoint : Endpoint<AddPharmacyProductRequest>
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
     }
 }

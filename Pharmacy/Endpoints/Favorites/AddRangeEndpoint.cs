@@ -37,7 +37,7 @@ public class AddRangeEndpoint : Endpoint<AddFavoritesRequest>
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
     }
 }

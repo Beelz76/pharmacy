@@ -8,15 +8,15 @@ public sealed record Error
     public static readonly Error None = new(HttpStatusCode.OK, ErrorTypeEnum.None, string.Empty);
     public static readonly Error NullValue = new(HttpStatusCode.BadRequest, ErrorTypeEnum.Failure, "Null value was provided");
     
-    public Error(HttpStatusCode code, ErrorTypeEnum type, string message, List<string>? details = null)
+    public Error(HttpStatusCode statusCode, ErrorTypeEnum type, string message, List<string>? details = null)
     {
-        Code = code;
+        StatusCode = statusCode;
         Type = type;
         Message = message;
         Details = details;
     }
 
-    public HttpStatusCode Code { get; }
+    public HttpStatusCode StatusCode { get; }
     public ErrorTypeEnum Type { get; }
     public string? Message { get; }
     public List<string>? Details { get; }

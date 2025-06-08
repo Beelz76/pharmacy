@@ -40,13 +40,11 @@ public class Result<T> : Result
     {
         _value = value;
     }
-
-    // Строгая версия: бросает исключение при неудаче
+    
     public T Value => IsSuccess
         ? _value!
         : throw new InvalidOperationException("Cannot access value when operation failed.");
-
-    // Мягкая версия: безопасно возвращает значение или null
+    
     public T? ValueOrDefault => _value;
 
     public static implicit operator Result<T>(T? value) =>

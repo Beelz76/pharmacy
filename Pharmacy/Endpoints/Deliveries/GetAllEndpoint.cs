@@ -32,7 +32,7 @@ public class GetAllEndpoint : Endpoint<DeliveryFilters>
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
     }
 }

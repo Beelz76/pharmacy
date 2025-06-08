@@ -36,7 +36,7 @@ public class GetProfileEndpoint : EndpointWithoutRequest
         var result = await _userService.GetByIdAsync(userId.Value);
         if (result.IsFailure)
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
         else
         {

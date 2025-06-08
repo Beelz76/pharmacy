@@ -37,7 +37,7 @@ public class SendCodeEndpoint : Endpoint<SendCodeRequest>
         var userResult = await _userService.GetByEmailAsync(request.Email);
         if (userResult.IsFailure && request.Purpose != VerificationPurposeEnum.EmailChange)
         {
-            await SendAsync(userResult.Error, (int)userResult.Error.Code, ct);
+            await SendAsync(userResult.Error, (int)userResult.Error.StatusCode, ct);
             return;
         }
         
@@ -48,7 +48,7 @@ public class SendCodeEndpoint : Endpoint<SendCodeRequest>
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
     }
 }

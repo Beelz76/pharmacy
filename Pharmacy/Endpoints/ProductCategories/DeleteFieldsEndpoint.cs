@@ -33,7 +33,7 @@ public class DeleteFieldsEndpoint : Endpoint<DeleteFieldsRequest>
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
     }
 }

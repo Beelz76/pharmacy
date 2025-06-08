@@ -31,7 +31,7 @@ public class GetByIdEndpoint : EndpointWithoutRequest
         }
         else
         {
-            await SendAsync(result.Error, (int)result.Error.Code, cancellation: ct);
+            await SendAsync(result.Error, (int)result.Error.StatusCode, cancellation: ct);
         }
     }
 }
