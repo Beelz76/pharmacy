@@ -1,5 +1,6 @@
 ﻿using Pharmacy.Database.Entities;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Auth;
 using Pharmacy.Shared.Enums;
 using Pharmacy.Shared.Result;
 

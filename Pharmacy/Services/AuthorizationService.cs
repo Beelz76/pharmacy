@@ -2,6 +2,8 @@
 using Pharmacy.Endpoints.Users.Authorization;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Auth;
+using Pharmacy.Shared.Dto.User;
 using Pharmacy.Shared.Enums;
 using Pharmacy.Shared.Result;
 

@@ -1,5 +1,5 @@
 <template>
-  <aside class="w-64 flex flex-col min-h-screen bg-white border-r shadow-sm">
+  <aside class="w-64 flex-shrink-0 flex flex-col min-h-screen bg-white border-r shadow-sm">
     <div class="px-4 py-5 text-lg text-center font-semibold text-secondary-700 border-b">
       Админ панель
     </div>
@@ -17,6 +17,11 @@
       <RouterLink to="/admin/orders" :class="navLinkClass('/admin/orders')">
         <i class="fas fa-shopping-basket text-base w-5 text-center mr-3"></i>
         Заказы
+      </RouterLink>
+
+      <RouterLink to="/admin/deliveries" :class="navLinkClass('/admin/deliveries')">
+        <i class="fas fa-truck text-base w-5 text-center mr-3"></i>
+        Доставки
       </RouterLink>
     </nav>
     <div class="border-t px-4 py-4">

@@ -1,5 +1,6 @@
 ﻿using Pharmacy.Endpoints.Orders;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Order;
 using Pharmacy.Shared.Enums;
 using Pharmacy.Shared.Result;
 

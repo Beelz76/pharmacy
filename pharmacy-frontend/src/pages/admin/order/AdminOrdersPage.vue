@@ -110,6 +110,7 @@ const filters = reactive({
   number: '',
   userEmail: '',
   userFullName: '',
+  pharmacyName: '',
   pharmacyId: null,
   status: null,
   dateRange: []
@@ -162,6 +163,7 @@ const fetch = () => {
     number: filters.number || null,
     userEmail: filters.userEmail || null,
     userFullName: filters.userFullName || null,
+    pharmacyName: filters.pharmacyName || null,
     pharmacyId: filters.pharmacyId || null,
     status: filters.status || null,
     fromDate: filters.dateRange?.[0] || null,
@@ -173,7 +175,8 @@ const fetch = () => {
 const resetFilters = () => {
   filters.number = ''
   filters.userEmail = ''
-  filters.userFullName = ''
+  filters.userFullName = '',
+  filters.pharmacyName = '',
   filters.pharmacyId = null
   filters.status = null
   filters.dateRange = []
@@ -195,7 +198,12 @@ const goDetails = (id) => {
 
 watch(selectedPharmacyName, () => {
   filters.pharmacyId = null
+  filters.pharmacyName = selectedPharmacyName.value || ''
   searchPharmacyAddresses()
+})
+
+watch(() => filters.pharmacyName, () => {
+  pageNumber.value = 1
 })
 
 loadStatuses()

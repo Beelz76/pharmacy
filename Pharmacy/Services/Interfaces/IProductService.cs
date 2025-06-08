@@ -1,5 +1,6 @@
 ﻿using Pharmacy.Endpoints.Products;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Product;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services.Interfaces;

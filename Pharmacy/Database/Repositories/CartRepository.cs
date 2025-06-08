@@ -3,6 +3,7 @@ using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.ExternalServices;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Cart;
 
 namespace Pharmacy.Database.Repositories;
 

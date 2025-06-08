@@ -2,6 +2,7 @@
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Order;
 using Pharmacy.Shared.Enums;
 
 namespace Pharmacy.Endpoints.Orders;

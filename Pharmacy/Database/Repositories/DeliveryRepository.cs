@@ -32,4 +32,15 @@ public class DeliveryRepository : IDeliveryRepository
         _context.Deliveries.Update(delivery);
         await _context.SaveChangesAsync();
     }
+
+    public IQueryable<Delivery> QueryWithDetails()
+    {
+        return _context.Deliveries
+            .Include(d => d.Order)
+                .ThenInclude(o => o.Pharmacy)
+                    .ThenInclude(p => p.Address)
+            .Include(d => d.UserAddress)
+                .ThenInclude(ua => ua.Address)
+            .AsNoTracking();
+    }
 }

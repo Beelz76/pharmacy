@@ -1,7 +1,10 @@
-﻿using Pharmacy.Database.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Delivery;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services;
@@ -63,4 +66,48 @@ public class DeliveryService : IDeliveryService
         await _repository.UpdateAsync(delivery);
         return Result.Success();
     }
+    
+    public async Task<Result<PaginatedList<DeliveryDetailsDto>>> GetPaginatedAsync(DeliveryFilters filters, int pageNumber, int pageSize)
+    {
+        var query = _repository.QueryWithDetails();
+
+        if (!string.IsNullOrWhiteSpace(filters.OrderNumber))
+        {
+            query = query.Where(d => d.Order.Number.Contains(filters.OrderNumber));
+        }
+
+        if (filters.PharmacyId.HasValue)
+        {
+            query = query.Where(d => d.Order.PharmacyId == filters.PharmacyId.Value);
+        }
+
+        if (filters.FromDate.HasValue)
+        {
+            query = query.Where(d => d.DeliveryDate >= filters.FromDate.Value);
+        }
+
+        if (filters.ToDate.HasValue)
+        {
+            query = query.Where(d => d.DeliveryDate <= filters.ToDate.Value);
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(d => d.DeliveryDate)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(d => new DeliveryDetailsDto(
+                d.Id,
+                d.OrderId,
+                d.Order.Number,
+                AddressExtensions.FormatAddress(d.UserAddress.Address)!,
+                d.Comment,
+                d.DeliveryDate
+            ))
+            .ToListAsync();
+
+        return Result.Success(new PaginatedList<DeliveryDetailsDto>(items, totalCount, pageNumber, pageSize));
+    }
+
 }

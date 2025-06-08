@@ -2,6 +2,7 @@
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Cart;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services;

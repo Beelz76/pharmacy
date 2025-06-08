@@ -1,4 +1,6 @@
 ﻿using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Category;
+using Pharmacy.Shared.Dto.Product;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services.Interfaces;

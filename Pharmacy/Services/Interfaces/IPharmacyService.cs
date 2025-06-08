@@ -1,4 +1,5 @@
 ﻿using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Pharmacy;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services.Interfaces;

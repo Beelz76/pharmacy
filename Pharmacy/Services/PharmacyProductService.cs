@@ -4,6 +4,7 @@ using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.PharmacyProducts;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.PharmacyProduct;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services;

@@ -3,6 +3,7 @@ using FluentValidation;
 using Pharmacy.Endpoints.Users.Authentication;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.User;
 using Pharmacy.Shared.Enums;
 using Pharmacy.Shared.Result;
 

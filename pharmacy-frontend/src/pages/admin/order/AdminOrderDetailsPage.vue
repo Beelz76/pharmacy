@@ -16,7 +16,7 @@
           {{ order.status }}
         </span>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div class="lg:col-span-2 space-y-6">
           <div class="bg-white border rounded-xl p-6 shadow-sm space-y-3">
             <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
@@ -25,6 +25,10 @@
             </h3>
             <template v-if="order.isDelivery">
               <p class="text-sm text-gray-600">{{ order.deliveryAddress }}</p>
+              <button
+                class="mt-2 text-primary-600 hover:text-primary-700 text-sm underline"
+                @click="goDelivery(order.id)"
+              >Перейти к доставке</button>
             </template>
             <template v-else>
               <p class="text-base font-medium text-gray-900">«{{ pharmacyName }}»</p>
@@ -78,6 +82,10 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getOrderById } from '/src/services/OrderService'
 import { statusClass } from '/src/utils/statusClass'
+
+const goDelivery = orderId => {
+  router.push({ name: "AdminDeliveryDetails", params: { orderId } })
+}
 
 const router = useRouter()
 const route = useRoute()

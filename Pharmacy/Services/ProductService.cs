@@ -7,6 +7,9 @@ using Pharmacy.ExternalServices;
 using Pharmacy.Helpers;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Category;
+using Pharmacy.Shared.Dto.Manufacturer;
+using Pharmacy.Shared.Dto.Product;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services;

@@ -3,6 +3,7 @@ using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Favorites;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services;

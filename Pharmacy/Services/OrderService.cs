@@ -7,6 +7,9 @@ using Pharmacy.Extensions;
 using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Delivery;
+using Pharmacy.Shared.Dto.Order;
+using Pharmacy.Shared.Dto.Payment;
 using Pharmacy.Shared.Enums;
 using Pharmacy.Shared.Result;
 
@@ -333,6 +336,11 @@ public class OrderService : IOrderService
         if (filters.PharmacyId.HasValue && userId == null)
         {
             query = query.Where(o => o.PharmacyId == filters.PharmacyId.Value);
+        }
+        
+        if (!string.IsNullOrWhiteSpace(filters.PharmacyName) && userId == null)
+        {
+            query = query.Where(o => o.Pharmacy.Name.ToLower().Contains(filters.PharmacyName.ToLower()));
         }
         
         if (!string.IsNullOrWhiteSpace(filters.Number))

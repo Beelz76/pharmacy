@@ -4,6 +4,8 @@ using Pharmacy.Endpoints.UserAddresses;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Address;
+using Pharmacy.Shared.Dto.User;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services;
