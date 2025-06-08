@@ -116,7 +116,7 @@ public class ProductCategoryService : IProductCategoryService
             {
                 var allFieldsResult = await GetAllFieldsIncludingParentAsync(parentCategoryId.Value);
                 var conflicts = fields
-                    .Where(x => allFieldsResult.Value.Any(x => x.Key.Equals(x.Key, StringComparison.OrdinalIgnoreCase)))
+                    .Where(x => allFieldsResult.Value.Any(f => f.Key.Equals(x.Key, StringComparison.OrdinalIgnoreCase)))
                     .ToList();
 
                 if (conflicts.Any())

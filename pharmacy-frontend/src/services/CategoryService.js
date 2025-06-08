@@ -10,13 +10,13 @@ export async function getCategoryById(id) {
   return res.data;
 }
 
-export async function createCategoryApi(payload) {
+export async function createCategory(payload) {
   const res = await api.post("/categories", payload);
   return res.data;
 }
 
 export async function updateCategory(id, payload) {
-  await api.put(`/categories/${id}/info`, payload);
+  await api.put(`/categories/${id}`, payload);
 }
 
 export async function deleteCategory(id) {

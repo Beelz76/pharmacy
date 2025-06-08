@@ -1,26 +1,56 @@
 <template>
   <div>
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold">Производители</h2>
-      <el-button size="small" type="primary" @click="openCreate"
-        >Добавить</el-button
+      <h2 class="text-2xl font-semibold">Производители</h2>
+      <button
+        class="px-4 py-2 rounded bg-secondary-600 text-white hover:bg-secondary-700 transition"
+        @click="openCreate"
       >
+        Добавить
+      </button>
     </div>
-    <el-table :data="list" style="width: 100%">
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="name" label="Название" />
-      <el-table-column prop="country" label="Страна" />
-      <el-table-column width="120">
-        <template #default="scope">
-          <el-button size="small" @click="edit(scope.row)"
-            >Редактировать</el-button
-          >
-          <el-button size="small" type="danger" @click="remove(scope.row.id)"
-            >Удалить</el-button
-          >
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="overflow-x-auto rounded-lg shadow border bg-white">
+      <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
+        <thead
+          class="bg-secondary-50 text-left text-secondary-700 uppercase text-sm"
+        >
+          <tr>
+            <th class="px-6 py-5 font-semibold">ID</th>
+            <th class="px-6 py-5 font-semibold">Название</th>
+            <th class="px-6 py-5 font-semibold">Страна</th>
+            <th class="px-6 py-5 font-semibold text-right"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr v-for="m in list" :key="m.id">
+            <td class="px-6 py-4">{{ m.id }}</td>
+            <td class="px-6 py-4">{{ m.name }}</td>
+            <td class="px-6 py-4">{{ m.country }}</td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex justify-end gap-2">
+                <button
+                  class="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700 transition"
+                  @click="edit(m)"
+                >
+                  Редактировать
+                </button>
+                <button
+                  class="px-4 py-2 rounded text-white bg-red-600 hover:bg-red-700 transition"
+                  @click="remove(m.id)"
+                >
+                  Удалить
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="list.length === 0">
+            <td colspan="4" class="text-center py-6 text-gray-500">
+              Нет данных
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <el-dialog v-model="dialogVisible" title="Производитель">
       <el-form label-width="120px">
@@ -87,7 +117,9 @@ async function save() {
     dialogVisible.value = false;
     await load();
   } catch (e) {
-    ElMessage.error("Ошибка");
+    ElMessage.error(
+      `${e.response?.status} ${e.response?.data?.message || e.message}`
+    );
   }
 }
 
@@ -106,7 +138,9 @@ async function remove(id) {
     ElMessage.success("Удалено");
     await load();
   } catch (e) {
-    ElMessage.error("Ошибка удаления");
+    ElMessage.error(
+      `${e.response?.status} ${e.response?.data?.message || e.message}`
+    );
   }
 }
 

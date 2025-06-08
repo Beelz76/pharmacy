@@ -2,35 +2,61 @@
   <div>
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-semibold">Категории</h1>
-      <el-button size="small" type="primary" @click="openCreate"
-        >Создать</el-button
+      <button
+        class="px-4 py-2 rounded bg-secondary-600 text-white hover:bg-secondary-700 transition"
+        @click="openCreate"
       >
+        Создать
+      </button>
     </div>
 
-    <el-table
+    <div
       v-if="loaded"
-      :data="categories"
-      row-key="id"
-      :tree-props="{ children: 'subcategories' }"
-      :default-expand-all="true"
-      style="width: 100%"
+      class="overflow-x-auto rounded-lg shadow border bg-white"
     >
-      <el-table-column prop="name" label="Название" />
-      <el-table-column prop="description" label="Описание" />
-      <el-table-column width="160">
-        <template #default="scope">
-          <el-button size="small" @click="editCategory(scope.row)"
-            >Редактировать</el-button
-          >
-          <el-button
-            size="small"
-            type="danger"
-            @click="removeCategory(scope.row)"
-            >Удалить</el-button
-          >
-        </template>
-      </el-table-column>
-    </el-table>
+      <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
+        <thead
+          class="bg-secondary-50 text-left text-secondary-700 uppercase text-sm"
+        >
+          <tr>
+            <th class="px-6 py-5 font-semibold">Название</th>
+            <th class="px-6 py-5 font-semibold">Описание</th>
+            <th class="px-6 py-5 font-semibold text-right"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr v-for="c in tableCategories" :key="c.id">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span :style="{ paddingLeft: `${c.indent * 1.5}rem` }">{{
+                c.name
+              }}</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ c.description }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+              <div class="flex justify-end gap-2">
+                <button
+                  class="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700 transition"
+                  @click.stop="editCategory(c)"
+                >
+                  Редактировать
+                </button>
+                <button
+                  class="px-4 py-2 rounded text-white bg-red-600 hover:bg-red-700 transition"
+                  @click.stop="removeCategory(c)"
+                >
+                  Удалить
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="tableCategories.length === 0">
+            <td colspan="3" class="text-center py-6 text-gray-500">
+              Категории не найдены
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <div v-else class="text-center py-10">Загрузка...</div>
 
@@ -129,7 +155,7 @@ import { ref, reactive, onMounted } from "vue";
 import {
   getAllCategories,
   getCategoryById,
-  createCategoryApi,
+  createCategory,
   updateCategory,
   deleteCategory,
   addCategoryFields,
@@ -140,6 +166,7 @@ import {
 import { ElMessage, ElMessageBox } from "element-plus";
 
 const categories = ref([]);
+const tableCategories = ref([]);
 const flatCategories = ref([]);
 const loaded = ref(false);
 const dialogVisible = ref(false);
@@ -162,11 +189,21 @@ function flatten(list, arr = []) {
   return arr;
 }
 
+function flattenForTable(list, indent = 0, arr = []) {
+  for (const c of list) {
+    arr.push({ ...c, indent });
+    if (c.subcategories?.length)
+      flattenForTable(c.subcategories, indent + 1, arr);
+  }
+  return arr;
+}
+
 async function load() {
   loaded.value = false;
   try {
     categories.value = await getAllCategories();
     flatCategories.value = flatten(categories.value);
+    tableCategories.value = flattenForTable(categories.value);
   } finally {
     loaded.value = true;
   }
@@ -238,19 +275,20 @@ async function save() {
       }
       ElMessage.success("Категория обновлена");
     } else {
-      const payload = await createCategoryApi({
+      await createCategory({
         name: form.name,
         description: form.description,
         parentCategoryId: form.parentCategoryId,
         fields: fields.value.map(mapField),
       });
-      await createCategoryApi(payload);
       ElMessage.success("Категория создана");
     }
-    editVisible.value = false;
+    dialogVisible.value = false;
     await load();
   } catch (e) {
-    ElMessage.error("Ошибка сохранения");
+    ElMessage.error(
+      `${e.response?.status} ${e.response?.data?.message || e.message}`
+    );
   }
 }
 
@@ -265,7 +303,7 @@ function mapField(f) {
   };
 }
 
-async function removeCategory() {
+async function removeCategory(row) {
   try {
     await ElMessageBox.confirm("Удалить категорию?", "Подтверждение", {
       confirmButtonText: "Удалить",
@@ -280,7 +318,9 @@ async function removeCategory() {
     await load();
     ElMessage.success("Категория удалена");
   } catch (e) {
-    ElMessage.error("Ошибка удаления");
+    // ElMessage.error(
+    //   `${e.response?.status} ${e.response?.data?.message || e.message}`
+    // );
   }
 }
 
