@@ -1,79 +1,126 @@
 <template>
   <div>
-    <h1 class="text-2xl font-semibold mb-6">Категории</h1>
-    <div class="bg-white rounded-lg shadow p-6 flex" v-if="loaded">
-      <div class="w-1/3 pr-6 border-r">
-        <div class="mb-4 text-right">
-          <el-button size="small" type="primary" @click="createCategory"
-            >Создать</el-button
-          >
-        </div>
-        <el-tree
-          :data="categories"
-          node-key="id"
-          :default-expand-all="true"
-          @node-click="selectCategory"
-        />
-      </div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-semibold">Категории</h1>
+      <el-button size="small" type="primary" @click="openCreate"
+        >Создать</el-button
+      >
+    </div>
 
-      <div class="flex-1 pl-6" v-if="selected">
-        <h2 class="text-xl font-semibold mb-4">{{ selected.name }}</h2>
-        <div class="mb-4">
-          <el-button size="small" type="primary" @click="openEdit"
+    <el-table
+      v-if="loaded"
+      :data="categories"
+      row-key="id"
+      :tree-props="{ children: 'subcategories' }"
+      :default-expand-all="true"
+      style="width: 100%"
+    >
+      <el-table-column prop="name" label="Название" />
+      <el-table-column prop="description" label="Описание" />
+      <el-table-column width="160">
+        <template #default="scope">
+          <el-button size="small" @click="editCategory(scope.row)"
             >Редактировать</el-button
           >
-          <el-button size="small" type="danger" @click="removeCategory"
+          <el-button
+            size="small"
+            type="danger"
+            @click="removeCategory(scope.row)"
             >Удалить</el-button
           >
-        </div>
-        <div>
-          <p class="text-gray-700 mb-2">{{ selected.description }}</p>
-          <div v-if="selected.fields?.length">
-            <h3 class="font-semibold mb-2">Поля</h3>
-            <ul class="list-disc pl-5 text-sm space-y-1">
-              <li v-for="f in selected.fields" :key="f.id">
-                {{ f.label }} ({{ f.key }})
-                <span v-if="f.isRequired" class="text-red-500">*</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="flex-1 pl-6" v-else>
-        <p class="text-gray-500">Выберите категорию</p>
-      </div>
-
-      <el-dialog v-model="editVisible" title="Категория">
-        <el-form label-width="120px">
-          <el-form-item label="Название">
-            <el-input v-model="form.name" />
-          </el-form-item>
-          <el-form-item label="Описание">
-            <el-input v-model="form.description" />
-          </el-form-item>
-          <el-form-item label="Родитель">
-            <el-select v-model="form.parentCategoryId" clearable>
-              <el-option :value="null" label="Нет" />
-              <el-option
-                v-for="c in flatCategories"
-                :key="c.id"
-                :value="c.id"
-                :label="c.name"
-              />
-            </el-select>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="editVisible = false">Отмена</el-button>
-            <el-button type="primary" @click="saveCategory"
-              >Сохранить</el-button
-            >
-          </span>
         </template>
-      </el-dialog>
-    </div>
+      </el-table-column>
+    </el-table>
+
     <div v-else class="text-center py-10">Загрузка...</div>
+
+    <el-dialog v-model="dialogVisible" title="Категория" width="700px">
+      <el-form label-width="120px" class="pb-2">
+        <el-form-item label="Название">
+          <el-input v-model="form.name" />
+        </el-form-item>
+        <el-form-item label="Описание">
+          <el-input v-model="form.description" />
+        </el-form-item>
+        <el-form-item label="Родитель">
+          <el-select v-model="form.parentCategoryId" clearable>
+            <el-option :value="null" label="Нет"></el-option>
+            <el-option
+              v-for="c in flatCategories"
+              :key="c.id"
+              :value="c.id"
+              :label="c.name"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+
+      <h3 class="font-semibold mb-2">Поля</h3>
+      <el-table :data="fields" size="small" row-key="localId" class="mb-2">
+        <el-table-column prop="label" label="Метка">
+          <template #default="scope">
+            <el-input v-model="scope.row.label" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="key" label="Ключ" width="150">
+          <template #default="scope">
+            <el-input v-model="scope.row.key" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="type" label="Тип" width="140">
+          <template #default="scope">
+            <el-select v-model="scope.row.type" placeholder="Тип">
+              <el-option
+                v-for="t in fieldTypes"
+                :key="t"
+                :label="t"
+                :value="t"
+              ></el-option>
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="isRequired"
+          label="Обяз."
+          width="80"
+          align="center"
+        >
+          <template #default="scope">
+            <el-checkbox v-model="scope.row.isRequired" />
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="isFilterable"
+          label="Фильтр"
+          width="80"
+          align="center"
+        >
+          <template #default="scope">
+            <el-checkbox v-model="scope.row.isFilterable" />
+          </template>
+        </el-table-column>
+        <el-table-column width="70">
+          <template #default="scope">
+            <el-button
+              size="small"
+              type="danger"
+              @click="deleteField(scope.$index)"
+            >
+              <i class="fas fa-trash" />
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-button size="small" @click="addField">Добавить поле</el-button>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <el-button @click="dialogVisible = false">Отмена</el-button>
+          <el-button type="primary" @click="save">Сохранить</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -85,16 +132,27 @@ import {
   createCategoryApi,
   updateCategory,
   deleteCategory,
+  addCategoryFields,
+  updateCategoryFields,
+  deleteCategoryFields,
+  getCategoryFields,
 } from "/src/services/CategoryService";
 import { ElMessage, ElMessageBox } from "element-plus";
 
 const categories = ref([]);
 const flatCategories = ref([]);
 const loaded = ref(false);
-const selectedId = ref(null);
-const selected = ref(null);
-const editVisible = ref(false);
-const form = reactive({ name: "", description: "", parentCategoryId: null });
+const dialogVisible = ref(false);
+const form = reactive({
+  id: null,
+  name: "",
+  description: "",
+  parentCategoryId: null,
+});
+const fields = ref([]);
+let removedFieldIds = [];
+let localIdCounter = 1;
+const fieldTypes = ["string", "number", "integer", "boolean", "date"];
 
 function flatten(list, arr = []) {
   for (const c of list) {
@@ -114,45 +172,80 @@ async function load() {
   }
 }
 
-function selectCategory(node) {
-  selectedId.value = node.id;
-  selected.value = node;
-  form.name = node.name;
-  form.description = node.description;
-  form.parentCategoryId = node.parentCategoryId || null;
+function addField() {
+  fields.value.push({
+    localId: `new_${localIdCounter++}`,
+    id: null,
+    key: "",
+    label: "",
+    type: "string",
+    isRequired: false,
+    isFilterable: false,
+  });
 }
 
-function createCategory() {
-  selected.value = null;
+function deleteField(index) {
+  const field = fields.value[index];
+  if (field.id) {
+    removedFieldIds.push(field.id);
+  }
+  fields.value.splice(index, 1);
+}
+
+async function openCreate() {
+  form.id = null;
   form.name = "";
   form.description = "";
   form.parentCategoryId = null;
-  editVisible.value = true;
+  fields.value = [];
+  removedFieldIds = [];
+  dialogVisible.value = true;
 }
 
-function openEdit() {
-  if (!selected.value) return;
-  editVisible.value = true;
+async function editCategory(row) {
+  form.id = row.id;
+  const cat = await getCategoryById(row.id);
+  form.name = cat.name;
+  form.description = cat.description;
+  form.parentCategoryId = cat.parentCategoryId;
+  const catFields = await getCategoryFields(row.id);
+  fields.value = catFields.map((f) => ({
+    localId: f.id,
+    ...f,
+  }));
+  removedFieldIds = [];
+  dialogVisible.value = true;
 }
 
-async function saveCategory() {
+async function save() {
   try {
-    if (selected.value) {
-      await updateCategory(selectedId.value, {
+    if (form.id) {
+      await updateCategory(form.id, {
         name: form.name,
         description: form.description,
         parentCategoryId: form.parentCategoryId,
       });
+      const newFields = fields.value.filter((f) => !f.id);
+      const updatedFields = fields.value.filter((f) => f.id);
+      if (newFields.length) {
+        await addCategoryFields(form.id, newFields.map(mapField));
+      }
+      if (updatedFields.length) {
+        await updateCategoryFields(form.id, updatedFields.map(mapField));
+      }
+      if (removedFieldIds.length) {
+        await deleteCategoryFields(form.id, removedFieldIds);
+      }
       ElMessage.success("Категория обновлена");
     } else {
-      const newCat = await createCategoryApi({
+      const payload = await createCategoryApi({
         name: form.name,
         description: form.description,
         parentCategoryId: form.parentCategoryId,
-        fields: [],
+        fields: fields.value.map(mapField),
       });
+      await createCategoryApi(payload);
       ElMessage.success("Категория создана");
-      selectedId.value = newCat.id;
     }
     editVisible.value = false;
     await load();
@@ -161,25 +254,31 @@ async function saveCategory() {
   }
 }
 
+function mapField(f) {
+  return {
+    id: f.id,
+    key: f.key,
+    label: f.label,
+    type: f.type,
+    isRequired: f.isRequired,
+    isFilterable: f.isFilterable,
+  };
+}
+
 async function removeCategory() {
   try {
-    await ElMessageBox.confirm(
-      "Вы уверены, что хотите удалить категорию?",
-      "Подтверждение",
-      {
-        confirmButtonText: "Удалить",
-        cancelButtonText: "Отмена",
-        type: "warning",
-      }
-    );
+    await ElMessageBox.confirm("Удалить категорию?", "Подтверждение", {
+      confirmButtonText: "Удалить",
+      cancelButtonText: "Отмена",
+      type: "warning",
+    });
   } catch {
     return;
   }
   try {
-    await deleteCategory(selectedId.value);
-    ElMessage.success("Категория удалена");
-    selected.value = null;
+    await deleteCategory(row.id);
     await load();
+    ElMessage.success("Категория удалена");
   } catch (e) {
     ElMessage.error("Ошибка удаления");
   }

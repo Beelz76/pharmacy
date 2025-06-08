@@ -34,3 +34,8 @@ export async function updateCategoryFields(id, fields) {
 export async function deleteCategoryFields(id, fieldIds) {
   await api.delete(`/categories/${id}/fields`, { data: { fieldIds } });
 }
+
+export async function getCategoryFields(id) {
+  const res = await api.get(`/categories/${id}/fields`);
+  return res.data;
+}
