@@ -1,4 +1,5 @@
-﻿using Pharmacy.Database.Entities;
+﻿using Microsoft.Extensions.Caching.Hybrid;
+using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.Endpoints.UserAddresses;
 using Pharmacy.Extensions;
@@ -14,29 +15,44 @@ public class UserAddressService : IUserAddressService
 {
     private readonly IUserAddressRepository _repository;
     private readonly IAddressRepository _addressRepository;
+    private readonly HybridCache _cache;
 
-    public UserAddressService(IUserAddressRepository repository, IAddressRepository addressRepository)
+    public UserAddressService(IUserAddressRepository repository, IAddressRepository addressRepository, HybridCache cache)
     {
         _repository = repository;
         _addressRepository = addressRepository;
+        _cache = cache;
     }
 
     public async Task<Result<IEnumerable<UserAddressDto>>> GetAllAsync(int userId)
     {
-        var addresses = await _repository.GetByUserIdAsync(userId);
-        var result = addresses.Select(ToDto);
-        return Result.Success(result);
+        var result = await _cache.GetOrCreateAsync(
+            $"user-{userId}-addresses",
+            async ct =>
+            {
+                var addresses = await _repository.GetByUserIdAsync(userId);
+                return addresses.Select(ToDto).ToList();
+            });
+
+        return Result.Success<IEnumerable<UserAddressDto>>(result);
     }
 
     public async Task<Result<UserAddressDto>> GetByIdAsync(int userId, int userAddressId)
     {
-        var address = await _repository.GetByIdAsync(userId, userAddressId);
-        if (address == null)
+        var dto = await _cache.GetOrCreateAsync(
+            $"user-{userId}-address-{userAddressId}",
+            async ct =>
+            {
+                var address = await _repository.GetByIdAsync(userId, userAddressId);
+                return address is null ? null : ToDto(address);
+            });
+
+        if (dto is null)
         {
             return Result.Failure<UserAddressDto>(Error.NotFound("Адрес не найден"));
         }
 
-        return Result.Success(ToDto(address));
+        return Result.Success(dto);
     }
 
     public async Task<Result<CreatedDto>> CreateAsync(int userId, CreateUserAddressRequest request)

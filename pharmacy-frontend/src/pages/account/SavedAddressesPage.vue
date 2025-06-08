@@ -1,18 +1,17 @@
 <template>
   <div class="max-w-5xl mx-auto">
     <h2 class="text-2xl font-bold mb-6">Сохраненные адреса</h2>
-    <div v-if="!auth.isAuthenticated" class="text-center text-gray-500 mb-4">
-      Необходимо авторизоваться
-    </div>
+
     <div
       v-if="auth.isAuthenticated"
-      class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6"
+      class="grid grid-cols-1 md:grid-cols-[1fr] gap-6"
     >
+      <!-- Адреса -->
       <div class="space-y-3">
         <div
           v-for="addr in addresses"
           :key="addr.id"
-          class="p-3 border rounded-lg flex justify-between items-start"
+          class="p-4 border rounded-lg bg-white shadow-sm flex justify-between"
         >
           <div>
             <p class="font-medium text-gray-900">{{ addr.fullAddress }}</p>
@@ -21,26 +20,30 @@
             </p>
           </div>
           <div class="flex gap-2">
-            <el-button size="small" @click="editAddress(addr)"
-              ><i class="fas fa-edit"
-            /></el-button>
+            <el-button size="small" @click="editAddress(addr)">
+              <i class="fas fa-edit" />
+            </el-button>
             <el-button
               size="small"
               type="danger"
               @click="deleteAddress(addr.id)"
-              ><i class="fas fa-trash"
-            /></el-button>
+            >
+              <i class="fas fa-trash" />
+            </el-button>
           </div>
         </div>
-        <el-button type="primary" plain size="small" @click="startAdd"
-          >Добавить адрес</el-button
+
+        <div
+          class="p-4 border-dashed border-2 rounded-lg flex items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-50"
+          @click="startAdd"
         >
+          <i class="fas fa-plus mr-2" /> Добавить адрес
+        </div>
       </div>
-      <div
-        v-if="editing"
-        class="bg-white border rounded-xl shadow-sm p-4 space-y-3"
-      >
-        <div class="h-72">
+
+      <!-- Диалог редактирования -->
+      <el-dialog v-model="editing" width="600px" align-center title="Адрес">
+        <div class="h-72 mb-3">
           <MapComponent
             ref="mapRef"
             :city="selectedCity"
@@ -48,19 +51,26 @@
             @select="onMapSelect"
           />
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
           <el-input v-model="entrance" placeholder="Подъезд" />
           <el-input v-model="floor" placeholder="Этаж" />
           <el-input v-model="apartment" placeholder="Квартира" />
         </div>
-        <el-input v-model="addressComment" placeholder="Комментарий" />
-        <div class="flex justify-end gap-2">
-          <el-button type="primary" size="small" @click="saveAddress"
-            >Сохранить</el-button
-          >
-          <el-button size="small" @click="cancelEdit">Отмена</el-button>
-        </div>
-      </div>
+
+        <el-input
+          v-model="addressComment"
+          placeholder="Комментарий"
+          class="mb-3"
+        />
+
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="cancelEdit">Отмена</el-button>
+            <el-button type="primary" @click="saveAddress">Сохранить</el-button>
+          </span>
+        </template>
+      </el-dialog>
     </div>
   </div>
 </template>
