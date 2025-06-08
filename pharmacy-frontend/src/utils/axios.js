@@ -25,7 +25,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    const message = error.response?.data?.message || "Произошла ошибка запроса";
+    const data = error.response?.data;
+    let message = "Произошла ошибка запроса";
+
+    if (data) {
+      if (data.errors && typeof data.errors === "object") {
+        message = Object.values(data.errors).flat().join(" ");
+      } else if (data.message) {
+        message = data.message;
+      }
+    }
 
     switch (status) {
       case 401: {

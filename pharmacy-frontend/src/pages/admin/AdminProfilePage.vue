@@ -61,13 +61,7 @@
               >
             </template>
           </div>
-        </el-form>
-      </el-card>
 
-      <!-- Почта и пароль -->
-      <div class="space-y-8">
-        <!-- Почта -->
-        <el-card class="!p-6">
           <template #header>
             <h2 class="text-xl font-semibold text-gray-900">Почта</h2>
           </template>
@@ -109,8 +103,11 @@
               </template>
             </div>
           </el-form>
-        </el-card>
+        </el-form>
+      </el-card>
 
+      <!-- Почта и пароль -->
+      <div class="space-y-8">
         <!-- Пароль -->
         <el-card class="!p-6">
           <template #header>

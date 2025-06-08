@@ -1,15 +1,14 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between mb-2">
       <h1 class="text-2xl font-semibold">Категории</h1>
-      <button
-        class="px-4 py-2 rounded bg-secondary-600 text-white hover:bg-secondary-700 transition"
-        @click="openCreate"
-      >
-        Создать
-      </button>
+      <el-button type="primary" @click="openCreate">
+        <i class="fas fa-plus mr-1"></i> Создать
+      </el-button>
     </div>
-
+    <div class="mb-4 text-gray-600">
+      Всего категорий: {{ flatCategories.length }}
+    </div>
     <div
       v-if="loaded"
       class="overflow-x-auto rounded-lg shadow border bg-white"
@@ -34,18 +33,20 @@
             <td class="px-6 py-4 whitespace-nowrap">{{ c.description }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right">
               <div class="flex justify-end gap-2">
-                <button
-                  class="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700 transition"
+                <el-button
+                  size="small"
+                  type="primary"
                   @click.stop="editCategory(c)"
                 >
-                  Редактировать
-                </button>
-                <button
-                  class="px-4 py-2 rounded text-white bg-red-600 hover:bg-red-700 transition"
+                  Редактировать</el-button
+                >
+                <el-button
+                  size="small"
+                  type="danger"
                   @click.stop="removeCategory(c)"
                 >
-                  Удалить
-                </button>
+                  Удалить</el-button
+                >
               </div>
             </td>
           </tr>
@@ -285,11 +286,7 @@ async function save() {
     }
     dialogVisible.value = false;
     await load();
-  } catch (e) {
-    ElMessage.error(
-      `${e.response?.status} ${e.response?.data?.message || e.message}`
-    );
-  }
+  } catch {}
 }
 
 function mapField(f) {
@@ -317,11 +314,7 @@ async function removeCategory(row) {
     await deleteCategory(row.id);
     await load();
     ElMessage.success("Категория удалена");
-  } catch (e) {
-    // ElMessage.error(
-    //   `${e.response?.status} ${e.response?.data?.message || e.message}`
-    // );
-  }
+  } catch {}
 }
 
 onMounted(load);

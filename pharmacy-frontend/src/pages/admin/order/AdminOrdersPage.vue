@@ -1,101 +1,104 @@
 <template>
   <div>
-    <h1 class="text-2xl font-semibold mb-6">Заказы</h1>
+    <h1 class="text-2xl font-semibold mb-2">Заказы</h1>
+    <div class="mb-4 text-gray-600">Всего заказов: {{ totalCount }}</div>
 
     <div class="bg-white rounded-lg shadow p-6 mb-6">
       <el-form :inline="true" @submit.prevent>
-        <el-form-item label-width="0">
-          <el-input
-            v-model="filters.number"
-            placeholder="Номер"
-            size="large"
-            class="!w-40"
-          />
-        </el-form-item>
-        <el-form-item label-width="0">
-          <el-input
-            v-model="filters.userEmail"
-            placeholder="Email"
-            size="large"
-            class="!w-48"
-          />
-        </el-form-item>
-        <el-form-item label-width="0">
-          <el-input
-            v-model="filters.userFullName"
-            placeholder="ФИО"
-            size="large"
-            class="!w-52"
-          />
-        </el-form-item>
-        <el-form-item label="Аптека">
-          <el-select
-            v-model="selectedPharmacyName"
-            placeholder="Все"
-            clearable
-            filterable
-            remote
-            reserve-keyword
-            :remote-method="searchPharmacyNames"
-            :loading="loadingPharmacies"
-            class="!w-52"
-          >
-            <el-option
-              v-for="n in pharmacyNames"
-              :key="n"
-              :label="n"
-              :value="n"
+        <div class="flex flex-wrap items-end gap-4 mb-4">
+          <el-form-item label-width="0">
+            <el-input
+              v-model="filters.number"
+              placeholder="Номер"
+              size="large"
+              class="!w-40"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label-width="0">
-          <el-select
-            v-model="filters.pharmacyId"
-            placeholder="Адрес"
-            clearable
-            filterable
-            remote
-            reserve-keyword
-            :remote-method="searchPharmacyAddresses"
-            :loading="loadingPharmacies"
-            class="!w-60"
-          >
-            <el-option
-              v-for="p in pharmacyAddresses"
-              :key="p.id"
-              :label="p.address"
-              :value="p.id"
+          </el-form-item>
+          <el-form-item label-width="0">
+            <el-input
+              v-model="filters.userEmail"
+              placeholder="Email"
+              size="large"
+              class="!w-48"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Статус">
-          <el-select
-            v-model="filters.status"
-            placeholder="Все"
-            clearable
-            class="!w-40"
-          >
-            <el-option
-              v-for="s in statuses"
-              :key="s.id"
-              :label="s.description"
-              :value="s.name"
+          </el-form-item>
+          <el-form-item label-width="0">
+            <el-input
+              v-model="filters.userFullName"
+              placeholder="ФИО"
+              size="large"
+              class="!w-52"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Период">
-          <el-date-picker
-            v-model="filters.dateRange"
-            type="daterange"
-            range-separator="-"
-            start-placeholder="От"
-            end-placeholder="До"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" plain @click="fetch">Поиск</el-button>
-          <el-button @click="resetFilters">Сбросить</el-button>
-        </el-form-item>
+          </el-form-item>
+          <el-form-item label="Аптека">
+            <el-select
+              v-model="selectedPharmacyName"
+              placeholder="Все"
+              clearable
+              filterable
+              remote
+              reserve-keyword
+              :remote-method="searchPharmacyNames"
+              :loading="loadingPharmacies"
+              class="!w-52"
+            >
+              <el-option
+                v-for="n in pharmacyNames"
+                :key="n"
+                :label="n"
+                :value="n"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Адрес">
+            <el-select
+              v-model="filters.pharmacyId"
+              placeholder="Адрес"
+              clearable
+              filterable
+              remote
+              reserve-keyword
+              :remote-method="searchPharmacyAddresses"
+              :loading="loadingPharmacies"
+              class="!w-60"
+            >
+              <el-option
+                v-for="p in pharmacyAddresses"
+                :key="p.id"
+                :label="p.address"
+                :value="p.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Статус">
+            <el-select
+              v-model="filters.status"
+              placeholder="Все"
+              clearable
+              class="!w-40"
+            >
+              <el-option
+                v-for="s in statuses"
+                :key="s.id"
+                :label="s.description"
+                :value="s.name"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Период">
+            <el-date-picker
+              v-model="filters.dateRange"
+              type="daterange"
+              range-separator="-"
+              start-placeholder="От"
+              end-placeholder="До"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" plain @click="fetch">Поиск</el-button>
+            <el-button @click="resetFilters">Сбросить</el-button>
+          </el-form-item>
+        </div>
       </el-form>
     </div>
 

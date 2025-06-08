@@ -1,13 +1,13 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between mb-2">
       <h2 class="text-2xl font-semibold">Производители</h2>
-      <button
-        class="px-4 py-2 rounded bg-secondary-600 text-white hover:bg-secondary-700 transition"
-        @click="openCreate"
-      >
-        Добавить
-      </button>
+      <el-button type="primary" @click="openCreate">
+        <i class="fas fa-plus mr-1"></i> Добавить
+      </el-button>
+    </div>
+    <div class="mb-4 text-gray-600">
+      Всего производителей: {{ list.length }}
     </div>
     <div class="overflow-x-auto rounded-lg shadow border bg-white">
       <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
@@ -28,18 +28,12 @@
             <td class="px-6 py-4">{{ m.country }}</td>
             <td class="px-6 py-4 text-right">
               <div class="flex justify-end gap-2">
-                <button
-                  class="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700 transition"
-                  @click="edit(m)"
+                <el-button size="small" type="primary" @click="edit(m)"
+                  >Редактировать</el-button
                 >
-                  Редактировать
-                </button>
-                <button
-                  class="px-4 py-2 rounded text-white bg-red-600 hover:bg-red-700 transition"
-                  @click="remove(m.id)"
+                <el-button size="small" type="danger" @click="remove(m.id)"
+                  >Удалить</el-button
                 >
-                  Удалить
-                </button>
               </div>
             </td>
           </tr>
