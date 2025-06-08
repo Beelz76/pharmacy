@@ -12,9 +12,13 @@
 
     <div v-else-if="auth.isAuthenticated">
       <div class="overflow-x-auto rounded-xl shadow border">
-        <table class="min-w-full table-fixed divide-y divide-gray-200 bg-white text-sm">
+        <table
+          class="min-w-full table-fixed divide-y divide-gray-200 bg-white text-sm"
+        >
           <thead class="bg-gray-50">
-            <tr class="text-left text-gray-600 uppercase text-sm tracking-wider">
+            <tr
+              class="text-left text-gray-600 uppercase text-sm tracking-wider"
+            >
               <th class="w-[160px] px-6 py-6 font-semibold text-gray-600">
                 <i class="fas fa-hashtag mr-2 text-gray-400"></i>Номер
               </th>
@@ -42,13 +46,22 @@
               class="hover:bg-gray-50 transition cursor-pointer group text-[15px] leading-relaxed"
               @click="goToOrder(order.id)"
             >
-              <td class="px-6 py-6 font-medium text-gray-900 whitespace-nowrap" @mousedown.stop>
+              <td
+                class="px-6 py-6 font-medium text-gray-900 whitespace-nowrap"
+                @mousedown.stop
+              >
                 {{ order.number }}
               </td>
-              <td class="px-6 py-6 text-gray-700 whitespace-nowrap" @mousedown.stop>
+              <td
+                class="px-6 py-6 text-gray-700 whitespace-nowrap"
+                @mousedown.stop
+              >
                 {{ formatDate(order.createdAt) }}
               </td>
-              <td class="px-6 py-6 text-gray-700 whitespace-nowrap" @mousedown.stop>
+              <td
+                class="px-6 py-6 text-gray-700 whitespace-nowrap"
+                @mousedown.stop
+              >
                 {{ order.totalPrice.toFixed(2) }} ₽
               </td>
               <td class="px-6 py-6 whitespace-nowrap" @mousedown.stop>
@@ -59,10 +72,15 @@
                   {{ order.status }}
                 </span>
               </td>
-              <td class="px-6 py-6 text-gray-700 whitespace-nowrap text-center" @mousedown.stop>
-                {{ order.pickupCode || '—' }}
+              <td
+                class="px-6 py-6 text-gray-700 whitespace-nowrap text-center"
+                @mousedown.stop
+              >
+                {{ order.pickupCode || "—" }}
               </td>
-              <td class="px-6 py-6 text-right text-gray-400 group-hover:text-primary-600 transition w-8">
+              <td
+                class="px-6 py-6 text-right text-gray-400 group-hover:text-primary-600 transition w-8"
+              >
                 <i class="fas fa-chevron-right"></i>
               </td>
             </tr>
@@ -83,63 +101,62 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useAuthStore } from '/src/stores/AuthStore'
-import { useOrders } from '/src/composables/useOrders'
-import LoadingSpinner from '/src/components/LoadingSpinner.vue'
-import { useRouter } from 'vue-router'
-import { useOrderNavigationStore } from '/src/stores/OrderStore'
-import { statusClass } from '../../utils/statusClass'
+import { ref, onMounted, watch } from "vue";
+import { useAuthStore } from "/src/stores/AuthStore";
+import { useOrders } from "/src/composables/useOrders";
+import LoadingSpinner from "/src/components/LoadingSpinner.vue";
+import { useRouter } from "vue-router";
+import { useOrderNavigationStore } from "/src/stores/OrderStore";
+import { statusClass } from "../../utils/statusClass";
 
-const navStore = useOrderNavigationStore()
-const router = useRouter()
-const auth = useAuthStore()
-const pageSize = 5
-const pageNumber = ref(1)
-const { orders, totalCount, loading, fetchOrders } = useOrders()
+const navStore = useOrderNavigationStore();
+const router = useRouter();
+const auth = useAuthStore();
+const pageSize = 5;
+const pageNumber = ref(1);
+const { orders, totalCount, loading, fetchOrders } = useOrders();
 
 const goToOrder = (orderId) => {
   router.push({
-    name: 'OrderDetails',
-    params: { id: orderId }
-  })
-}
+    name: "OrderDetails",
+    params: { id: orderId },
+  });
+};
 
 const formatDate = (isoString) => {
-  return new Date(isoString).toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+  return new Date(isoString).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 onMounted(() => {
-  if (!auth.isAuthenticated) return
-  const shouldRestore = navStore.consumeRestoreFlag()
+  if (!auth.isAuthenticated) return;
+  const shouldRestore = navStore.consumeRestoreFlag();
   if (shouldRestore) {
-    pageNumber.value = navStore.historyPage
+    pageNumber.value = navStore.historyPage;
   } else {
-    pageNumber.value = 1
+    pageNumber.value = 1;
   }
 
-  fetchOrders({ page: pageNumber.value, size: pageSize })
-})
+  fetchOrders({ page: pageNumber.value, size: pageSize });
+});
 
 watch(
   () => auth.isAuthenticated,
   (val) => {
     if (val) {
-      fetchOrders({ page: pageNumber.value, size: pageSize })
+      fetchOrders({ page: pageNumber.value, size: pageSize });
     }
   }
-)
+);
 
 watch(pageNumber, (val) => {
   if (auth.isAuthenticated) {
-    fetchOrders({ page: val, size: pageSize })
+    fetchOrders({ page: val, size: pageSize });
   }
-})
+});
 </script>
-

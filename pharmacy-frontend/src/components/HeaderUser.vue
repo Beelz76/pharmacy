@@ -1,5 +1,7 @@
 <template>
-  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+  <header
+    class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200"
+  >
     <div class="max-w-7xl mx-auto px-2">
       <div class="flex items-center h-16 justify-between gap-6">
         <!-- Логотип и навигация -->
@@ -13,14 +15,22 @@
             <router-link
               to="/"
               class="text-base font-medium"
-              :class="$route.path === '/' ? 'text-primary-600 border-b-2 border-primary-500' : 'text-gray-600 hover:text-primary-600'"
+              :class="
+                $route.path === '/'
+                  ? 'text-primary-600 border-b-2 border-primary-500'
+                  : 'text-gray-600 hover:text-primary-600'
+              "
             >
               Главная
             </router-link>
             <router-link
               to="/about"
               class="text-base font-medium"
-              :class="$route.path === '/about' ? 'text-primary-600 border-b-2 border-primary-500' : 'text-gray-600 hover:text-primary-600'"
+              :class="
+                $route.path === '/about'
+                  ? 'text-primary-600 border-b-2 border-primary-500'
+                  : 'text-gray-600 hover:text-primary-600'
+              "
             >
               О нас
             </router-link>
@@ -36,7 +46,10 @@
         <div class="flex items-center space-x-6">
           <!-- Избранное -->
           <div class="relative flex flex-col items-center">
-            <router-link to="/account/favorites" class="text-2xl text-gray-600 hover:text-primary-600">
+            <router-link
+              to="/account/favorites"
+              class="text-2xl text-gray-600 hover:text-primary-600"
+            >
               <i class="fas fa-heart"></i>
             </router-link>
             <span
@@ -52,7 +65,11 @@
             <router-link
               to="/cart"
               class="text-2xl"
-              :class="$route.path === '/cart' ? 'text-primary-600' : 'text-gray-600 hover:text-primary-600'"
+              :class="
+                $route.path === '/cart'
+                  ? 'text-primary-600'
+                  : 'text-gray-600 hover:text-primary-600'
+              "
             >
               <i class="fas fa-shopping-cart"></i>
             </router-link>
@@ -66,7 +83,9 @@
           <template v-if="isAuthenticated">
             <el-dropdown>
               <template #default>
-                <button class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm flex items-center gap-2">
+                <button
+                  class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm flex items-center gap-2"
+                >
                   <i class="fas fa-user"></i>
                   Профиль
                   <i class="fas fa-chevron-down text-xs"></i>
@@ -78,9 +97,13 @@
                     <router-link to="/account">Личный кабинет</router-link>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <router-link to="/account/orders">История заказов</router-link>
+                    <router-link to="/account/orders"
+                      >История заказов</router-link
+                    >
                   </el-dropdown-item>
-                  <el-dropdown-item @click="handleLogout">Выйти</el-dropdown-item>
+                  <el-dropdown-item @click="handleLogout"
+                    >Выйти</el-dropdown-item
+                  >
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -102,63 +125,63 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useAuthStore } from '../stores/AuthStore'
-import { useFavoritesStore } from '../stores/FavoritesStore'
-import { useCartStore } from '../stores/CartStore'
-import { useCategoryStore } from '../stores/CategoryStore'
-import api from '../utils/axios'
-import SearchBarWithCategory from '../components/SearchBarWithCategory.vue'
+import { ref, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "../stores/AuthStore";
+import { useFavoritesStore } from "../stores/FavoritesStore";
+import { useCartStore } from "../stores/CartStore";
+import { useCategoryStore } from "../stores/CategoryStore";
+import api from "../utils/axios";
+import SearchBarWithCategory from "../components/SearchBarWithCategory.vue";
 
-const auth = useAuthStore()
-const favorites = useFavoritesStore()
-const cart = useCartStore()
-const categoryStore = useCategoryStore()
+const auth = useAuthStore();
+const favorites = useFavoritesStore();
+const cart = useCartStore();
+const categoryStore = useCategoryStore();
 
-const { isAuthenticated } = storeToRefs(auth)
-const { favoritesCount } = storeToRefs(favorites)
-const { cartCount } = storeToRefs(cart)
+const { isAuthenticated } = storeToRefs(auth);
+const { favoritesCount } = storeToRefs(favorites);
+const { cartCount } = storeToRefs(cart);
 
-const activeCategory = ref(null)
-const categoryDropdownVisible = ref(false)
+const activeCategory = ref(null);
+const categoryDropdownVisible = ref(false);
 
-const $route = useRoute()
-const router = useRouter()
+const $route = useRoute();
+const router = useRouter();
 
 watch(
   () => $route.path,
   (path) => {
-    if (!path.includes('/products/catalog')) {
-      categoryStore.resetCategory()
+    if (!path.includes("/products/catalog")) {
+      categoryStore.resetCategory();
     }
   }
-)
+);
 
 watch(
   () => auth.role,
   (newRole) => {
-    if (isAuthenticated.value && newRole === 'User') {
-      favorites.fetchCount()
-      cart.fetchCartCount()
+    if (isAuthenticated.value && newRole === "User") {
+      favorites.fetchCount();
+      cart.fetchCartCount();
     }
   },
   { immediate: true }
-)
+);
 
 onMounted(() => {
-  categoryStore.fetchCategories()
-})
+  categoryStore.fetchCategories();
+});
 
 function openAuthModal() {
-  auth.setReturnUrl(router.currentRoute.value.fullPath)
-  window.dispatchEvent(new Event('unauthorized'))
+  auth.setReturnUrl(router.currentRoute.value.fullPath);
+  window.dispatchEvent(new Event("unauthorized"));
 }
 
 function handleLogout() {
-  auth.logout()
-  router.push('/')
+  auth.logout();
+  router.push("/");
 }
 </script>
 

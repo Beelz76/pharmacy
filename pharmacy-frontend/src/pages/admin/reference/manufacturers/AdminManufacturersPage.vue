@@ -2,7 +2,9 @@
   <div>
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-xl font-semibold">Производители</h2>
-      <el-button size="small" type="primary" @click="openCreate">Добавить</el-button>
+      <el-button size="small" type="primary" @click="openCreate"
+        >Добавить</el-button
+      >
     </div>
     <el-table :data="list" style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" />
@@ -10,8 +12,12 @@
       <el-table-column prop="country" label="Страна" />
       <el-table-column width="120">
         <template #default="scope">
-          <el-button size="small" @click="edit(scope.row)">Редактировать</el-button>
-          <el-button size="small" type="danger" @click="remove(scope.row.id)">Удалить</el-button>
+          <el-button size="small" @click="edit(scope.row)"
+            >Редактировать</el-button
+          >
+          <el-button size="small" type="danger" @click="remove(scope.row.id)"
+            >Удалить</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -36,68 +42,73 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, reactive, onMounted } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
 import {
   getManufacturers,
   createManufacturer,
   updateManufacturer,
   deleteManufacturer,
-} from '/src/services/ManufacturerService'
+} from "/src/services/ManufacturerService";
 
-const list = ref([])
-const dialogVisible = ref(false)
-const form = reactive({ id: null, name: '', country: '' })
+const list = ref([]);
+const dialogVisible = ref(false);
+const form = reactive({ id: null, name: "", country: "" });
 
 async function load() {
-  list.value = await getManufacturers()
+  list.value = await getManufacturers();
 }
 
 function openCreate() {
-  form.id = null
-  form.name = ''
-  form.country = ''
-  dialogVisible.value = true
+  form.id = null;
+  form.name = "";
+  form.country = "";
+  dialogVisible.value = true;
 }
 
 function edit(row) {
-  form.id = row.id
-  form.name = row.name
-  form.country = row.country
-  dialogVisible.value = true
+  form.id = row.id;
+  form.name = row.name;
+  form.country = row.country;
+  dialogVisible.value = true;
 }
 
 async function save() {
   try {
     if (form.id) {
-      await updateManufacturer(form.id, { name: form.name, country: form.country })
+      await updateManufacturer(form.id, {
+        name: form.name,
+        country: form.country,
+      });
     } else {
-      await createManufacturer({ name: form.name, country: form.country })
+      await createManufacturer({ name: form.name, country: form.country });
     }
-    ElMessage.success('Сохранено')
-    dialogVisible.value = false
-    await load()
+    ElMessage.success("Сохранено");
+    dialogVisible.value = false;
+    await load();
   } catch (e) {
-    ElMessage.error('Ошибка')
+    ElMessage.error("Ошибка");
   }
 }
 
 async function remove(id) {
   try {
-    await ElMessageBox.confirm(
-      'Удалить производителя?',
-      'Подтверждение',
-      { type: 'warning' }
-    )
-    await deleteManufacturer(id)
-    ElMessage.success('Удалено')
-    await load()
+    await ElMessageBox.confirm("Удалить производителя?", "Подтверждение", {
+      confirmButtonText: "Удалить",
+      cancelButtonText: "Отмена",
+      type: "warning",
+    });
+  } catch {
+    return;
+  }
+  try {
+    await deleteManufacturer(id);
+    ElMessage.success("Удалено");
+    await load();
   } catch (e) {
-    if (e !== 'cancel') {
-      ElMessage.error('Ошибка удаления')
-    }
+    ElMessage.error("Ошибка удаления");
   }
 }
 
-onMounted(load)
+onMounted(load);
 </script>

@@ -1,18 +1,12 @@
 <template>
   <aside class="w-full md:w-64 py-4 px-4 bg-white border-r shadow-sm rounded-r">
     <nav class="space-y-2">
-      <RouterLink
-        to="/account"
-        :class="navLinkClass('/account')"
-      >
+      <RouterLink to="/account" :class="navLinkClass('/account')">
         <i class="fas fa-user text-base w-5 text-center mr-3"></i>
         Личный кабинет
       </RouterLink>
 
-      <RouterLink
-        to="/account/orders"
-        :class="navLinkClass('/account/orders')"
-      >
+      <RouterLink to="/account/orders" :class="navLinkClass('/account/orders')">
         <i class="fas fa-box text-base w-5 text-center mr-3"></i>
         История заказов
       </RouterLink>
@@ -33,10 +27,7 @@
         Сохраненные адреса
       </RouterLink>
 
-      <RouterLink
-        to="/cart"
-        :class="navLinkClass('/cart')"
-      >
+      <RouterLink to="/cart" :class="navLinkClass('/cart')">
         <i class="fas fa-shopping-cart text-base w-5 text-center mr-3"></i>
         Корзина
       </RouterLink>
@@ -55,29 +46,29 @@
 </template>
 
 <script setup>
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '/src/stores/AuthStore'
+import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "/src/stores/AuthStore";
 
-const route = useRoute()
-const router = useRouter()
-const auth = useAuthStore()
+const route = useRoute();
+const router = useRouter();
+const auth = useAuthStore();
 
 const navLinkClass = (path) => {
   const isActive =
-    path === '/account'
-      ? route.path === '/account'
-      : route.path.startsWith(path)
+    path === "/account"
+      ? route.path === "/account"
+      : route.path.startsWith(path);
 
   return (
-    'w-full flex items-center px-4 py-2 rounded-lg transition text-sm font-medium ' +
+    "w-full flex items-center px-4 py-2 rounded-lg transition text-sm font-medium " +
     (isActive
-      ? 'bg-primary-100 text-primary-700 font-semibold'
-      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50')
-  )
-}
+      ? "bg-primary-100 text-primary-700 font-semibold"
+      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50")
+  );
+};
 
 const logout = async () => {
-  await auth.logout()
-  router.push('/')
-}
+  await auth.logout();
+  router.push("/");
+};
 </script>

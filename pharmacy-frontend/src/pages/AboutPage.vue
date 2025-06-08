@@ -3,7 +3,8 @@
     <!-- Заголовок -->
     <h1 class="text-3xl font-bold text-center mb-6">О нас</h1>
     <p class="text-gray-700 text-center text-lg max-w-2xl mx-auto mb-12">
-      Мы — онлайн-аптека нового поколения. Быстрый поиск, удобное оформление и забота о вашем здоровье — всё это в одном сервисе.
+      Мы — онлайн-аптека нового поколения. Быстрый поиск, удобное оформление и
+      забота о вашем здоровье — всё это в одном сервисе.
     </p>
 
     <!-- Преимущества -->
@@ -26,8 +27,14 @@
     <div class="mb-20">
       <h2 class="text-2xl font-bold text-center mb-8">Как оформить заказ</h2>
       <div class="space-y-6">
-        <div v-for="(step, index) in steps" :key="index" class="flex gap-4 items-start">
-          <div class="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-semibold">
+        <div
+          v-for="(step, index) in steps"
+          :key="index"
+          class="flex gap-4 items-start"
+        >
+          <div
+            class="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-semibold"
+          >
             {{ index + 1 }}
           </div>
           <div class="text-gray-700 text-lg">
@@ -40,8 +47,13 @@
 
     <!-- Контакты -->
     <div class="text-center text-lg text-gray-600 space-y-3">
-      <p><i class="fas fa-envelope mr-1 text-primary-600"></i> support@medicare.ru</p>
-      <p><i class="fas fa-phone mr-1 text-primary-600"></i> +7 (495) 123-45-67</p>
+      <p>
+        <i class="fas fa-envelope mr-1 text-primary-600"></i>
+        support@medicare.ru
+      </p>
+      <p>
+        <i class="fas fa-phone mr-1 text-primary-600"></i> +7 (495) 123-45-67
+      </p>
     </div>
   </div>
 </template>
@@ -49,28 +61,32 @@
 <script setup>
 const steps = [
   {
-    title: 'Выберите товары',
-    description: 'Добавьте нужные препараты в корзину через поиск или категории.',
+    title: "Выберите товары",
+    description:
+      "Добавьте нужные препараты в корзину через поиск или категории.",
   },
   {
-    title: 'Перейдите к оформлению',
-    description: 'Выберите город и способ получения — доставка или самовывоз из аптеки.',
+    title: "Перейдите к оформлению",
+    description:
+      "Выберите город и способ получения — доставка или самовывоз из аптеки.",
   },
   {
-    title: 'Заполните адрес (при доставке)',
-    description: 'Укажите адрес и при необходимости оставьте комментарий для курьера.',
+    title: "Заполните адрес (при доставке)",
+    description:
+      "Укажите адрес и при необходимости оставьте комментарий для курьера.",
   },
   {
-    title: 'Выберите способ оплаты',
-    description: 'Оплатите онлайн или выберите оплату при получении.',
+    title: "Выберите способ оплаты",
+    description: "Оплатите онлайн или выберите оплату при получении.",
   },
   {
-    title: 'Подтвердите заказ',
-    description: 'Проверьте все данные и подтвердите заказ.',
+    title: "Подтвердите заказ",
+    description: "Проверьте все данные и подтвердите заказ.",
   },
   {
-    title: 'Получите заказ',
-    description: 'Курьер доставит ваш заказ или вы сможете забрать его в выбранной аптеке.',
+    title: "Получите заказ",
+    description:
+      "Курьер доставит ваш заказ или вы сможете забрать его в выбранной аптеке.",
   },
-]
+];
 </script>

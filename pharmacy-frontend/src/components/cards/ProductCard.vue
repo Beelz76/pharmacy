@@ -1,10 +1,17 @@
 <template>
   <div class="relative w-full h-full">
     <!-- Избранное -->
-    <button @click="toggleFavorite" class="absolute top-3 right-4 z-20 text-xl transition">
+    <button
+      @click="toggleFavorite"
+      class="absolute top-3 right-4 z-20 text-xl transition"
+    >
       <i
         class="fas fa-heart"
-        :class="isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-500 transition'"
+        :class="
+          isFavorite
+            ? 'text-red-500'
+            : 'text-gray-300 hover:text-red-500 transition'
+        "
       ></i>
     </button>
 
@@ -52,7 +59,7 @@
             {{ product.name }}
           </router-link>
           <p class="text-sm text-gray-500 mt-1 line-clamp-2">
-            {{ product.description || 'Описание недоступно' }}
+            {{ product.description || "Описание недоступно" }}
           </p>
         </div>
 
@@ -103,66 +110,71 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
-import { useFavoritesStore } from '/src/stores/FavoritesStore'
-import { useCartStore } from '/src/stores/CartStore'
-import { toSlug } from '/src/utils/slugify'
+import { ref, watch, computed } from "vue";
+import { useFavoritesStore } from "/src/stores/FavoritesStore";
+import { useCartStore } from "/src/stores/CartStore";
+import { toSlug } from "/src/utils/slugify";
 
-const props = defineProps({ product: Object })
-const defaultImage = 'https://via.placeholder.com/300x200?text=No+Image'
+const props = defineProps({ product: Object });
+const defaultImage = "https://via.placeholder.com/300x200?text=No+Image";
 
-const favoritesStore = useFavoritesStore()
-const cartStore = useCartStore()
+const favoritesStore = useFavoritesStore();
+const cartStore = useCartStore();
 
-const isFavorite = computed(() => favoritesStore.ids.includes(props.product.id))
-const cartQuantity = computed(() => cartStore.quantityById[props.product.id] || 0)
-const productLink = computed(() => `/products/${props.product.id}-${toSlug(props.product.name)}`)
+const isFavorite = computed(() =>
+  favoritesStore.ids.includes(props.product.id)
+);
+const cartQuantity = computed(
+  () => cartStore.quantityById[props.product.id] || 0
+);
+const productLink = computed(
+  () => `/products/${props.product.id}-${toSlug(props.product.name)}`
+);
 
 const editableQuantity = computed({
   get: () => cartQuantity.value || 1,
   set: async (val) => {
-    const quantity = Number(val)
-    if (!Number.isInteger(quantity) || quantity < 1) return
+    const quantity = Number(val);
+    if (!Number.isInteger(quantity) || quantity < 1) return;
     try {
-      await cartStore.setQuantity(props.product.id, quantity)
+      await cartStore.setQuantity(props.product.id, quantity);
     } catch (err) {
-      console.error('Ошибка при изменении количества:', err)
+      console.error("Ошибка при изменении количества:", err);
     }
-  }
-})
+  },
+});
 
 const toggleFavorite = async () => {
   try {
-    await favoritesStore.toggle(props.product.id, isFavorite.value)
+    await favoritesStore.toggle(props.product.id, isFavorite.value);
   } catch (err) {
-    console.error('Ошибка при обновлении избранного:', err)
+    console.error("Ошибка при обновлении избранного:", err);
   }
-}
+};
 
 const addToCart = async () => {
   try {
-    await cartStore.addToCart(props.product.id, props.product)
+    await cartStore.addToCart(props.product.id, props.product);
   } catch (err) {
-    console.error('Ошибка при добавлении в корзину:', err)
+    console.error("Ошибка при добавлении в корзину:", err);
   }
-}
+};
 
 const incrementQuantity = async () => {
   try {
-    await cartStore.increment(props.product.id, props.product)
+    await cartStore.increment(props.product.id, props.product);
   } catch (err) {
-    console.error('Ошибка при увеличении количества:', err)
+    console.error("Ошибка при увеличении количества:", err);
   }
-}
+};
 
 const decrementQuantity = async () => {
   try {
-    await cartStore.decrement(props.product.id)
+    await cartStore.decrement(props.product.id);
   } catch (err) {
-    console.error('Ошибка при уменьшении количества:', err)
+    console.error("Ошибка при уменьшении количества:", err);
   }
-}
-
+};
 </script>
 
 <style scoped>

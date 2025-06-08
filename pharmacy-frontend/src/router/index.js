@@ -26,6 +26,8 @@ import AdminReferencesPage from "../pages/admin/reference/AdminReferencesPage.vu
 import AdminCategoriesPage from "../pages/admin/reference/categories/AdminCategoriesPage.vue";
 import AdminManufacturersPage from "../pages/admin/reference/manufacturers/AdminManufacturersPage.vue";
 import AdminOrderStatusesPage from "../pages/admin/reference/orderStatuses/AdminOrderStatusesPage.vue";
+import AdminPaymentMethodsPage from "../pages/admin/reference/paymentMethods/AdminPaymentMethodsPage.vue";
+import AdminPaymentStatusesPage from "../pages/admin/reference/paymentStatuses/AdminPaymentStatusesPage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -142,6 +144,16 @@ const routes = [
             path: "order-statuses",
             name: "AdminOrderStatuses",
             component: AdminOrderStatusesPage,
+          },
+          {
+            path: "payment-methods",
+            name: "AdminPaymentMethods",
+            component: AdminPaymentMethodsPage,
+          },
+          {
+            path: "payment-statuses",
+            name: "AdminPaymentStatuses",
+            component: AdminPaymentStatusesPage,
           },
         ],
       },

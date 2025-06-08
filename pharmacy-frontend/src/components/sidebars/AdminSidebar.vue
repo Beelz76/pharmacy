@@ -1,6 +1,10 @@
 <template>
-  <aside class="w-64 flex-shrink-0 flex flex-col min-h-screen bg-white border-r shadow-sm">
-    <div class="px-4 py-5 text-lg text-center font-semibold text-secondary-700 border-b">
+  <aside
+    class="w-64 flex-shrink-0 flex flex-col min-h-screen bg-white border-r shadow-sm"
+  >
+    <div
+      class="px-4 py-5 text-lg text-center font-semibold text-secondary-700 border-b"
+    >
       Админ панель
     </div>
     <nav class="flex-1 space-y-1 px-4 py-4">
@@ -19,16 +23,21 @@
         Заказы
       </RouterLink>
 
-      <RouterLink to="/admin/deliveries" :class="navLinkClass('/admin/deliveries')">
+      <RouterLink
+        to="/admin/deliveries"
+        :class="navLinkClass('/admin/deliveries')"
+      >
         <i class="fas fa-truck text-base w-5 text-center mr-3"></i>
         Доставки
       </RouterLink>
 
       <button
         @click="showRefs = !showRefs"
-        :class="navLinkClass('/admin/references') + ' w-full flex items-center gap-3'"
+        :class="
+          navLinkClass('/admin/references') + ' w-full flex items-center gap-3'
+        "
       >
-      <span class="flex-1 text-left">Справочники</span>
+        <span class="flex-1 text-left">Справочники</span>
         <i :class="'fas fa-chevron-' + (showRefs ? 'down' : 'right')"></i>
       </button>
       <div v-show="showRefs" class="ml-6 space-y-1">
@@ -50,6 +59,19 @@
         >
           Статусы заказа
         </RouterLink>
+
+        <RouterLink
+          to="/admin/references/payment-methods"
+          :class="navLinkClass('/admin/references/payment-methods')"
+        >
+          Методы оплаты
+        </RouterLink>
+        <RouterLink
+          to="/admin/references/payment-statuses"
+          :class="navLinkClass('/admin/references/payment-statuses')"
+        >
+          Статусы оплаты
+        </RouterLink>
       </div>
     </nav>
     <div class="border-t px-4 py-4">
@@ -65,28 +87,29 @@
 </template>
 
 <script setup>
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '/src/stores/AuthStore'
-import { ref } from 'vue'
+import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "/src/stores/AuthStore";
+import { ref } from "vue";
 
-const route = useRoute()
-const router = useRouter()
-const auth = useAuthStore()
+const route = useRoute();
+const router = useRouter();
+const auth = useAuthStore();
 
-const showRefs = ref(route.path.startsWith('/admin/references'))
+const showRefs = ref(route.path.startsWith("/admin/references"));
 
 const navLinkClass = (path) => {
-  const isActive = path === '/admin' ? route.path === '/admin' : route.path.startsWith(path)
+  const isActive =
+    path === "/admin" ? route.path === "/admin" : route.path.startsWith(path);
   return (
-    'w-full flex items-center px-3 py-2 rounded-md transition text-sm font-medium ' +
+    "w-full flex items-center px-3 py-2 rounded-md transition text-sm font-medium " +
     (isActive
-      ? 'bg-secondary-100 text-secondary-700 font-semibold'
-      : 'text-gray-700 hover:text-secondary-700 hover:bg-secondary-50')
-  )
-}
+      ? "bg-secondary-100 text-secondary-700 font-semibold"
+      : "text-gray-700 hover:text-secondary-700 hover:bg-secondary-50")
+  );
+};
 
 const logout = async () => {
-  await auth.logout()
-  router.push('/')
-}
+  await auth.logout();
+  router.push("/");
+};
 </script>

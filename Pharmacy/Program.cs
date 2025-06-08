@@ -150,6 +150,10 @@ try
     builder.Services.AddScoped<IPharmacyService, PharmacyService>();
     builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
     builder.Services.AddScoped<IDeliveryService, DeliveryService>();
+    builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
+    builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
+    builder.Services.AddScoped<IPaymentStatusRepository, PaymentStatusRepository>();
+    builder.Services.AddScoped<IPaymentStatusService, PaymentStatusService>();
     
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();

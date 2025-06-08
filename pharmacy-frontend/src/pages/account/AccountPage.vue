@@ -4,8 +4,13 @@
   </div>
 
   <!-- Персональные данные -->
-  <div v-if="auth.isAuthenticated" class="bg-white border rounded-xl shadow-sm p-6">
-    <h2 class="text-xl font-semibold text-gray-900 mb-6">Персональные данные</h2>
+  <div
+    v-if="auth.isAuthenticated"
+    class="bg-white border rounded-xl shadow-sm p-6"
+  >
+    <h2 class="text-xl font-semibold text-gray-900 mb-6">
+      Персональные данные
+    </h2>
 
     <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
       <div class="grid sm:grid-cols-2 gap-4">
@@ -34,11 +39,21 @@
       </div>
 
       <div v-if="!isEmployee" class="mt-6 flex justify-end gap-3">
-        <el-button v-if="!isEditing" @click="startProfileEdit" type="primary" plain>
+        <el-button
+          v-if="!isEditing"
+          @click="startProfileEdit"
+          type="primary"
+          plain
+        >
           <i class="fas fa-edit mr-1"></i> Изменить
         </el-button>
         <template v-else>
-          <el-button @click="saveChanges" type="success" plain :loading="profileLoading">
+          <el-button
+            @click="saveChanges"
+            type="success"
+            plain
+            :loading="profileLoading"
+          >
             <i class="fas fa-check mr-1"></i> Сохранить
           </el-button>
           <el-button @click="cancelProfileEdit" type="info" plain>
@@ -53,10 +68,18 @@
   </div>
 
   <!-- Email -->
-  <div v-if="auth.isAuthenticated" class="bg-white border rounded-xl shadow-sm p-6 mt-8">
+  <div
+    v-if="auth.isAuthenticated"
+    class="bg-white border rounded-xl shadow-sm p-6 mt-8"
+  >
     <h2 class="text-xl font-semibold text-gray-900 mb-6">Почта</h2>
 
-    <el-form :model="form" :rules="rules" ref="emailFormRef" label-position="top">
+    <el-form
+      :model="form"
+      :rules="rules"
+      ref="emailFormRef"
+      label-position="top"
+    >
       <el-form-item label="Email" prop="email">
         <el-input
           v-model="form.email"
@@ -67,11 +90,21 @@
       </el-form-item>
 
       <div v-if="!isEmployee" class="mt-6 flex justify-end gap-3">
-        <el-button v-if="!isEditingEmail" @click="startEmailEdit" type="primary" plain>
+        <el-button
+          v-if="!isEditingEmail"
+          @click="startEmailEdit"
+          type="primary"
+          plain
+        >
           <i class="fas fa-edit mr-1"></i> Изменить
         </el-button>
         <template v-else>
-          <el-button @click="submitEmailChange" type="success" plain :loading="emailLoading">
+          <el-button
+            @click="submitEmailChange"
+            type="success"
+            plain
+            :loading="emailLoading"
+          >
             <i class="fas fa-check mr-1"></i> Сохранить
           </el-button>
           <el-button @click="cancelEmailEdit" type="info" plain>
@@ -86,7 +119,10 @@
   </div>
 
   <!-- Пароль -->
-  <div v-if="auth.isAuthenticated && !isEmployee" class="bg-white border rounded-xl shadow-sm p-6 mt-8">
+  <div
+    v-if="auth.isAuthenticated && !isEmployee"
+    class="bg-white border rounded-xl shadow-sm p-6 mt-8"
+  >
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-semibold text-gray-900">Изменить пароль</h2>
       <button
@@ -97,7 +133,12 @@
       </button>
     </div>
 
-    <el-form :model="form" :rules="rules" ref="passwordFormRef" label-position="top">
+    <el-form
+      :model="form"
+      :rules="rules"
+      ref="passwordFormRef"
+      label-position="top"
+    >
       <el-form-item label="Текущий пароль" prop="currentPassword">
         <el-input
           v-model="form.currentPassword"
@@ -162,223 +203,231 @@
   />
 </template>
 
-
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { ElMessage } from 'element-plus'
-import PhoneInput from '/src/components/inputs/PhoneInput.vue'
-import CodeVerificationModal from '/src/components/CodeVerificationModal.vue'
-import { useAccountStore } from '/src/stores/AccountStore'
-import { useAuthStore } from '/src/stores/AuthStore'
-import api from '/src/utils/axios'
-import PasswordResetModal from '/src/components/PasswordResetModal.vue'
+import { ref, onMounted, computed } from "vue";
+import { ElMessage } from "element-plus";
+import PhoneInput from "/src/components/inputs/PhoneInput.vue";
+import CodeVerificationModal from "/src/components/CodeVerificationModal.vue";
+import { useAccountStore } from "/src/stores/AccountStore";
+import { useAuthStore } from "/src/stores/AuthStore";
+import api from "/src/utils/axios";
+import PasswordResetModal from "/src/components/PasswordResetModal.vue";
 
-const auth = useAuthStore()
-const store = useAccountStore()
+const auth = useAuthStore();
+const store = useAccountStore();
 
-const formRef = ref()
-const emailFormRef = ref()
-const passwordFormRef = ref()
+const formRef = ref();
+const emailFormRef = ref();
+const passwordFormRef = ref();
 
-const isEditing = ref(false)
-const isEditingEmail = ref(false)
-const showVerificationModal = ref(false)
-const showPasswordResetModal = ref(false)
+const isEditing = ref(false);
+const isEditingEmail = ref(false);
+const showVerificationModal = ref(false);
+const showPasswordResetModal = ref(false);
 
-const profileLoading = ref(false)
-const emailLoading = ref(false)
-const passwordLoading = ref(false)
+const profileLoading = ref(false);
+const emailLoading = ref(false);
+const passwordLoading = ref(false);
 
-const originalEmail = ref('')
-const originalProfile = ref({ fullName: '', phoneFormatted: '' })
+const originalEmail = ref("");
+const originalProfile = ref({ fullName: "", phoneFormatted: "" });
 
-const isEmployee = computed(() => auth.role === 'Employee')
+const isEmployee = computed(() => auth.role === "Employee");
 
 const form = ref({
-  fullName: '',
-  phoneFormatted: '',
-  email: '',
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
+  fullName: "",
+  phoneFormatted: "",
+  email: "",
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
 
 const rules = {
   fullName: [
     {
       required: true,
       validator(_, val, cb) {
-        if (!val?.trim()) return cb(new Error('ФИО обязательно'))
-        cb()
+        if (!val?.trim()) return cb(new Error("ФИО обязательно"));
+        cb();
       },
-      trigger: 'blur'
-    }
+      trigger: "blur",
+    },
   ],
   email: [
     {
       required: true,
       validator(_, val, cb) {
-        const trimmed = val?.trim()
-        if (!trimmed) return cb(new Error('Email обязателен'))
-        const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return pattern.test(trimmed) ? cb() : cb(new Error('Неверный формат email'))
+        const trimmed = val?.trim();
+        if (!trimmed) return cb(new Error("Email обязателен"));
+        const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return pattern.test(trimmed)
+          ? cb()
+          : cb(new Error("Неверный формат email"));
       },
-      trigger: 'blur'
-    }
+      trigger: "blur",
+    },
   ],
   currentPassword: [
     {
       required: true,
       validator(_, val, cb) {
-        if (!val?.trim()) return cb(new Error('Введите текущий пароль'))
-        cb()
+        if (!val?.trim()) return cb(new Error("Введите текущий пароль"));
+        cb();
       },
-      trigger: 'blur'
-    }
+      trigger: "blur",
+    },
   ],
   newPassword: [
     {
       required: true,
       validator(_, val, cb) {
-        if (!val?.trim()) return cb(new Error('Введите новый пароль'))
-        if (val.length < 6) return cb(new Error('Минимум 6 символов'))
-        cb()
+        if (!val?.trim()) return cb(new Error("Введите новый пароль"));
+        if (val.length < 6) return cb(new Error("Минимум 6 символов"));
+        cb();
       },
-      trigger: 'blur'
-    }
+      trigger: "blur",
+    },
   ],
   confirmPassword: [
     {
       required: true,
       validator(_, val, cb) {
-        if (!val?.trim()) return cb(new Error('Подтвердите пароль'))
-        if (val !== form.value.newPassword) return cb(new Error('Пароли не совпадают'))
-        cb()
+        if (!val?.trim()) return cb(new Error("Подтвердите пароль"));
+        if (val !== form.value.newPassword)
+          return cb(new Error("Пароли не совпадают"));
+        cb();
       },
-      trigger: 'blur'
-    }
-  ]
-}
+      trigger: "blur",
+    },
+  ],
+};
 
 onMounted(async () => {
-  if (!auth.isAuthenticated) return
-  await store.fetchProfile()
+  if (!auth.isAuthenticated) return;
+  await store.fetchProfile();
   if (store.account) {
-    const { lastName, firstName, patronymic, phone, email } = store.account
-    const fullName = [lastName, firstName, patronymic].filter(Boolean).join(' ')
-    const phoneFormatted = formatPhone(phone || '')
-    form.value.fullName = fullName
-    form.value.phoneFormatted = phoneFormatted
-    form.value.email = email
+    const { lastName, firstName, patronymic, phone, email } = store.account;
+    const fullName = [lastName, firstName, patronymic]
+      .filter(Boolean)
+      .join(" ");
+    const phoneFormatted = formatPhone(phone || "");
+    form.value.fullName = fullName;
+    form.value.phoneFormatted = phoneFormatted;
+    form.value.email = email;
 
-    originalEmail.value = email
-    originalProfile.value = { fullName, phoneFormatted }
+    originalEmail.value = email;
+    originalProfile.value = { fullName, phoneFormatted };
   }
-})
+});
 
 function startProfileEdit() {
-  isEditing.value = true
+  isEditing.value = true;
   originalProfile.value = {
     fullName: form.value.fullName,
-    phoneFormatted: form.value.phoneFormatted
-  }
+    phoneFormatted: form.value.phoneFormatted,
+  };
 }
 
 function cancelProfileEdit() {
-  form.value.fullName = originalProfile.value.fullName
-  form.value.phoneFormatted = originalProfile.value.phoneFormatted
-  isEditing.value = false
+  form.value.fullName = originalProfile.value.fullName;
+  form.value.phoneFormatted = originalProfile.value.phoneFormatted;
+  isEditing.value = false;
 }
 
 function startEmailEdit() {
-  isEditingEmail.value = true
-  originalEmail.value = form.value.email
+  isEditingEmail.value = true;
+  originalEmail.value = form.value.email;
 }
 
 function cancelEmailEdit() {
-  form.value.email = originalEmail.value
-  isEditingEmail.value = false
+  form.value.email = originalEmail.value;
+  isEditingEmail.value = false;
 }
 
 function onVerificationClose() {
-  showVerificationModal.value = false
-  isEditingEmail.value = false
+  showVerificationModal.value = false;
+  isEditingEmail.value = false;
 }
 
 async function saveChanges() {
-  if (!formRef.value) return
-  profileLoading.value = true
+  if (!formRef.value) return;
+  profileLoading.value = true;
   try {
     await formRef.value.validate(async (valid) => {
-      if (!valid) return
-      const [lastName = '', firstName = '', patronymic = ''] = form.value.fullName.trim().split(' ')
+      if (!valid) return;
+      const [lastName = "", firstName = "", patronymic = ""] =
+        form.value.fullName.trim().split(" ");
       const payload = {
         lastName,
         firstName,
         patronymic,
-        phone: form.value.phoneFormatted.replace(/\D/g, '')
-      }
-      await store.updateProfile(payload)
-      ElMessage.success('Данные обновлены')
-      isEditing.value = false
-    })
+        phone: form.value.phoneFormatted.replace(/\D/g, ""),
+      };
+      await store.updateProfile(payload);
+      ElMessage.success("Данные обновлены");
+      isEditing.value = false;
+    });
   } catch {
-    ElMessage.error('Ошибка при сохранении')
+    ElMessage.error("Ошибка при сохранении");
   } finally {
-    profileLoading.value = false
+    profileLoading.value = false;
   }
 }
 
 async function submitEmailChange() {
-  if (!emailFormRef.value) return
-  emailLoading.value = true
+  if (!emailFormRef.value) return;
+  emailLoading.value = true;
   try {
     await emailFormRef.value.validate(async (valid) => {
-      if (!valid) return
-      await api.post('/users/change-email', { newEmail: form.value.email })
-      ElMessage.success('Код отправлен на новую почту')
-      showVerificationModal.value = true
-    })
+      if (!valid) return;
+      await api.post("/users/change-email", { newEmail: form.value.email });
+      ElMessage.success("Код отправлен на новую почту");
+      showVerificationModal.value = true;
+    });
   } finally {
-    emailLoading.value = false
+    emailLoading.value = false;
   }
 }
 
 async function submitPasswordChange() {
-  if (!passwordFormRef.value) return
-  passwordLoading.value = true
+  if (!passwordFormRef.value) return;
+  passwordLoading.value = true;
   try {
     await passwordFormRef.value.validate(async (valid) => {
-      if (!valid) return
-      await api.put('/users/change-password', {
+      if (!valid) return;
+      await api.put("/users/change-password", {
         currentPassword: form.value.currentPassword,
         newPassword: form.value.newPassword,
-        confirmNewPassword: form.value.confirmPassword
-      })
-      ElMessage.success('Пароль успешно изменён')
-      form.value.currentPassword = ''
-      form.value.newPassword = ''
-      form.value.confirmPassword = ''
-    })
+        confirmNewPassword: form.value.confirmPassword,
+      });
+      ElMessage.success("Пароль успешно изменён");
+      form.value.currentPassword = "";
+      form.value.newPassword = "";
+      form.value.confirmPassword = "";
+    });
   } catch {
-    ElMessage.error('Ошибка при изменении пароля')
+    ElMessage.error("Ошибка при изменении пароля");
   } finally {
-    passwordLoading.value = false
+    passwordLoading.value = false;
   }
 }
 
 async function onEmailChangeConfirmed(result) {
   if (result?.data?.token) {
-    auth.setToken(result.data.token)
-    auth.setEmail(form.value.email)
+    auth.setToken(result.data.token);
+    auth.setEmail(form.value.email);
   }
-  isEditingEmail.value = false
-  showVerificationModal.value = false
+  isEditingEmail.value = false;
+  showVerificationModal.value = false;
 }
 
 function formatPhone(value) {
-  const digits = value.replace(/\D/g, '')
-  if (digits.length !== 11) return ''
-  return `+${digits[0]} (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9)}`
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 11) return "";
+  return `+${digits[0]} (${digits.slice(1, 4)}) ${digits.slice(
+    4,
+    7
+  )}-${digits.slice(7, 9)}-${digits.slice(9)}`;
 }
 </script>

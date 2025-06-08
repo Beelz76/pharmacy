@@ -97,54 +97,56 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useCartStore } from '/src/stores/CartStore'
-import { toSlug } from '/src/utils/slugify'
+import { computed } from "vue";
+import { useCartStore } from "/src/stores/CartStore";
+import { toSlug } from "/src/utils/slugify";
 
-const props = defineProps({ product: Object })
+const props = defineProps({ product: Object });
 
-const cartStore = useCartStore()
-const productId = props.product.productId
+const cartStore = useCartStore();
+const productId = props.product.productId;
 
-const cartQuantity = computed(() => cartStore.quantityById[productId] || 0)
-const productLink = computed(() => `/products/${productId}-${toSlug(props.product.name)}`)
+const cartQuantity = computed(() => cartStore.quantityById[productId] || 0);
+const productLink = computed(
+  () => `/products/${productId}-${toSlug(props.product.name)}`
+);
 
 const editableQuantity = computed({
   get: () => cartQuantity.value || 1,
   set: async (val) => {
-    const quantity = Number(val)
-    if (!Number.isInteger(quantity) || quantity < 1) return
+    const quantity = Number(val);
+    if (!Number.isInteger(quantity) || quantity < 1) return;
     try {
-      await cartStore.setQuantity(productId, quantity)
+      await cartStore.setQuantity(productId, quantity);
     } catch (err) {
-      console.error('Ошибка при изменении количества:', err)
+      console.error("Ошибка при изменении количества:", err);
     }
-  }
-})
+  },
+});
 
 const incrementQuantity = async () => {
   try {
-    await cartStore.increment(productId)
+    await cartStore.increment(productId);
   } catch (err) {
-    console.error('Ошибка при увеличении количества:', err)
+    console.error("Ошибка при увеличении количества:", err);
   }
-}
+};
 
 const decrementQuantity = async () => {
   try {
-    await cartStore.decrement(productId)
+    await cartStore.decrement(productId);
   } catch (err) {
-    console.error('Ошибка при уменьшении количества:', err)
+    console.error("Ошибка при уменьшении количества:", err);
   }
-}
+};
 
 const removeItem = async () => {
   try {
-    await cartStore.removeItem(productId)
+    await cartStore.removeItem(productId);
   } catch (err) {
-    console.error('Ошибка при удалении товара из корзины:', err)
+    console.error("Ошибка при удалении товара из корзины:", err);
   }
-}
+};
 </script>
 
 <style scoped>

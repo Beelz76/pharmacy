@@ -1,6 +1,8 @@
 <template>
   <section class="hero-gradient">
-    <div class="max-w-7xl mx-auto py-20 px-4 sm:py-28 sm:px-6 lg:px-8 text-center">
+    <div
+      class="max-w-7xl mx-auto py-20 px-4 sm:py-28 sm:px-6 lg:px-8 text-center"
+    >
       <h1
         class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight mb-6 animate-fade-in"
       >
@@ -8,8 +10,11 @@
         <span class="block text-primary-600">наш главный приоритет</span>
       </h1>
 
-      <p class="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-600 animate-fade-in delay-150">
-        Заказывайте лекарства онлайн, выбирайте удобную аптеку рядом и получайте без очередей.
+      <p
+        class="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-600 animate-fade-in delay-150"
+      >
+        Заказывайте лекарства онлайн, выбирайте удобную аптеку рядом и получайте
+        без очередей.
       </p>
 
       <div class="mt-8 animate-fade-in delay-300">
@@ -26,7 +31,11 @@
 
 <style scoped>
 .hero-gradient {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(14, 165, 233, 0.1) 0%,
+    rgba(139, 92, 246, 0.1) 100%
+  );
 }
 
 /* Плавные появления */

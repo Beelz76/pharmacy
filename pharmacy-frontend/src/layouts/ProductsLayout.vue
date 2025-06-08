@@ -9,17 +9,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import ProductsSidebar from '../components/sidebars/ProductsSidebar.vue'
+import { ref } from "vue";
+import ProductsSidebar from "../components/sidebars/ProductsSidebar.vue";
 
 const filters = ref({
   isAvailable: null,
   isPrescriptionRequired: null,
   propertyFilters: {},
-  categoryIds: []
-})
+  categoryIds: [],
+});
 
 const onFiltersUpdate = (newFilters) => {
-  filters.value = { ...newFilters }
-}
+  filters.value = { ...newFilters };
+};
 </script>

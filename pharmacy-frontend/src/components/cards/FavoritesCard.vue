@@ -7,7 +7,11 @@
     >
       <i
         class="fas fa-heart"
-        :class="isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-500 transition'"
+        :class="
+          isFavorite
+            ? 'text-red-500'
+            : 'text-gray-300 hover:text-red-500 transition'
+        "
       ></i>
     </button>
 
@@ -56,7 +60,7 @@
             {{ product.name }}
           </router-link>
           <p class="text-sm text-gray-500 mt-1 line-clamp-2">
-            {{ product.description || 'Описание недоступно' }}
+            {{ product.description || "Описание недоступно" }}
           </p>
         </div>
 
@@ -108,75 +112,70 @@
   </div>
 </template>
 
-
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useFavoritesStore } from '/src/stores/FavoritesStore'
-import { useCartStore } from '/src/stores/CartStore'
-import { toSlug } from '/src/utils/slugify'
+import { ref, computed, watch } from "vue";
+import { useFavoritesStore } from "/src/stores/FavoritesStore";
+import { useCartStore } from "/src/stores/CartStore";
+import { toSlug } from "/src/utils/slugify";
 
-const props = defineProps({ product: Object })
+const props = defineProps({ product: Object });
 
-const favoritesStore = useFavoritesStore()
-const cartStore = useCartStore()
-const productId = props.product.productId
+const favoritesStore = useFavoritesStore();
+const cartStore = useCartStore();
+const productId = props.product.productId;
 
-const isFavorite = computed(() =>
-  favoritesStore.ids.includes(productId)
-)
+const isFavorite = computed(() => favoritesStore.ids.includes(productId));
 
-const cartQuantity = computed(() =>
-  cartStore.quantityById[productId] || 0
-)
-const productLink = computed(() => `/products/${productId}-${toSlug(props.product.name)}`)
+const cartQuantity = computed(() => cartStore.quantityById[productId] || 0);
+const productLink = computed(
+  () => `/products/${productId}-${toSlug(props.product.name)}`
+);
 
 const editableQuantity = computed({
   get: () => cartQuantity.value || 1,
   set: async (val) => {
-    const quantity = Number(val)
-    if (!Number.isInteger(quantity) || quantity < 1) return
+    const quantity = Number(val);
+    if (!Number.isInteger(quantity) || quantity < 1) return;
     try {
-      await cartStore.setQuantity(productId, quantity)
+      await cartStore.setQuantity(productId, quantity);
     } catch (err) {
-      console.error('Ошибка при изменении количества:', err)
+      console.error("Ошибка при изменении количества:", err);
     }
-  }
-})
+  },
+});
 
 const toggleFavorite = async () => {
   try {
-    await favoritesStore.toggle(productId, isFavorite.value)
+    await favoritesStore.toggle(productId, isFavorite.value);
   } catch (err) {
-    console.error('Ошибка при обновлении избранного:', err)
+    console.error("Ошибка при обновлении избранного:", err);
   }
-}
+};
 
 const addToCart = async () => {
   try {
-    await cartStore.addToCart(productId, props.product)
+    await cartStore.addToCart(productId, props.product);
   } catch (err) {
-    console.error('Ошибка при добавлении в корзину:', err)
+    console.error("Ошибка при добавлении в корзину:", err);
   }
-}
+};
 
 const incrementQuantity = async () => {
   try {
-    await cartStore.increment(productId, props.product)
+    await cartStore.increment(productId, props.product);
   } catch (err) {
-    console.error('Ошибка при увеличении количества:', err)
+    console.error("Ошибка при увеличении количества:", err);
   }
-}
+};
 
 const decrementQuantity = async () => {
   try {
-    await cartStore.decrement(productId)
+    await cartStore.decrement(productId);
   } catch (err) {
-    console.error('Ошибка при уменьшении количества:', err)
+    console.error("Ошибка при уменьшении количества:", err);
   }
-}
-
+};
 </script>
-
 
 <style scoped>
 .line-clamp-2 {

@@ -12,14 +12,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getOrderStatuses } from '/src/services/OrderService'
+import { ref, onMounted } from "vue";
+import { getOrderStatuses } from "/src/services/OrderService";
 
-const list = ref([])
+const list = ref([]);
 
 async function load() {
-  list.value = await getOrderStatuses()
+  list.value = await getOrderStatuses();
 }
 
-onMounted(load)
+onMounted(load);
 </script>
