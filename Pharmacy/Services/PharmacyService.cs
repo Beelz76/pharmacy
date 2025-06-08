@@ -1,4 +1,5 @@
-﻿using Pharmacy.Database.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
@@ -71,6 +72,42 @@ public class PharmacyService : IPharmacyService
             ));
 
         return Result.Success(dto);
+    }
+    
+    public async Task<Result<PaginatedList<PharmacyDto>>> GetPaginatedAsync(string? search, int pageNumber, int pageSize)
+    {
+        var query = _pharmacyRepository.Query();
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(p => p.Name.ToLower().Contains(search.ToLower()));
+
+        var totalCount = await query.CountAsync();
+
+        var pharmacies = await query
+            .OrderBy(p => p.Name)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var dto = pharmacies.Select(p => new PharmacyDto(
+            p.Id,
+            p.Name,
+            p.Phone,
+            new AddressDto(
+                p.Address.Id,
+                p.Address.OsmId,
+                p.Address.Region,
+                p.Address.State,
+                p.Address.City,
+                p.Address.Suburb,
+                p.Address.Street,
+                p.Address.HouseNumber,
+                p.Address.Postcode,
+                p.Address.Latitude,
+                p.Address.Longitude
+            ))).ToList();
+
+        return Result.Success(new PaginatedList<PharmacyDto>(dto, totalCount, pageNumber, pageSize));
     }
     
     public async Task<Result<CreatedDto>> CreateAsync(CreatePharmacyDto dto)

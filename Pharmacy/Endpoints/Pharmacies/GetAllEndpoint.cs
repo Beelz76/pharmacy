@@ -16,12 +16,16 @@ public class GetAllEndpoint : EndpointWithoutRequest
         Get("pharmacies");
         Roles("Admin");
         Tags("Pharmacy");
-        Summary(s => { s.Summary = "Получить все аптеки"; });
+        Summary(s => { s.Summary = "Получить аптеки"; });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await _pharmacyService.GetAllAsync();
+        int pageNumber = Query<int>("pageNumber", isRequired: false) == 0 ? 1 : Query<int>("pageNumber", isRequired: false);
+        int pageSize = Query<int>("pageSize", isRequired: false) == 0 ? 15 : Query<int>("pageSize", isRequired: false);
+        string? search = Query<string>("search", isRequired: false);
+
+        var result = await _pharmacyService.GetPaginatedAsync(search, pageNumber, pageSize);
         if (result.IsSuccess)
         {
             await SendOkAsync(result.Value, ct);

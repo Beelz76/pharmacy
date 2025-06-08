@@ -3,7 +3,8 @@
     <el-button type="text" @click="router.back()"><i class="fas fa-arrow-left mr-1"></i> Назад</el-button>
     <h1 class="text-2xl font-semibold mb-6">Новый сотрудник</h1>
 
-    <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="bg-white border rounded-xl shadow-sm p-6 max-w-xl">
+    <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="bg-white border rounded-xl shadow-sm p-6 max-w-2xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <el-form-item label="Email" prop="email">
         <el-input v-model="form.email" placeholder="Email" size="large" />
       </el-form-item>
@@ -28,14 +29,23 @@
           <el-option label="Сотрудник" value="Employee" />
         </el-select>
       </el-form-item>
-      <el-form-item label="Аптека" prop="pharmacyId" v-if="form.role === 'Employee'">
-        <el-select v-model="form.pharmacyId" placeholder="Выберите аптеку" class="w-full" :loading="loadingPharmacies">
+      <el-form-item label="Аптека" prop="pharmacyId" v-if="form.role === 'Employee'" class="md:col-span-2">
+        <el-select
+          v-model="form.pharmacyId"
+          placeholder="Выберите аптеку"
+          class="w-full"
+          filterable
+          remote
+          reserve-keyword
+          :remote-method="searchPharmacies"
+          :loading="loadingPharmacies">
           <el-option v-for="p in pharmacies" :key="p.id" :label="p.name" :value="p.id" />
         </el-select>
       </el-form-item>
-      <el-form-item>
+      <el-form-item class="md:col-span-2">
         <el-button type="primary" @click="submit" :loading="loading">Создать</el-button>
       </el-form-item>
+      </div>
     </el-form>
   </div>
 </template>
@@ -56,7 +66,8 @@ const form = ref({
   lastName: '',
   patronymic: '',
   phone: '',
-  role: 'Employee'
+  role: 'Employee',
+  pharmacyId: null
 })
 
 const rules = {
@@ -92,14 +103,17 @@ const submit = () => {
 const pharmacies = ref([])
 const loadingPharmacies = ref(false)
 
-onMounted(async () => {
+const searchPharmacies = async (query = '') => {
   loadingPharmacies.value = true
   try {
-    pharmacies.value = await getPharmacies()
+    const data = await getPharmacies({ search: query })
+    pharmacies.value = data.items
   } finally {
     loadingPharmacies.value = false
   }
-})
+}
+
+onMounted(() => searchPharmacies())
 
 watch(
   () => form.value.role,

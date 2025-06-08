@@ -1,9 +1,4 @@
 <template>
-  <!-- Роль пользователя -->
-  <h2 class="text-xl font-semibold text-gray-700 mb-4 capitalize">
-    Роль: {{ auth.role }}
-  </h2>
-
   <div v-if="!auth.isAuthenticated" class="text-center text-gray-500 mb-4">
     Необходимо авторизоваться
   </div>

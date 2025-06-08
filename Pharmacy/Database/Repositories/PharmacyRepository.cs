@@ -72,4 +72,12 @@ public class PharmacyRepository : IPharmacyRepository
                 Math.Pow(p.Address.Latitude - latitude, 2) + Math.Pow(p.Address.Longitude - longitude, 2))
             .FirstOrDefaultAsync();
     }
+    
+    public IQueryable<Entities.Pharmacy> Query()
+    {
+        return _context.Pharmacies
+            .Include(p => p.Address)
+            .AsNoTracking()
+            .AsQueryable();
+    }
 }
