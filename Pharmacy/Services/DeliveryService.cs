@@ -18,18 +18,19 @@ public class DeliveryService : IDeliveryService
         _repository = repository;
     }
 
-    public async Task<Result<DeliveryDto>> GetByOrderIdAsync(int orderId)
+    public async Task<Result<DeliveryDetailsDto>> GetByOrderIdAsync(int orderId)
     {
         var entity = await _repository.GetByOrderIdAsync(orderId);
         if (entity == null)
         {
-            return Result.Failure<DeliveryDto>(Error.NotFound("Доставка не найдена"));
+            return Result.Failure<DeliveryDetailsDto>(Error.NotFound("Доставка не найдена"));
         }
 
-        var dto = new DeliveryDto(
+        var dto = new DeliveryDetailsDto(
             entity.Id,
             entity.OrderId,
-            entity.UserAddressId,
+            entity.Order.Number,
+            AddressExtensions.FormatAddress(entity.UserAddress.Address)!,
             entity.Comment,
             entity.DeliveryDate
         );
@@ -94,7 +95,7 @@ public class DeliveryService : IDeliveryService
         var totalCount = await query.CountAsync();
 
         var items = await query
-            .OrderByDescending(d => d.DeliveryDate)
+            .OrderByDescending(d => d.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .Select(d => new DeliveryDetailsDto(

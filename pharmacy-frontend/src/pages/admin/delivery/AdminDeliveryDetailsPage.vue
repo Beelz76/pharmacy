@@ -11,9 +11,12 @@
     <div v-else-if="!delivery" class="text-center py-10 text-gray-500">Доставка не найдена</div>
     <div v-else class="space-y-6">
       <div class="bg-white border rounded-xl p-6 space-y-3">
+        <p class="text-sm text-gray-700"><span class="font-medium">ID:</span> {{ delivery.id }}</p>
+        <p class="text-sm text-gray-700"><span class="font-medium">Номер заказа:</span> {{ delivery.orderNumber }}</p>
         <p class="text-sm text-gray-700"><span class="font-medium">Адрес:</span> {{ delivery.address }}</p>
         <p class="text-sm text-gray-700"><span class="font-medium">Дата:</span> {{ formatDate(delivery.deliveryDate) }}</p>
         <p v-if="delivery.comment" class="text-sm text-gray-700"><span class="font-medium">Комментарий:</span> {{ delivery.comment }}</p>
+        <button class="text-primary-600 hover:text-primary-700 text-sm underline" @click="goOrder(delivery.orderId)">Перейти к заказу</button>
       </div>
     </div>
   </div>
@@ -30,6 +33,10 @@ const delivery = ref(null)
 const loading = ref(false)
 
 const formatDate = (iso) => iso ? new Date(iso).toLocaleString('ru-RU') : ''
+
+const goOrder = (id) => {
+  router.push({ name: 'AdminOrderDetails', params: { id } })
+}
 
 onMounted(async () => {
   loading.value = true

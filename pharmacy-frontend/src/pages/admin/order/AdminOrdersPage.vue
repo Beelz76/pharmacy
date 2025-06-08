@@ -62,6 +62,7 @@
       <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
         <thead class="bg-secondary-50 text-left text-secondary-700 uppercase text-sm">
           <tr>
+            <th class="px-6 py-5 font-semibold">ID</th>
             <th class="px-6 py-5 font-semibold">Номер</th>
             <th class="px-6 py-5 font-semibold">Дата</th>
             <th class="px-6 py-5 font-semibold">Сумма</th>
@@ -73,6 +74,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
           <tr v-for="o in orders" :key="o.id" class="hover:bg-secondary-50 cursor-pointer" @click="goDetails(o.id)">
+            <td class="px-6 py-4 whitespace-nowrap">{{ o.id }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ o.number }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(o.createdAt) }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ o.totalPrice.toFixed(2) }} ₽</td>
@@ -82,10 +84,10 @@
             <td class="px-6 py-4 text-right text-gray-400"><i class="fas fa-chevron-right"></i></td>
           </tr>
           <tr v-if="!loading && orders.length === 0">
-            <td colspan="7" class="text-center py-6 text-gray-500">Заказы не найдены</td>
+            <td colspan="8" class="text-center py-6 text-gray-500">Заказы не найдены</td>
           </tr>
           <tr v-if="loading">
-            <td colspan="7" class="text-center py-6 text-gray-500">Загрузка...</td>
+            <td colspan="8" class="text-center py-6 text-gray-500">Загрузка...</td>
           </tr>
         </tbody>
       </table>

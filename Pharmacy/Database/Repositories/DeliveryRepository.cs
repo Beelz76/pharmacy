@@ -16,9 +16,10 @@ public class DeliveryRepository : IDeliveryRepository
     public Task<Delivery?> GetByOrderIdAsync(int orderId)
     {
         return _context.Deliveries
-            .Include(x => x.UserAddress)
-                .ThenInclude(x => x.Address)
-            .FirstOrDefaultAsync(x => x.OrderId == orderId);
+            .Include(d => d.Order)
+            .Include(d => d.UserAddress)
+            .ThenInclude(ua => ua.Address)
+            .FirstOrDefaultAsync(d => d.OrderId == orderId);
     }
 
     public async Task AddAsync(Delivery delivery)
