@@ -5,7 +5,7 @@
 
     <div v-if="loading" class="text-center py-10">Загрузка...</div>
     <div v-else-if="!user" class="text-center py-10 text-gray-500">Пользователь не найден</div>
-    <div v-else class="bg-white border rounded-xl shadow-sm p-6 space-y-4">
+    <div v-else class="bg-white rounded-lg shadow p-6 space-y-4">
       <p><b>Email:</b> {{ user.email }}</p>
       <p><b>Роль:</b> {{ user.role }}</p>
       <p><b>Имя:</b> {{ user.lastName }} {{ user.firstName }} {{ user.patronymic }}</p>

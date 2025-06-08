@@ -1,7 +1,7 @@
 <template>
-  <div class="flex min-h-screen">
+  <div class="flex min-h-screen bg-gray-100">
     <AdminSidebar />
-    <main class="flex-1 p-6 bg-gray-50">
+    <main class="flex-1 p-8">
       <router-view />
     </main>
   </div>

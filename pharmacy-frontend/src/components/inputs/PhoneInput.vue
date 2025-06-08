@@ -14,12 +14,12 @@
         maxlength="18"
         class="w-full !h-12 !text-sm !rounded-md"
       />
-      <div
+      <!-- <div
         v-if="!required && wrapWithFormItem && !inputValue.trim()"
         class="text-xs text-gray-400 ml-1"
       >
         Необязательное поле
-      </div>
+      </div> -->
     </div>
   </component>
 </template>

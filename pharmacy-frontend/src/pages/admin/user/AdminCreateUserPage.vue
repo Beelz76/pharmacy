@@ -3,7 +3,7 @@
     <el-button type="text" @click="router.back()"><i class="fas fa-arrow-left mr-1"></i> Назад</el-button>
     <h1 class="text-2xl font-semibold mb-6">Новый сотрудник</h1>
 
-    <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="bg-white border rounded-xl shadow-sm p-6 max-w-2xl mx-auto">
+    <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="bg-white rounded-lg shadow p-6 max-w-2xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <el-form-item label="Email" prop="email">
         <el-input v-model="form.email" placeholder="Email" size="large" />
@@ -21,7 +21,7 @@
         <el-input v-model="form.patronymic" size="large" />
       </el-form-item>
       <el-form-item label="Телефон">
-        <el-input v-model="form.phone" size="large" />
+        <PhoneInput v-model="form.phone" digits-only size="large" />
       </el-form-item>
       <el-form-item label="Роль" prop="role">
         <el-select v-model="form.role" placeholder="Роль" class="w-full">
@@ -55,6 +55,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { createUser } from '/src/services/UserService'
 import { getPharmacies } from '/src/services/PharmacyService'
+import PhoneInput from '/src/components/inputs/PhoneInput.vue'
 
 const router = useRouter()
 const formRef = ref()

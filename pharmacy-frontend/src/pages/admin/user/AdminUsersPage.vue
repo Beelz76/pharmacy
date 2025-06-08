@@ -2,7 +2,7 @@
   <div>
     <h1 class="text-2xl font-semibold mb-6">Пользователи</h1>
 
-    <div class="bg-white border rounded-xl shadow-sm p-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="Имя">
           <el-input v-model="filters.firstName" placeholder="Имя" size="large" class="!w-48" />
@@ -31,9 +31,9 @@
       <el-button type="primary" @click="goCreate"><i class="fas fa-plus mr-1"></i> Новый пользователь</el-button>
     </div>
 
-    <div class="overflow-x-auto rounded-xl shadow border bg-white">
+    <div class="overflow-x-auto rounded-lg shadow border bg-white">
       <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-50 text-left text-gray-600 uppercase text-sm">
+        <thead class="bg-secondary-50 text-left text-secondary-700 uppercase text-sm">
           <tr>
             <th class="px-6 py-5 font-semibold">ID</th>
             <th class="px-6 py-5 font-semibold">Email</th>
@@ -43,7 +43,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          <tr v-for="u in users" :key="u.id" class="hover:bg-gray-50 cursor-pointer" @click="goDetails(u.id)">
+          <tr v-for="u in users" :key="u.id" class="hover:bg-secondary-50 cursor-pointer" @click="goDetails(u.id)">
             <td class="px-6 py-4 whitespace-nowrap">{{ u.id }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ u.email }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ fullName(u) }}</td>

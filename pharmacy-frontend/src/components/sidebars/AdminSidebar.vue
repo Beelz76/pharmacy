@@ -1,6 +1,9 @@
 <template>
-  <aside class="w-64 h-screen py-4 px-4 bg-white border-r shadow-sm">
-    <nav class="space-y-2">
+  <aside class="w-64 flex flex-col min-h-screen bg-white border-r shadow-sm">
+    <div class="px-4 py-5 text-lg font-semibold text-secondary-700 border-b">
+      Админ панель
+    </div>
+    <nav class="flex-1 space-y-1 px-4 py-4">
       <RouterLink to="/admin" :class="navLinkClass('/admin')">
         <i class="fas fa-user text-base w-5 text-center mr-3"></i>
         Профиль
@@ -11,10 +14,10 @@
         Пользователи
       </RouterLink>
     </nav>
-    <div class="border-t mt-6 pt-4">
+    <div class="border-t px-4 py-4">
       <button
         @click="logout"
-        class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 font-medium transition"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-secondary-700 hover:bg-secondary-100 transition"
       >
         <i class="fas fa-sign-out-alt text-base w-5 text-center"></i>
         Выйти
@@ -34,10 +37,10 @@ const auth = useAuthStore()
 const navLinkClass = (path) => {
   const isActive = path === '/admin' ? route.path === '/admin' : route.path.startsWith(path)
   return (
-    'w-full flex items-center px-4 py-2 rounded-lg transition text-sm font-medium ' +
+    'w-full flex items-center px-3 py-2 rounded-md transition text-sm font-medium ' +
     (isActive
-      ? 'bg-primary-100 text-primary-700 font-semibold'
-      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50')
+      ? 'bg-secondary-100 text-secondary-700 font-semibold'
+      : 'text-gray-700 hover:text-secondary-700 hover:bg-secondary-50')
   )
 }
 
