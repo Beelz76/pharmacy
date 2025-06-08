@@ -78,7 +78,11 @@
             <td class="px-6 py-4 whitespace-nowrap">{{ o.number }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(o.createdAt) }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ o.totalPrice.toFixed(2) }} ₽</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ o.status }}</td>
+            <td class="px-6 py-4 whitespace-nowrap" @click.stop>
+              <el-select v-model="o.status" size="small" @change="changeStatus(o)">
+                <el-option v-for="s in statuses" :key="s.id" :label="s.description" :value="s.name" />
+              </el-select>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">{{ o.pharmacyName }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ o.pharmacyAddress }}</td>
             <td class="px-6 py-4 text-right text-gray-400"><i class="fas fa-chevron-right"></i></td>
@@ -104,7 +108,8 @@ import { reactive, watch, ref } from 'vue'
 import { useOrders } from '/src/composables/useOrders'
 import { useRouter } from 'vue-router'
 import { getPharmacies } from '/src/services/PharmacyService'
-import { getOrderStatuses } from '/src/services/OrderService'
+import { getOrderStatuses, updateOrderStatus } from '/src/services/OrderService'
+import { ElMessage } from 'element-plus'
 import formatAddress from '/src/utils/formatAddress'
 
 const router = useRouter()
@@ -134,6 +139,15 @@ const searchPharmacyNames = async (query = '') => {
     pharmacyNames.value = names
   } finally {
     loadingPharmacies.value = false
+  }
+}
+
+const changeStatus = async (order) => {
+  try {
+    await updateOrderStatus(order.id, order.status)
+    ElMessage.success('Статус обновлен')
+  } catch (e) {
+    ElMessage.error('Ошибка обновления статуса')
   }
 }
 

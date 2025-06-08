@@ -22,6 +22,9 @@ import AdminOrdersPage from "../pages/admin/order/AdminOrdersPage.vue";
 import AdminOrderDetailsPage from "../pages/admin/order/AdminOrderDetailsPage.vue";
 import AdminDeliveriesPage from "../pages/admin/delivery/AdminDeliveriesPage.vue";
 import AdminDeliveryDetailsPage from "../pages/admin/delivery/AdminDeliveryDetailsPage.vue";
+import AdminReferencesPage from "../pages/admin/reference/AdminReferencesPage.vue";
+import AdminCategoriesPage from "../pages/admin/reference/categories/AdminCategoriesPage.vue";
+import AdminManufacturersPage from "../pages/admin/reference/manufacturers/AdminManufacturersPage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -118,6 +121,22 @@ const routes = [
         path: "deliveries/:orderId",
         name: "AdminDeliveryDetails",
         component: AdminDeliveryDetailsPage,
+      },
+      {
+        path: "references",
+        component: AdminReferencesPage,
+        children: [
+          {
+            path: "categories",
+            name: "AdminCategories",
+            component: AdminCategoriesPage,
+          },
+          {
+            path: "manufacturers",
+            name: "AdminManufacturers",
+            component: AdminManufacturersPage,
+          },
+        ],
       },
     ],
   },

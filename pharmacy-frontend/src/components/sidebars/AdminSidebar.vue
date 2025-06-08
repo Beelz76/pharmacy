@@ -23,6 +23,11 @@
         <i class="fas fa-truck text-base w-5 text-center mr-3"></i>
         Доставки
       </RouterLink>
+
+      <RouterLink to="/admin/references" :class="navLinkClass('/admin/references')">
+        <i class="fas fa-book text-base w-5 text-center mr-3"></i>
+        Справочники
+      </RouterLink>
     </nav>
     <div class="border-t px-4 py-4">
       <button
