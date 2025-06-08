@@ -1,6 +1,6 @@
 <template>
   <aside class="w-64 flex flex-col min-h-screen bg-white border-r shadow-sm">
-    <div class="px-4 py-5 text-lg font-semibold text-secondary-700 border-b">
+    <div class="px-4 py-5 text-lg text-center font-semibold text-secondary-700 border-b">
       Админ панель
     </div>
     <nav class="flex-1 space-y-1 px-4 py-4">

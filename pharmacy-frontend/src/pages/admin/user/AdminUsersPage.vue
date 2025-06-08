@@ -4,13 +4,13 @@
 
     <div class="bg-white rounded-lg shadow p-6 mb-6">
       <el-form :inline="true" @submit.prevent>
-        <el-form-item label="Имя">
+        <el-form-item label-width="0">
           <el-input v-model="filters.firstName" placeholder="Имя" size="large" class="!w-48" />
         </el-form-item>
-        <el-form-item label="Фамилия">
+        <el-form-item label-width="0">
           <el-input v-model="filters.lastName" placeholder="Фамилия" size="large" class="!w-48" />
         </el-form-item>
-        <el-form-item label="Email">
+        <el-form-item label-width="0">
           <el-input v-model="filters.email" placeholder="Email" size="large" class="!w-52" />
         </el-form-item>
         <el-form-item label="Роль">

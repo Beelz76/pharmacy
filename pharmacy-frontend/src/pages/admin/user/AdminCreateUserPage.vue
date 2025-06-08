@@ -3,50 +3,52 @@
     <el-button type="text" @click="router.back()"><i class="fas fa-arrow-left mr-1"></i> Назад</el-button>
     <h1 class="text-2xl font-semibold mb-6">Новый сотрудник</h1>
 
-    <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="bg-white rounded-lg shadow p-6 max-w-2xl mx-auto">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <el-form-item label="Email" prop="email">
-        <el-input v-model="form.email" placeholder="Email" size="large" />
-      </el-form-item>
-      <el-form-item label="Пароль" prop="password">
-        <el-input v-model="form.password" type="password" size="large" show-password />
-      </el-form-item>
-      <el-form-item label="Фамилия" prop="lastName">
-        <el-input v-model="form.lastName" size="large" />
-      </el-form-item>
-      <el-form-item label="Имя" prop="firstName">
-        <el-input v-model="form.firstName" size="large" />
-      </el-form-item>
-      <el-form-item label="Отчество">
-        <el-input v-model="form.patronymic" size="large" />
-      </el-form-item>
-      <el-form-item label="Телефон">
-        <PhoneInput v-model="form.phone" digits-only size="large" />
-      </el-form-item>
-      <el-form-item label="Роль" prop="role">
-        <el-select v-model="form.role" placeholder="Роль" class="w-full">
-          <el-option label="Администратор" value="Admin" />
-          <el-option label="Сотрудник" value="Employee" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="Аптека" prop="pharmacyId" v-if="form.role === 'Employee'" class="md:col-span-2">
-        <el-select
-          v-model="form.pharmacyId"
-          placeholder="Выберите аптеку"
-          class="w-full"
-          filterable
-          remote
-          reserve-keyword
-          :remote-method="searchPharmacies"
-          :loading="loadingPharmacies">
-          <el-option v-for="p in pharmacies" :key="p.id" :label="p.name" :value="p.id" />
-        </el-select>
-      </el-form-item>
-      <el-form-item class="md:col-span-2">
-        <el-button type="primary" @click="submit" :loading="loading">Создать</el-button>
-      </el-form-item>
-      </div>
-    </el-form>
+    <el-card class="max-w-2xl mx-auto">
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <el-form-item label="Email" prop="email">
+            <el-input v-model="form.email" placeholder="Email" size="large" />
+          </el-form-item>
+          <el-form-item label="Пароль" prop="password">
+            <el-input v-model="form.password" type="password" size="large" show-password />
+          </el-form-item>
+          <el-form-item label="Фамилия" prop="lastName">
+            <el-input v-model="form.lastName" size="large" />
+          </el-form-item>
+          <el-form-item label="Имя" prop="firstName">
+            <el-input v-model="form.firstName" size="large" />
+          </el-form-item>
+          <el-form-item label="Отчество">
+            <el-input v-model="form.patronymic" size="large" />
+          </el-form-item>
+          <el-form-item label="Телефон">
+            <PhoneInput v-model="form.phone" digits-only size="large" />
+          </el-form-item>
+          <el-form-item label="Роль" prop="role">
+            <el-select v-model="form.role" placeholder="Роль" class="w-full">
+              <el-option label="Администратор" value="Admin" />
+              <el-option label="Сотрудник" value="Employee" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Аптека" prop="pharmacyId" v-if="form.role === 'Employee'" class="md:col-span-2">
+            <el-select
+              v-model="form.pharmacyId"
+              placeholder="Выберите аптеку"
+              class="w-full"
+              filterable
+              remote
+              reserve-keyword
+              :remote-method="searchPharmacies"
+              :loading="loadingPharmacies">
+              <el-option v-for="p in pharmacies" :key="p.id" :label="p.name" :value="p.id" />
+            </el-select>
+          </el-form-item>
+        </div>
+        <div class="text-right">
+          <el-button type="primary" @click="submit" :loading="loading">Создать</el-button>
+        </div>
+      </el-form>
+    </el-card>
   </div>
 </template>
 

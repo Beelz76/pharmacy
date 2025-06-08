@@ -7,6 +7,7 @@
     <div v-else-if="!user" class="text-center py-10 text-gray-500">Пользователь не найден</div>
     <div v-else class="bg-white rounded-lg shadow p-6 space-y-4">
       <p><b>Email:</b> {{ user.email }}</p>
+      <p><b>Почта подтверждена:</b> {{ user.emailVerified ? 'Да' : 'Нет' }}</p>
       <p><b>Роль:</b> {{ user.role }}</p>
       <p><b>Имя:</b> {{ user.lastName }} {{ user.firstName }} {{ user.patronymic }}</p>
       <p><b>Телефон:</b> {{ user.phone || '—' }}</p>
