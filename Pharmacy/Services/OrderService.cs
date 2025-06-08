@@ -329,6 +329,11 @@ public class OrderService : IOrderService
             query = query.Where(o => o.Pharmacy.Address.City.ToLower().Contains(filters.PharmacyCity.ToLower()));
         }
         
+        if (filters.PharmacyId.HasValue && userId == null)
+        {
+            query = query.Where(o => o.PharmacyId == filters.PharmacyId.Value);
+        }
+        
         if (!string.IsNullOrWhiteSpace(filters.Number))
         {
             query = query.Where(o => o.Number.Contains(filters.Number));
@@ -368,6 +373,8 @@ public class OrderService : IOrderService
                 o.TotalPrice,
                 o.Status.Description,
                 o.PickupCode,
+                o.PharmacyId,
+                AddressExtensions.FormatAddress(o.Pharmacy.Address)!,
                 o.UserId,
                 $"{o.User.LastName} {o.User.FirstName} {o.User.Patronymic}".Trim(),
                 o.User.Email))

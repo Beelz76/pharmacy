@@ -8,6 +8,7 @@ public record OrderFilters(
     string? UserFullName,
     string? Number,
     string? PharmacyCity,
+    int? PharmacyId,
     OrderStatusEnum? Status,
     DateTime? FromDate,
     DateTime? ToDate

@@ -1,6 +1,7 @@
 <template>
   <div>
-    <h1 class="text-2xl font-semibold mb-6">Пользователи</h1>
+    <h1 class="text-2xl font-semibold mb-2">Пользователи</h1>
+    <div class="mb-4 text-gray-600">Всего пользователей: {{ totalCount }}</div>
 
     <div class="bg-white rounded-lg shadow p-6 mb-6">
       <el-form :inline="true" @submit.prevent>

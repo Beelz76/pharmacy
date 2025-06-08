@@ -18,6 +18,8 @@ import AdminProfilePage from "../pages/admin/AdminProfilePage.vue";
 import AdminUsersPage from "../pages/admin/user/AdminUsersPage.vue";
 import AdminUserDetailsPage from "../pages/admin/user/AdminUserDetailsPage.vue";
 import AdminCreateUserPage from "../pages/admin/user/AdminCreateUserPage.vue";
+import AdminOrdersPage from "../pages/admin/order/AdminOrdersPage.vue";
+import AdminOrderDetailsPage from "../pages/admin/order/AdminOrderDetailsPage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -98,6 +100,12 @@ const routes = [
         path: "users/:id",
         name: "AdminUserDetails",
         component: AdminUserDetailsPage,
+      },
+      { path: "orders", name: "AdminOrders", component: AdminOrdersPage },
+      {
+        path: "orders/:id",
+        name: "AdminOrderDetails",
+        component: AdminOrderDetailsPage,
       },
     ],
   },

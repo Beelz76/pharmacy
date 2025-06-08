@@ -13,6 +13,11 @@
         <i class="fas fa-users text-base w-5 text-center mr-3"></i>
         Пользователи
       </RouterLink>
+
+      <RouterLink to="/admin/orders" :class="navLinkClass('/admin/orders')">
+        <i class="fas fa-shopping-basket text-base w-5 text-center mr-3"></i>
+        Заказы
+      </RouterLink>
     </nav>
     <div class="border-t px-4 py-4">
       <button

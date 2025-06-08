@@ -7,6 +7,8 @@ public record OrderDto(
     decimal TotalPrice,
     string Status,
     string? PickupCode,
+    int PharmacyId,
+    string PharmacyAddress,
     int UserId,
     string UserFullName,
     string UserEmail
