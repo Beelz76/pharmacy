@@ -7,6 +7,7 @@ public record OrderDetailsDto(
     decimal TotalPrice,
     string Status,
     string? PickupCode,
+    string? PharmacyName,
     string? PharmacyAddress,
     string? DeliveryAddress,
     bool IsDelivery,

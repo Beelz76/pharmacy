@@ -8,6 +8,7 @@ public record OrderDto(
     string Status,
     string? PickupCode,
     int PharmacyId,
+    string? PharmacyName,
     string PharmacyAddress,
     int UserId,
     string UserFullName,

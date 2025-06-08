@@ -15,17 +15,32 @@
         </el-form-item>
         <el-form-item label="Аптека">
           <el-select
-            v-model="filters.pharmacyId"
+            v-model="selectedPharmacyName"
             placeholder="Все"
             clearable
             filterable
             remote
             reserve-keyword
-            :remote-method="searchPharmacies"
+            :remote-method="searchPharmacyNames"
             :loading="loadingPharmacies"
             class="!w-52"
           >
-            <el-option v-for="p in pharmacies" :key="p.id" :label="p.name" :value="p.id" />
+            <el-option v-for="n in pharmacyNames" :key="n" :label="n" :value="n" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label-width="0">
+          <el-select
+            v-model="filters.pharmacyId"
+            placeholder="Адрес"
+            clearable
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="searchPharmacyAddresses"
+            :loading="loadingPharmacies"
+            class="!w-60"
+          >
+            <el-option v-for="p in pharmacyAddresses" :key="p.id" :label="p.address" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="Статус">
@@ -51,7 +66,8 @@
             <th class="px-6 py-5 font-semibold">Дата</th>
             <th class="px-6 py-5 font-semibold">Сумма</th>
             <th class="px-6 py-5 font-semibold">Статус</th>
-            <th class="px-6 py-5 font-semibold">Аптека / адрес</th>
+            <th class="px-6 py-5 font-semibold">Аптека</th>
+            <th class="px-6 py-5 font-semibold">Адрес</th>
             <th class="px-6 py-5 font-semibold text-right"><span class="sr-only">Детали</span></th>
           </tr>
         </thead>
@@ -61,14 +77,15 @@
             <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(o.createdAt) }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ o.totalPrice.toFixed(2) }} ₽</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ o.status }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ o.pharmacyName }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ o.pharmacyAddress }}</td>
             <td class="px-6 py-4 text-right text-gray-400"><i class="fas fa-chevron-right"></i></td>
           </tr>
           <tr v-if="!loading && orders.length === 0">
-            <td colspan="6" class="text-center py-6 text-gray-500">Заказы не найдены</td>
+            <td colspan="7" class="text-center py-6 text-gray-500">Заказы не найдены</td>
           </tr>
           <tr v-if="loading">
-            <td colspan="6" class="text-center py-6 text-gray-500">Загрузка...</td>
+            <td colspan="7" class="text-center py-6 text-gray-500">Загрузка...</td>
           </tr>
         </tbody>
       </table>
@@ -86,6 +103,7 @@ import { useOrders } from '/src/composables/useOrders'
 import { useRouter } from 'vue-router'
 import { getPharmacies } from '/src/services/PharmacyService'
 import { getOrderStatuses } from '/src/services/OrderService'
+import formatAddress from '/src/utils/formatAddress'
 
 const router = useRouter()
 const filters = reactive({
@@ -99,15 +117,37 @@ const filters = reactive({
 
 const { orders, totalCount, pageNumber, pageSize, loading, fetchOrders } = useOrders()
 
-const pharmacies = ref([])
+const pharmacyNames = ref([])
+const pharmacyAddresses = ref([])
+const selectedPharmacyName = ref(null)
 const statuses = ref([])
 const loadingPharmacies = ref(false)
 
-const searchPharmacies = async (query = '') => {
+const searchPharmacyNames = async (query = '') => {
   loadingPharmacies.value = true
   try {
     const data = await getPharmacies({ search: query })
-    pharmacies.value = data.items
+    const names = Array.from(new Set(data.items.map(p => p.name)))
+    pharmacyNames.value = names
+  } finally {
+    loadingPharmacies.value = false
+  }
+}
+
+const searchPharmacyAddresses = async (query = '') => {
+  if (!selectedPharmacyName.value) {
+    pharmacyAddresses.value = []
+    return
+  }
+  loadingPharmacies.value = true
+  try {
+    const data = await getPharmacies({ search: selectedPharmacyName.value })
+    let list = data.items.filter(p => p.name === selectedPharmacyName.value)
+    if (query) {
+      const q = query.toLowerCase()
+      list = list.filter(p => formatAddress(p.address).toLowerCase().includes(q))
+    }
+    pharmacyAddresses.value = list.map(p => ({ id: p.id, address: formatAddress(p.address) }))
   } finally {
     loadingPharmacies.value = false
   }
@@ -153,7 +193,12 @@ const goDetails = (id) => {
   router.push({ name: 'AdminOrderDetails', params: { id } })
 }
 
+watch(selectedPharmacyName, () => {
+  filters.pharmacyId = null
+  searchPharmacyAddresses()
+})
+
 loadStatuses()
-searchPharmacies()
+searchPharmacyNames()
 fetch()
 </script>

@@ -14,9 +14,7 @@ public static class AddressExtensions
         var a = userAddress.Address;
         var parts = new[]
         {
-            a.Region,
             a.City,
-            a.Suburb,
             a.Street,
             a.HouseNumber,
             string.IsNullOrWhiteSpace(userAddress.Entrance) ? null : $"подъезд {userAddress.Entrance}",
@@ -36,9 +34,7 @@ public static class AddressExtensions
         
         var parts = new[]
         {
-            address.Region,
             address.City,
-            address.Suburb,
             address.Street,
             address.HouseNumber,
             address.Postcode
