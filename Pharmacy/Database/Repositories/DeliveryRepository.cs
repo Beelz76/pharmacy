@@ -33,6 +33,11 @@ public class DeliveryRepository : IDeliveryRepository
         _context.Deliveries.Update(delivery);
         await _context.SaveChangesAsync();
     }
+    
+    public Task<bool> AnyByAddressIdAsync(int userAddressId)
+    {
+        return _context.Deliveries.AnyAsync(d => d.UserAddressId == userAddressId);
+    }
 
     public IQueryable<Delivery> QueryWithDetails()
     {

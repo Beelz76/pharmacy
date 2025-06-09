@@ -238,14 +238,20 @@ function flyToPharmacy(pharmacy) {
   }
 }
 
-function flyToCoordinates(lat, lon) {
+function flyToCoordinates(lat, lon, label) {
   if (map) {
     map.flyTo({ center: [lon, lat], zoom: 16, essential: true });
     if (props.mode === "address") {
       if (marker) marker.remove();
       marker = new maplibregl.Marker({ color: "#3b82f6" })
         .setLngLat([lon, lat])
+        .setPopup(
+          new maplibregl.Popup({ offset: 25 }).setText(
+            label || "Выбранный адрес"
+          )
+        )
         .addTo(map);
+      marker.togglePopup();
     }
   }
 }
@@ -264,6 +270,9 @@ async function onAddressClick(e) {
       { headers: { "User-Agent": "MediCare-App/1.0 (support@medicare.ru)" } }
     );
     const data = await res.json();
+    marker
+      .setPopup(new maplibregl.Popup({ offset: 25 }).setText(data.display_name))
+      .togglePopup();
     emit("select", {
       display_name: data.display_name,
       lat,
@@ -272,6 +281,9 @@ async function onAddressClick(e) {
       osm_id: data.osm_id,
     });
   } catch {
+    marker
+      .setPopup(new maplibregl.Popup({ offset: 25 }).setText("Выбранный адрес"))
+      .togglePopup();
     emit("select", { lat, lon: lng });
   }
 }

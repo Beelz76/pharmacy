@@ -1,9 +1,7 @@
 export default function formatAddress(address) {
   if (!address) return "";
   const parts = [
-    address.region,
     address.city,
-    address.suburb,
     address.street,
     address.houseNumber,
     address.postcode,

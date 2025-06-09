@@ -183,7 +183,7 @@
 <script setup>
 import { reactive, watch, ref } from "vue";
 import { useOrders } from "/src/composables/useOrders";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { getPharmacies } from "/src/services/PharmacyService";
 import {
   getOrderStatuses,
@@ -192,6 +192,7 @@ import {
 import { ElMessage } from "element-plus";
 import formatAddress from "/src/utils/formatAddress";
 
+const route = useRoute();
 const router = useRouter();
 const filters = reactive({
   number: "",
@@ -205,6 +206,8 @@ const filters = reactive({
 
 const { orders, totalCount, pageNumber, pageSize, loading, fetchOrders } =
   useOrders();
+
+pageNumber.value = Number(route.query.page) || 1;
 
 const pharmacyNames = ref([]);
 const pharmacyAddresses = ref([]);
@@ -303,7 +306,11 @@ const formatDate = (iso) => {
 };
 
 const goDetails = (id) => {
-  router.push({ name: "AdminOrderDetails", params: { id } });
+  router.push({
+    name: "AdminOrderDetails",
+    params: { id },
+    query: { page: pageNumber.value },
+  });
 };
 
 watch(selectedPharmacyName, () => {

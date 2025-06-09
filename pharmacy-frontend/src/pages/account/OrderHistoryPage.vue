@@ -13,26 +13,26 @@
     <div v-else-if="auth.isAuthenticated">
       <div class="overflow-x-auto rounded-xl shadow border">
         <table
-          class="min-w-full table-fixed divide-y divide-gray-200 bg-white text-sm"
+          class="min-w-full table-auto divide-y divide-gray-200 bg-white text-sm"
         >
           <thead class="bg-gray-50">
             <tr
               class="text-left text-gray-600 uppercase text-sm tracking-wider"
             >
               <th class="w-[160px] px-6 py-6 font-semibold text-gray-600">
-                <i class="fas fa-hashtag mr-2 text-gray-400"></i>Номер
+                Номер
               </th>
               <th class="w-[180px] px-6 py-6 font-semibold text-gray-600">
-                <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>Дата
+                Дата
               </th>
               <th class="w-[120px] px-6 py-6 font-semibold text-gray-600">
-                <i class="fas fa-ruble-sign mr-2 text-gray-400"></i>Сумма
+                Сумма
               </th>
               <th class="w-[180px] px-6 py-6 font-semibold text-gray-600">
-                <i class="fas fa-info-circle mr-2 text-gray-400"></i>Статус
+                Статус
               </th>
               <th class="w-[140px] px-6 py-6 font-semibold text-gray-600">
-                <i class="fas fa-key mr-2 text-gray-400"></i>Код
+                Код
               </th>
               <th class="w-[40px] px-6 py-6 font-semibold text-right">
                 <span class="sr-only">Детали</span>
@@ -105,12 +105,11 @@ import { ref, onMounted, watch } from "vue";
 import { useAuthStore } from "/src/stores/AuthStore";
 import { useOrders } from "/src/composables/useOrders";
 import LoadingSpinner from "/src/components/LoadingSpinner.vue";
-import { useRouter } from "vue-router";
-import { useOrderNavigationStore } from "/src/stores/OrderStore";
+import { useRouter, useRoute } from "vue-router";
 import { statusClass } from "../../utils/statusClass";
 
-const navStore = useOrderNavigationStore();
 const router = useRouter();
+const route = useRoute();
 const auth = useAuthStore();
 const pageSize = 5;
 const pageNumber = ref(1);
@@ -120,6 +119,7 @@ const goToOrder = (orderId) => {
   router.push({
     name: "OrderDetails",
     params: { id: orderId },
+    query: { page: pageNumber.value },
   });
 };
 
@@ -135,13 +135,7 @@ const formatDate = (isoString) => {
 
 onMounted(() => {
   if (!auth.isAuthenticated) return;
-  const shouldRestore = navStore.consumeRestoreFlag();
-  if (shouldRestore) {
-    pageNumber.value = navStore.historyPage;
-  } else {
-    pageNumber.value = 1;
-  }
-
+  pageNumber.value = Number(route.query.page) || 1;
   fetchOrders({ page: pageNumber.value, size: pageSize });
 });
 

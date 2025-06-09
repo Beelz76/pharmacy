@@ -111,9 +111,10 @@
 
 <script setup>
 import { reactive, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useUsers } from "/src/services/UserService";
 
+const route = useRoute();
 const router = useRouter();
 const filters = reactive({
   firstName: "",
@@ -123,6 +124,8 @@ const filters = reactive({
 });
 const { users, totalCount, pageNumber, pageSize, loading, fetchUsers } =
   useUsers();
+
+pageNumber.value = Number(route.query.page) || 1;
 
 const fetch = () => {
   fetchUsers({ page: pageNumber.value, size: pageSize.value, filters });
@@ -140,7 +143,11 @@ const resetFilters = () => {
 watch(pageNumber, fetch);
 
 const goDetails = (id) => {
-  router.push({ name: "AdminUserDetails", params: { id } });
+  router.push({
+    name: "AdminUserDetails",
+    params: { id },
+    query: { page: pageNumber.value },
+  });
 };
 
 const goCreate = () => {

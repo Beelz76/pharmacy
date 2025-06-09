@@ -141,10 +141,8 @@ import { useAuthStore } from "/src/stores/AuthStore";
 import { useRoute, useRouter } from "vue-router";
 import { getOrderById, payOrder } from "/src/services/OrderService";
 import { useOrderStore } from "../../stores/OrderStore";
-import { useOrderNavigationStore } from "/src/stores/OrderStore";
 import { statusClass } from "../../utils/statusClass";
 
-const navStore = useOrderNavigationStore();
 const router = useRouter();
 const orderStore = useOrderStore();
 const route = useRoute();
@@ -155,8 +153,7 @@ const auth = useAuthStore();
 const orderId = route.params.id;
 
 const goBack = () => {
-  navStore.savePage(Number(route.query.page) || 1);
-  router.push({ name: "OrderHistory" });
+  router.back();
 };
 
 const isDelivery = computed(() => order.value?.isDelivery);

@@ -405,7 +405,8 @@ function selectSavedAddress(addr) {
   newAddress.value = null;
   addressMapRef.value?.flyToCoordinates(
     addr.address.latitude,
-    addr.address.longitude
+    addr.address.longitude,
+    addr.fullAddress
   );
 }
 

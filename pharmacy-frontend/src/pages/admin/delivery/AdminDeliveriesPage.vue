@@ -86,9 +86,10 @@
 
 <script setup>
 import { ref, watch, reactive } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { getDeliveries } from "/src/services/DeliveryService";
 
+const route = useRoute();
 const router = useRouter();
 const deliveries = ref([]);
 const totalCount = ref(0);
@@ -96,6 +97,7 @@ const pageNumber = ref(1);
 const pageSize = ref(20);
 const loading = ref(false);
 const filters = reactive({ orderNumber: "", dateRange: [] });
+pageNumber.value = Number(route.query.page) || 1;
 
 const fetch = async () => {
   loading.value = true;
@@ -129,7 +131,11 @@ const resetFilters = () => {
 const formatDate = (iso) => (iso ? new Date(iso).toLocaleString("ru-RU") : "");
 
 const goDetails = (orderId) => {
-  router.push({ name: "AdminDeliveryDetails", params: { orderId } });
+  router.push({
+    name: "AdminDeliveryDetails",
+    params: { orderId },
+    query: { page: pageNumber.value },
+  });
 };
 
 fetch();

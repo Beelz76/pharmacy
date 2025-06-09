@@ -15,13 +15,15 @@ public class UserAddressService : IUserAddressService
 {
     private readonly IUserAddressRepository _repository;
     private readonly IAddressRepository _addressRepository;
+    private readonly IDeliveryRepository _deliveryRepository;
     private readonly HybridCache _cache;
 
-    public UserAddressService(IUserAddressRepository repository, IAddressRepository addressRepository, HybridCache cache)
+    public UserAddressService(IUserAddressRepository repository, IAddressRepository addressRepository, HybridCache cache, IDeliveryRepository deliveryRepository)
     {
         _repository = repository;
         _addressRepository = addressRepository;
         _cache = cache;
+        _deliveryRepository = deliveryRepository;
     }
 
     public async Task<Result<IEnumerable<UserAddressDto>>> GetAllAsync(int userId)
@@ -147,6 +149,11 @@ public class UserAddressService : IUserAddressService
             return Result.Failure(Error.NotFound("Адрес не найден"));
         }
 
+        if (await _deliveryRepository.AnyByAddressIdAsync(userAddressId))
+        {
+            return Result.Failure(Error.Conflict("Нельзя удалить адрес, который использован в доставке"));
+        }
+        
         await _repository.DeleteAsync(userAddress);
         return Result.Success();
     }
