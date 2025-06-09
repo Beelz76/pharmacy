@@ -19,7 +19,7 @@
 
     <div
       v-else-if="product"
-      class="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8"
+      class="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8 bg-white p-6 rounded-xl shadow"
     >
       <!-- Левая колонка -->
       <div class="space-y-4">
@@ -145,9 +145,27 @@
           </div>
           <div><strong>Артикул:</strong> {{ product.sku }}</div>
           <div>
-            <strong>Производитель:</strong> {{ product.manufacturer.name }}
+            <strong>Производитель:</strong>
+            <router-link
+              :to="{
+                path: '/products/catalog',
+                query: { manufacturerIds: product.manufacturer.id },
+              }"
+              class="text-primary-600 hover:underline"
+              >{{ product.manufacturer.name }}</router-link
+            >
           </div>
-          <div><strong>Страна:</strong> {{ product.manufacturer.country }}</div>
+          <div>
+            <strong>Страна:</strong>
+            <router-link
+              :to="{
+                path: '/products/catalog',
+                query: { countries: product.manufacturer.country },
+              }"
+              class="text-primary-600 hover:underline"
+              >{{ product.manufacturer.country }}</router-link
+            >
+          </div>
           <div v-if="product.expirationDate">
             <strong>Срок годности:</strong>
             {{ formatRemainingShelfLife(product.expirationDate) }}

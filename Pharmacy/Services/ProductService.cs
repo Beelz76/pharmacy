@@ -410,6 +410,41 @@ public class ProductService : IProductService
         return Result.Success(data);
     }
     
+    public async Task<Result<ProductDto>> GetBySkuAsync(string sku)
+    {
+        var product = await _repository.GetBySkuAsync(sku);
+        if (product is null)
+            return Result.Failure<ProductDto>(Error.NotFound("Товар не найден"));
+
+        var fieldLabels = product.ProductCategory.Fields
+            .ToDictionary(x => x.FieldKey, x => x.FieldLabel);
+
+        var propertyDtos = product.Properties.Select(prop =>
+        {
+            var label = fieldLabels.TryGetValue(prop.Key, out var l) ? l : prop.Key;
+            return new ProductPropertyDto(prop.Key, label, prop.Value);
+        }).ToList();
+
+        var parentCategory = product.ProductCategory.ParentCategory;
+
+        var dto = new ProductDto(
+            product.Id,
+            product.Sku,
+            product.Name,
+            product.Price,
+            new ProductCategoryDto(product.CategoryId, product.ProductCategory.Name, product.ProductCategory.Description),
+            new ProductCategoryNullableDto(parentCategory?.Id, parentCategory?.Name, parentCategory?.Description),
+            new ManufacturerDto(product.ManufacturerId, product.Manufacturer.Name, product.Manufacturer.Country),
+            product.Description,
+            product.ExtendedDescription,
+            !product.IsGloballyDisabled,
+            product.Images.Select(x => _storage.GetPublicUrl(x.Url)).ToList(),
+            propertyDtos
+        );
+
+        return Result.Success(dto);
+    }
+    
     private List<string> ValidateProductProperties(List<ProductPropertyDto> properties, List<CategoryFieldDto> categoryFields)
     {
         var errors = new List<string>();
@@ -448,7 +483,7 @@ public class ProductService : IProductService
 
         return errors;
     }
-
+    
     private async Task<string> GenerateNextSkuAsync()
     {
         var lastSku = await _repository.GetLastSkuAsync();

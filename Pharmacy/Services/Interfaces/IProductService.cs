@@ -14,4 +14,5 @@ public interface IProductService
     Task<Result> DeleteAsync(int productId);
     Task<Result<List<FilterOptionDto>>> GetFilterValuesAsync(int categoryId);
     Task<List<string>> GetSearchSuggestionsAsync(string query);
+    Task<Result<ProductDto>> GetBySkuAsync(string sku);
 }

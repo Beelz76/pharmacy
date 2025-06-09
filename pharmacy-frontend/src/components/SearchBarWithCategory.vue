@@ -105,6 +105,7 @@ import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useCategoryStore } from "../stores/CategoryStore";
 import api from "../utils/axios";
+import ProductService from "../services/ProductService";
 import { toSlug } from "../utils/slugify";
 
 const router = useRouter();
@@ -184,6 +185,21 @@ function goToSearch(queryFromList = null) {
       : searchQuery.value.trim();
 
   if (!query) return;
+  if (/^\d{6}$/.test(query)) {
+    ProductService.getBySku(`PRD-${query}`)
+      .then((p) => {
+        router.push({
+          path: `/products/${p.id}-${toSlug(p.name)}`,
+        });
+      })
+      .catch(() => {
+        router.push({ path: "/products/catalog", query: { search: query } });
+      })
+      .finally(() => {
+        showDropdown.value = false;
+      });
+    return;
+  }
 
   router.push({ path: "/products/catalog", query: { search: query } });
   showDropdown.value = false;

@@ -107,6 +107,16 @@ public class ProductRepository : BaseRepository, IProductRepository
         return lastSku ?? "PRD-000000";
     }
     
+    public async Task<Product?> GetBySkuAsync(string sku)
+    {
+        return await _context.Products
+            .Include(p => p.Properties)
+            .Include(p => p.Images)
+            .Include(p => p.ProductCategory)
+            .Include(p => p.Manufacturer)
+            .FirstOrDefaultAsync(p => p.Sku == sku);
+    }
+    
     public IQueryable<Product> Query()
     {
         return _context.Products

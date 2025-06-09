@@ -19,38 +19,40 @@
       />
     </div>
 
-    <!-- Производитель -->
-    <div v-if="manufacturers.length" class="space-y-1">
-      <div class="text-sm font-medium text-gray-700">Производитель</div>
-      <el-checkbox-group v-model="localFilters.manufacturerIds">
-        <el-checkbox
-          v-for="m in manufacturers"
-          :key="m.id"
-          :label="m.id"
-          class="block mb-1 text-sm"
-        >
-          {{ m.name }}
-        </el-checkbox>
-      </el-checkbox-group>
-    </div>
+    <!-- Фильтры -->
+    <el-collapse class="mt-4" accordion>
+      <el-collapse-item v-if="manufacturers.length" name="manufacturers">
+        <template #title>
+          <span class="text-sm font-medium text-gray-700">Производитель</span>
+        </template>
+        <el-checkbox-group v-model="localFilters.manufacturerIds">
+          <el-checkbox
+            v-for="m in manufacturers"
+            :key="m.id"
+            :label="m.id"
+            class="block mb-1 text-sm"
+          >
+            {{ m.name }}
+          </el-checkbox>
+        </el-checkbox-group>
+      </el-collapse-item>
 
-    <!-- Страна -->
-    <div v-if="countries.length" class="space-y-1">
-      <div class="text-sm font-medium text-gray-700">Страна</div>
-      <el-checkbox-group v-model="localFilters.countries">
-        <el-checkbox
-          v-for="c in countries"
-          :key="c"
-          :label="c"
-          class="block mb-1 text-sm"
-        >
-          {{ c }}
-        </el-checkbox>
-      </el-checkbox-group>
-    </div>
+      <el-collapse-item v-if="countries.length" name="countries">
+        <template #title>
+          <span class="text-sm font-medium text-gray-700">Страна</span>
+        </template>
+        <el-checkbox-group v-model="localFilters.countries">
+          <el-checkbox
+            v-for="c in countries"
+            :key="c"
+            :label="c"
+            class="block mb-1 text-sm"
+          >
+            {{ c }}
+          </el-checkbox>
+        </el-checkbox-group>
+      </el-collapse-item>
 
-    <!-- Динамические фильтры -->
-    <el-collapse v-if="propertyFilters.length" class="mt-4" accordion>
       <el-collapse-item
         v-for="filter in propertyFilters"
         :key="filter.key"
@@ -111,7 +113,7 @@ const localFilters = reactive({
   countries: [],
 });
 
-const inStockOnly = ref(false);
+const inStockOnly = ref(true);
 const manufacturerStore = useManufacturerStore();
 const manufacturers = computed(() => manufacturerStore.list);
 const countries = computed(() => manufacturerStore.countries);
@@ -123,7 +125,7 @@ onMounted(() => {
 watch(
   () => props.selectedFilters,
   (newVal) => {
-    inStockOnly.value = newVal?.isAvailable ?? false;
+    inStockOnly.value = newVal?.isAvailable ?? true;
     localFilters.propertyFilters = newVal?.propertyFilters ?? {};
     localFilters.manufacturerIds = newVal?.manufacturerIds ?? [];
     localFilters.countries = newVal?.countries ?? [];
@@ -151,7 +153,7 @@ function applyFilters() {
 }
 
 function resetFilters() {
-  inStockOnly.value = false;
+  inStockOnly.value = true;
   localFilters.manufacturerIds = [];
   localFilters.countries = [];
 
@@ -160,7 +162,7 @@ function resetFilters() {
   }
 
   emit("update:filters", {
-    isAvailable: null,
+    isAvailable: true,
     manufacturerIds: [],
     countries: [],
     propertyFilters: {},

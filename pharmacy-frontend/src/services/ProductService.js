@@ -19,4 +19,9 @@ export default {
   async delete(id) {
     await api.delete(`/products/${id}`);
   },
+
+  async getBySku(sku) {
+    const res = await api.get(`/products/by-sku/${sku}`);
+    return res.data;
+  },
 };
