@@ -149,6 +149,7 @@ watch(
 );
 
 watch(pageNumber, (val) => {
+  router.replace({ query: { ...route.query, page: val } });
   if (auth.isAuthenticated) {
     fetchOrders({ page: val, size: pageSize });
   }

@@ -73,7 +73,7 @@
 
 <script setup>
 import { ref, watch, computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import ProductCard from "../../components/cards/ProductCard.vue";
 import { useProducts } from "../../composables/useProducts";
 import { useCategoryStore } from "../../stores/CategoryStore";
@@ -83,9 +83,12 @@ const props = defineProps({
 });
 
 const route = useRoute();
+const router = useRouter();
 const categoryStore = useCategoryStore();
 const searchQuery = ref(route.query.search || "");
 const sort = ref("datetime_desc");
+
+pageNumber.value = Number(route.query.page) || 1;
 
 const { products, totalCount, pageNumber, pageSize, loading, fetchProducts } =
   useProducts();
@@ -104,12 +107,14 @@ const fetch = () => {
 
 const onPageChange = (page) => {
   pageNumber.value = page;
+  router.replace({ query: { ...route.query, page } });
   fetch();
 };
 
 const changeSort = (val) => {
   sort.value = val;
   pageNumber.value = 1;
+  router.replace({ query: { ...route.query, page: 1 } });
   fetch();
 };
 
@@ -127,6 +132,7 @@ watch(
       : [];
 
     pageNumber.value = 1;
+    router.replace({ query: { ...route.query, page: 1 } });
     fetch();
   },
   { immediate: true }
@@ -137,6 +143,7 @@ watch(
   (newSearch) => {
     searchQuery.value = newSearch || "";
     pageNumber.value = 1;
+    router.replace({ query: { ...route.query, page: 1 } });
     fetch();
   },
   { immediate: true }
@@ -146,6 +153,7 @@ watch(
   () => props.filters,
   () => {
     pageNumber.value = 1;
+    router.replace({ query: { ...route.query, page: 1 } });
     fetch();
   },
   { immediate: false, deep: true }

@@ -100,9 +100,11 @@
 
     <div v-if="totalCount > pageSize" class="flex justify-center mt-6">
       <el-pagination
-        layout="prev, pager, next"
+        layout="sizes, prev, pager, next"
         :total="totalCount"
         :page-size="pageSize"
+        :page-sizes="[10, 20, 50]"
+        v-model:page-size="pageSize"
         v-model:current-page="pageNumber"
       />
     </div>
@@ -126,6 +128,7 @@ const { users, totalCount, pageNumber, pageSize, loading, fetchUsers } =
   useUsers();
 
 pageNumber.value = Number(route.query.page) || 1;
+pageSize.value = Number(route.query.size) || pageSize.value;
 
 const fetch = () => {
   fetchUsers({ page: pageNumber.value, size: pageSize.value, filters });
@@ -140,8 +143,18 @@ const resetFilters = () => {
   fetch();
 };
 
-watch(pageNumber, fetch);
+watch(pageNumber, (val) => {
+  router.replace({
+    query: { ...route.query, page: val, size: pageSize.value },
+  });
+  fetch();
+});
 
+watch(pageSize, (val) => {
+  pageNumber.value = 1;
+  router.replace({ query: { ...route.query, page: 1, size: val } });
+  fetch();
+});
 const goDetails = (id) => {
   router.push({
     name: "AdminUserDetails",

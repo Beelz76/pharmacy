@@ -3,7 +3,7 @@ import api from "../utils/axios";
 
 export async function getPaginatedOrders({
   page = 1,
-  size = 20,
+  size = 10,
   sortBy = null,
   sortOrder = null,
   filters = {},
@@ -31,13 +31,13 @@ export function useOrders() {
   const orders = ref([]);
   const totalCount = ref(0);
   const pageNumber = ref(1);
-  const pageSize = ref(20);
+  const pageSize = ref(10);
   const loading = ref(false);
   const error = ref(null);
 
   const fetchOrders = async ({
     page = 1,
-    size = 20,
+    size = 10,
     sortBy = null,
     sortOrder = null,
     filters = {},

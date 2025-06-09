@@ -75,9 +75,11 @@
     </div>
     <div v-if="totalCount > pageSize" class="flex justify-center mt-6">
       <el-pagination
-        layout="prev, pager, next"
+        layout="sizes, prev, pager, next"
         :total="totalCount"
         :page-size="pageSize"
+        :page-sizes="[10, 20, 50]"
+        v-model:page-size="pageSize"
         v-model:current-page="pageNumber"
       />
     </div>
@@ -98,6 +100,7 @@ const pageSize = ref(20);
 const loading = ref(false);
 const filters = reactive({ orderNumber: "", dateRange: [] });
 pageNumber.value = Number(route.query.page) || 1;
+pageSize.value = Number(route.query.size) || pageSize.value;
 
 const fetch = async () => {
   loading.value = true;
@@ -119,7 +122,18 @@ const fetch = async () => {
   }
 };
 
-watch(pageNumber, fetch);
+watch(pageNumber, (val) => {
+  router.replace({
+    query: { ...route.query, page: val, size: pageSize.value },
+  });
+  fetch();
+});
+
+watch(pageSize, (val) => {
+  pageNumber.value = 1;
+  router.replace({ query: { ...route.query, page: 1, size: val } });
+  fetch();
+});
 
 const resetFilters = () => {
   filters.orderNumber = "";
