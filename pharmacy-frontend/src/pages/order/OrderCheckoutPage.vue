@@ -19,58 +19,6 @@
       </el-radio-group>
     </div>
 
-    <!-- Город + Улица -->
-    <div class="mb-6 flex flex-col md:flex-row gap-4 items-end">
-      <!-- Город -->
-      <div class="w-full md:w-[320px]">
-        <label class="block text-base font-medium text-gray-700 mb-2"
-          >Выберите город</label
-        >
-        <el-select
-          v-model="selectedCity"
-          filterable
-          remote
-          reserve-keyword
-          placeholder="Введите название города"
-          :remote-method="searchCities"
-          :loading="loadingCities"
-          class="w-full"
-        >
-          <el-option
-            v-for="item in cityOptions"
-            :key="item.place_id"
-            :label="item.display_name"
-            :value="item"
-          />
-        </el-select>
-      </div>
-
-      <!-- Улица -->
-      <div v-if="selectedCity" class="flex-1">
-        <label class="block text-base font-medium text-gray-700 mb-2"
-          >Улица</label
-        >
-        <el-select
-          v-model="selectedStreet"
-          filterable
-          remote
-          reserve-keyword
-          placeholder="Введите улицу"
-          :remote-method="searchStreets"
-          :loading="loadingStreets"
-          class="w-full"
-          @change="onStreetSelect"
-        >
-          <el-option
-            v-for="item in streetOptions"
-            :key="item.place_id"
-            :label="item.display_name"
-            :value="item"
-          />
-        </el-select>
-      </div>
-    </div>
-
     <!-- Карта и список аптек -->
     <div
       v-if="selectedCity && !isDelivery"
@@ -263,6 +211,7 @@
             ref="addressMapRef"
             :city="selectedCity"
             @select="onMapAddressSelect"
+            @update:city="selectedCity = $event"
           />
         </div>
 
@@ -312,7 +261,6 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import debounce from "lodash/debounce";
 import { ElMessage } from "element-plus";
 import MapComponent from "/src/components/MapComponent.vue";
 import { useOrderStore } from "/src/stores/OrderStore";
@@ -334,8 +282,6 @@ const selectedAddress = ref(orderStore.selectedAddress);
 const isDelivery = ref(orderStore.isDelivery);
 const paymentMethod = ref(orderStore.paymentMethod);
 
-const cityOptions = ref([]);
-const streetOptions = ref([]);
 const pharmacyList = ref([]);
 const addresses = ref([]);
 const newAddress = ref(null);
@@ -345,8 +291,6 @@ const floor = ref("");
 const addressComment = ref("");
 const deliveryComment = ref(orderStore.deliveryComment || "");
 const isOutsideCity = ref(false);
-const loadingCities = ref(false);
-const loadingStreets = ref(false);
 const triggerInitialLoad = ref(false);
 
 watch(selectedCity, (val) => (orderStore.selectedCity = val));
@@ -366,15 +310,6 @@ function handleMapOutside(val) {
 function onPharmacySelect(pharmacy) {
   if (selectedPharmacy.value?.id === pharmacy.id) return;
   selectedPharmacy.value = pharmacy;
-}
-
-function onStreetSelect(street) {
-  if (street?.lat && street?.lon) {
-    mapComponentRef.value?.flyToCoordinates(street.lat, street.lon);
-    setTimeout(() => {
-      mapComponentRef.value?.fetchInitialPharmacies();
-    }, 1000);
-  }
 }
 
 async function scrollToAndSelect(pharmacy) {
@@ -482,7 +417,6 @@ function submitOrder() {
 
 onMounted(() => {
   if (selectedCity.value) {
-    cityOptions.value = [selectedCity.value];
     triggerInitialLoad.value = true;
   } else {
     detectCity();
@@ -502,7 +436,6 @@ function detectCity() {
 
   const setCity = (city) => {
     selectedCity.value = city;
-    cityOptions.value = [city];
     triggerInitialLoad.value = true;
   };
 
@@ -563,20 +496,4 @@ const searchCities = async (query) => {
     loadingCities.value = false;
   }
 };
-
-const searchStreets = debounce(async (query) => {
-  if (!query || !selectedCity.value) return;
-  loadingStreets.value = true;
-  try {
-    streetOptions.value =
-      (await mapComponentRef.value?.searchStreets(
-        query,
-        selectedCity.value.name
-      )) || [];
-  } catch {
-    streetOptions.value = [];
-  } finally {
-    loadingStreets.value = false;
-  }
-}, 300);
 </script>

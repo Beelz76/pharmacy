@@ -13,6 +13,46 @@
       </div>
     </transition>
 
+    <div class="absolute top-2 left-2 z-[999] space-y-2 w-64">
+      <el-select
+        v-model="selectedCity"
+        filterable
+        remote
+        reserve-keyword
+        placeholder="Город"
+        :remote-method="loadCities"
+        :loading="loadingCities"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in cityOptions"
+          :key="item.place_id"
+          :label="item.display_name"
+          :value="item"
+        />
+      </el-select>
+
+      <el-select
+        v-if="mode === 'pharmacy' && selectedCity"
+        v-model="selectedStreet"
+        filterable
+        remote
+        reserve-keyword
+        placeholder="Улица"
+        :remote-method="loadStreets"
+        :loading="loadingStreets"
+        class="w-full"
+        @change="onStreetSelect"
+      >
+        <el-option
+          v-for="item in streetOptions"
+          :key="item.place_id"
+          :label="item.display_name"
+          :value="item"
+        />
+      </el-select>
+    </div>
+
     <div ref="mapContainer" class="w-full h-full"></div>
 
     <LoadingSpinner
@@ -31,6 +71,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as turf from "@turf/turf";
 import LoadingSpinner from "./LoadingSpinner.vue";
 import { ElButton } from "element-plus";
+import debounce from "lodash/debounce";
 
 const props = defineProps({
   city: Object,
@@ -49,21 +90,31 @@ const isLoading = ref(false);
 const isOutsideCity = ref(false);
 let fetchTimeout = null;
 
-function isInsideCity(centerLat, centerLng) {
-  if (props.city?.boundingbox?.length === 4) {
-    const [south, north, west, east] = props.city.boundingbox.map((v) =>
+const selectedCity = ref(props.city || null);
+const selectedStreet = ref(null);
+const cityOptions = ref([]);
+const streetOptions = ref([]);
+const loadingCities = ref(false);
+const loadingStreets = ref(false);
+
+function isInsideCity(bounds) {
+  const city = selectedCity.value;
+  if (!city) return false;
+  if (city.boundingbox?.length === 4) {
+    const [south, north, west, east] = city.boundingbox.map((v) =>
       parseFloat(v)
     );
-    return (
-      centerLat >= south &&
-      centerLat <= north &&
-      centerLng >= west &&
-      centerLng <= east
+    return !(
+      bounds.getNorth() < south ||
+      bounds.getSouth() > north ||
+      bounds.getEast() < west ||
+      bounds.getWest() > east
     );
   }
+  const center = bounds.getCenter();
   const d = turf.distance(
-    turf.point([centerLng, centerLat]),
-    turf.point([props.city.lng, props.city.lat]),
+    turf.point([center.lng, center.lat]),
+    turf.point([city.lng, city.lat]),
     { units: "kilometers" }
   );
   return d <= 10;
@@ -74,9 +125,9 @@ function setupMoveEndListener() {
   map.on("moveend", () => {
     clearTimeout(fetchTimeout);
     fetchTimeout = setTimeout(() => {
-      const center = map.getCenter();
       const currentZoom = map.getZoom();
-      if (currentZoom >= 13 && isInsideCity(center.lat, center.lng)) {
+      const bounds = map.getBounds();
+      if (currentZoom >= 13 && isInsideCity(bounds)) {
         isOutsideCity.value = false;
         emit("outside", false);
         fetchPharmaciesInBounds(map.getBounds());
@@ -95,6 +146,16 @@ onMounted(() => {
   watch(
     () => props.city,
     (city) => {
+      if (city) selectedCity.value = city;
+    },
+    { immediate: true }
+  );
+
+  watch(
+    selectedCity,
+    (city) => {
+      emit("update:city", city);
+      selectedStreet.value = null;
       if (city?.lat && city?.lng) {
         if (!map) {
           initMap(city.lat, city.lng);
@@ -301,9 +362,10 @@ async function onAddressClick(e) {
 
 function returnToCity() {
   if (props.mode !== "pharmacy") return;
-  if (map && props.city?.lat && props.city?.lng) {
+  const city = selectedCity.value;
+  if (map && city?.lat && city?.lng) {
     map.flyTo({
-      center: [props.city.lng, props.city.lat],
+      center: [city.lng, city.lat],
       zoom,
       essential: true,
     });
@@ -365,6 +427,35 @@ async function searchCities(query) {
   }
 }
 
+const loadCities = async (query) => {
+  if (!query) return;
+  loadingCities.value = true;
+  try {
+    cityOptions.value = await searchCities(query);
+  } finally {
+    loadingCities.value = false;
+  }
+};
+
+const loadStreets = debounce(async (query) => {
+  if (!query || !selectedCity.value) return;
+  loadingStreets.value = true;
+  try {
+    streetOptions.value = await searchStreets(query, selectedCity.value.name);
+  } finally {
+    loadingStreets.value = false;
+  }
+}, 300);
+
+function onStreetSelect(street) {
+  if (street?.lat && street?.lon) {
+    flyToCoordinates(street.lat, street.lon);
+    setTimeout(() => {
+      fetchPharmaciesInBounds(map.getBounds());
+    }, 1000);
+  }
+}
+
 async function searchStreets(query, cityName) {
   if (!query || !cityName) return [];
   try {
@@ -410,6 +501,8 @@ defineExpose({
   flyToCoordinates,
   searchCities,
   searchStreets,
+  loadCities,
+  loadStreets,
   fetchInitialPharmacies: () => {
     if (map && props.mode === "pharmacy") {
       fetchPharmaciesInBounds(map.getBounds());
