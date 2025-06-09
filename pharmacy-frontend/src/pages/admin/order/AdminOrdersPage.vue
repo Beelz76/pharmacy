@@ -216,6 +216,7 @@ const route = useRoute();
 const router = useRouter();
 const filters = reactive({
   number: "",
+  userId: null,
   userEmail: "",
   userFullName: "",
   pharmacyName: "",
@@ -229,6 +230,7 @@ const { orders, totalCount, pageNumber, pageSize, loading, fetchOrders } =
 
 pageNumber.value = Number(route.query.page) || 1;
 pageSize.value = Number(route.query.size) || pageSize.value;
+filters.userId = route.query.userId ? Number(route.query.userId) : null;
 
 const pharmacyNames = ref([]);
 const pharmacyAddresses = ref([]);
@@ -287,6 +289,7 @@ const loadStatuses = async () => {
 const fetch = () => {
   const payload = {
     number: filters.number || null,
+    userId: filters.userId || null,
     userEmail: filters.userEmail || null,
     userFullName: filters.userFullName || null,
     pharmacyName: filters.pharmacyName || null,
@@ -304,6 +307,7 @@ const fetch = () => {
 
 const resetFilters = () => {
   filters.number = "";
+  filters.userId = null;
   filters.userEmail = "";
   (filters.userFullName = ""),
     (filters.pharmacyName = ""),
@@ -326,6 +330,15 @@ watch(pageSize, (val) => {
   router.replace({ query: { ...route.query, page: 1, size: val } });
   fetch();
 });
+
+watch(
+  () => route.query.userId,
+  (val) => {
+    filters.userId = val ? Number(val) : null;
+    pageNumber.value = 1;
+    fetch();
+  }
+);
 
 const formatDate = (iso) => {
   return new Date(iso).toLocaleString("ru-RU", {

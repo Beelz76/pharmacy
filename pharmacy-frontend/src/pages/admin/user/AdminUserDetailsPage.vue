@@ -69,4 +69,8 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+const goToUserOrders = (id) => {
+  router.push({ name: "AdminOrders", query: { userId: id } });
+};
 </script>

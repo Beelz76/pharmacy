@@ -31,6 +31,14 @@
         Доставки
       </RouterLink>
 
+      <RouterLink
+        to="/admin/pharmacies"
+        :class="navLinkClass('/admin/pharmacies')"
+      >
+        <i class="fas fa-clinic-medical text-base w-5 text-center mr-3"></i>
+        Аптеки
+      </RouterLink>
+
       <button
         @click="showRefs = !showRefs"
         :class="

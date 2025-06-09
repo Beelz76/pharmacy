@@ -31,6 +31,8 @@ api.interceptors.response.use(
     if (data) {
       if (data.errors && typeof data.errors === "object") {
         message = Object.values(data.errors).flat().join(" ");
+      } else if (Array.isArray(data.details) && data.details.length) {
+        message = data.details.join(" ");
       } else if (data.message) {
         message = data.message;
       }
