@@ -42,6 +42,7 @@ public class GetAllEndpoint : Endpoint<ProductFilters>
             SortOrder = sortOrder,
             CategoryIds = filters.CategoryIds,
             ManufacturerIds = filters.ManufacturerIds,
+            Countries = filters.Countries,
             Search = search,
             PropertyFilters = filters.PropertyFilters,
             IsAvailable = filters.IsAvailable,

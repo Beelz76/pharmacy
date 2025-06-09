@@ -217,8 +217,8 @@ public class ProductService : IProductService
     public async Task<Result<PaginatedList<ProductCardDto>>> GetPaginatedProductsAsync(ProductParameters query, int? userId = null)
     {
         var cacheKey =
-            $"products-{userId}-{query.PageNumber}-{query.PageSize}-{query.Search}-{string.Join(',', query.CategoryIds ?? Enumerable.Empty<int>())}-{string.Join(',', query.ManufacturerIds ?? Enumerable.Empty<int>())}-{query.SortBy}-{query.SortOrder}-{query.IsAvailable}-{query.IsPrescriptionRequired}";
-
+            $"products-{userId}-{query.PageNumber}-{query.PageSize}-{query.Search}-{string.Join(',', query.CategoryIds ?? Enumerable.Empty<int>())}-{string.Join(',', query.ManufacturerIds ?? Enumerable.Empty<int>())}-{string.Join(',', query.Countries ?? Enumerable.Empty<string>())}-{query.SortBy}-{query.SortOrder}-{query.IsAvailable}-{query.IsPrescriptionRequired}";
+        
         var data = await _cache.GetOrCreateAsync(
             cacheKey,
             async ct =>
@@ -242,6 +242,11 @@ public class ProductService : IProductService
                     productsQuery = productsQuery.Where(p => query.ManufacturerIds.Contains(p.ManufacturerId));
                 }
 
+                if (query.Countries is not null && query.Countries.Any())
+                {
+                    productsQuery = productsQuery.Where(p => query.Countries.Contains(p.Manufacturer.Country));
+                }
+                
                 if (!string.IsNullOrWhiteSpace(query.Search))
                 {
                     productsQuery =

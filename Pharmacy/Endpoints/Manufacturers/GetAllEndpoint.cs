@@ -15,7 +15,7 @@ public class GetAllEndpoint : EndpointWithoutRequest
     public override void Configure()
     {
         Get("manufacturers");
-        Roles("Admin");
+        AllowAnonymous();
         Tags("Manufacturer");
         Summary(s => { s.Summary = "Получить всех производителей"; });
     }

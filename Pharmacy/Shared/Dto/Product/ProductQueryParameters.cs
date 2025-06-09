@@ -6,6 +6,7 @@ public class ProductParameters
     public int PageSize { get; set; } = 20;
     public List<int>? CategoryIds { get; set; } = null;
     public List<int>? ManufacturerIds { get; set; } = null;
+    public List<string>? Countries { get; set; } = null;
     public string? SortBy { get; set; } = null;
     public string? SortOrder { get; set; } = null;
     public string? Search { get; set; } = null;
@@ -28,5 +29,6 @@ public class ProductFilters
     public bool? IsPrescriptionRequired { get; set; }
     public List<int>? CategoryIds { get; set; }
     public List<int>? ManufacturerIds { get; set; }
+    public List<string>? Countries { get; set; }
     public Dictionary<string, List<string>>? PropertyFilters { get; set; }
 }

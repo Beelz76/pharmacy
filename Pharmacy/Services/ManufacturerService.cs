@@ -110,4 +110,23 @@ public class ManufacturerService : IManufacturerService
         await _repository.DeleteAsync(manufacturer);
         return Result.Success();
     }
+    
+    public async Task<Result<List<string>>> GetCountriesAsync()
+    {
+        var countries = await _cache.GetOrCreateAsync(
+            "manufacturer-countries",
+            async ct =>
+            {
+                var all = (await _repository.GetAllAsync()).ToList();
+                if (!all.Any()) return null;
+                return all.Select(m => m.Country).Distinct().OrderBy(c => c).ToList();
+            });
+
+        if (countries is null)
+        {
+            return Result.Failure<List<string>>(Error.NotFound("Страны не найдены"));
+        }
+
+        return Result.Success(countries);
+    }
 }

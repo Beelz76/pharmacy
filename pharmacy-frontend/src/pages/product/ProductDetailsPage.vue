@@ -143,6 +143,7 @@
               {{ product.category.name }}
             </router-link>
           </div>
+          <div><strong>Артикул:</strong> {{ product.sku }}</div>
           <div>
             <strong>Производитель:</strong> {{ product.manufacturer.name }}
           </div>

@@ -13,4 +13,5 @@ public interface IManufacturerService
     Task<Result<CreatedDto>> CreateAsync(CreateManufacturerRequest request);
     Task<Result> UpdateAsync(int Id, UpdateManufacturerRequest manufacturer);
     Task<Result> DeleteAsync(int id);
+    Task<Result<List<string>>> GetCountriesAsync();
 }

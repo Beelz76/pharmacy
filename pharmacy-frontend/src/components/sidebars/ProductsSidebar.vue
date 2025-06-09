@@ -19,23 +19,34 @@
       />
     </div>
 
-    <!-- По рецепту / Без рецепта -->
-    <div class="space-y-1">
-      <div class="text-sm font-medium text-gray-700">Наличие рецепта</div>
-      <el-checkbox
-        :model-value="prescription === false"
-        @change="togglePrescription(false)"
-        class="!text-sm"
-      >
-        Без рецепта
-      </el-checkbox>
-      <el-checkbox
-        :model-value="prescription === true"
-        @change="togglePrescription(true)"
-        class="!text-sm"
-      >
-        По рецепту
-      </el-checkbox>
+    <!-- Производитель -->
+    <div v-if="manufacturers.length" class="space-y-1">
+      <div class="text-sm font-medium text-gray-700">Производитель</div>
+      <el-checkbox-group v-model="localFilters.manufacturerIds">
+        <el-checkbox
+          v-for="m in manufacturers"
+          :key="m.id"
+          :label="m.id"
+          class="block mb-1 text-sm"
+        >
+          {{ m.name }}
+        </el-checkbox>
+      </el-checkbox-group>
+    </div>
+
+    <!-- Страна -->
+    <div v-if="countries.length" class="space-y-1">
+      <div class="text-sm font-medium text-gray-700">Страна</div>
+      <el-checkbox-group v-model="localFilters.countries">
+        <el-checkbox
+          v-for="c in countries"
+          :key="c"
+          :label="c"
+          class="block mb-1 text-sm"
+        >
+          {{ c }}
+        </el-checkbox>
+      </el-checkbox-group>
     </div>
 
     <!-- Динамические фильтры -->
@@ -82,8 +93,9 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, computed } from "vue";
+import { reactive, ref, watch, computed, onMounted } from "vue";
 import { useCategoryStore } from "../../stores/CategoryStore";
+import { useManufacturerStore } from "../../stores/ManufacturerStore";
 
 const props = defineProps({
   selectedFilters: Object,
@@ -95,17 +107,26 @@ const propertyFilters = computed(() => categoryStore.propertyFilters);
 
 const localFilters = reactive({
   propertyFilters: {},
+  manufacturerIds: [],
+  countries: [],
 });
 
 const inStockOnly = ref(false);
-const prescription = ref(null);
+const manufacturerStore = useManufacturerStore();
+const manufacturers = computed(() => manufacturerStore.list);
+const countries = computed(() => manufacturerStore.countries);
+
+onMounted(() => {
+  manufacturerStore.fetchManufacturers();
+});
 
 watch(
   () => props.selectedFilters,
   (newVal) => {
     inStockOnly.value = newVal?.isAvailable ?? false;
-    prescription.value = newVal?.isPrescriptionRequired ?? null;
     localFilters.propertyFilters = newVal?.propertyFilters ?? {};
+    localFilters.manufacturerIds = newVal?.manufacturerIds ?? [];
+    localFilters.countries = newVal?.countries ?? [];
   },
   { immediate: true, deep: true }
 );
@@ -117,14 +138,11 @@ watch(
   }
 );
 
-function togglePrescription(value) {
-  prescription.value = prescription.value === value ? null : value;
-}
-
 function applyFilters() {
   emit("update:filters", {
     isAvailable: inStockOnly.value ? true : null,
-    isPrescriptionRequired: prescription.value,
+    manufacturerIds: [...localFilters.manufacturerIds],
+    countries: [...localFilters.countries],
     propertyFilters: { ...localFilters.propertyFilters },
     categoryIds: categoryStore.selectedCategoryId
       ? [categoryStore.selectedCategoryId]
@@ -134,7 +152,8 @@ function applyFilters() {
 
 function resetFilters() {
   inStockOnly.value = false;
-  prescription.value = null;
+  localFilters.manufacturerIds = [];
+  localFilters.countries = [];
 
   for (const key in localFilters.propertyFilters) {
     localFilters.propertyFilters[key] = [];
@@ -142,7 +161,8 @@ function resetFilters() {
 
   emit("update:filters", {
     isAvailable: null,
-    isPrescriptionRequired: null,
+    manufacturerIds: [],
+    countries: [],
     propertyFilters: {},
     categoryIds: categoryStore.selectedCategoryId
       ? [categoryStore.selectedCategoryId]

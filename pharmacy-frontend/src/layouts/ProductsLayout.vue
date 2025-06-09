@@ -13,8 +13,9 @@ import { ref } from "vue";
 import ProductsSidebar from "../components/sidebars/ProductsSidebar.vue";
 
 const filters = ref({
-  isAvailable: null,
-  isPrescriptionRequired: null,
+  isAvailable: true,
+  manufacturerIds: [],
+  countries: [],
   propertyFilters: {},
   categoryIds: [],
 });
