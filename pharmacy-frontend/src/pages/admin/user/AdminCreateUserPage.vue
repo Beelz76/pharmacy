@@ -1,11 +1,18 @@
 <template>
-  <div>
-    <el-button type="text" @click="router.back()"
-      ><i class="fas fa-arrow-left mr-1"></i> Назад</el-button
-    >
-    <h1 class="text-2xl font-semibold mb-6">Новый сотрудник</h1>
+  <div class="max-w-5xl mx-auto">
+    <div class="flex items-center gap-4 mb-8">
+      <button
+        @click="router.back()"
+        class="flex items-center text-primary-600 hover:text-primary-700 text-base group transition"
+      >
+        <i
+          class="text-xl fas fa-arrow-left mr-2 group-hover:-translate-x-1 duration-150"
+        ></i>
+      </button>
+      <h2 class="text-2xl font-bold tracking-tight">Новый сотрудник</h2>
+    </div>
 
-    <el-card class="max-w-2xl mx-auto">
+    <div class="bg-white border rounded-xl p-6 shadow-sm">
       <el-form
         :model="form"
         :rules="rules"
@@ -43,38 +50,64 @@
               <el-option label="Сотрудник" value="Employee" />
             </el-select>
           </el-form-item>
+
           <el-form-item
             label="Аптека"
+            v-if="form.role === 'Employee'"
+            class="md:col-span-2"
+          >
+            <el-select
+              v-model="selectedPharmacyName"
+              placeholder="Выберите аптеку"
+              class="w-full"
+              clearable
+              filterable
+              remote
+              reserve-keyword
+              :remote-method="searchPharmacyNames"
+              :loading="loadingPharmacies"
+            >
+              <el-option
+                v-for="n in pharmacyNames"
+                :key="n"
+                :label="n"
+                :value="n"
+              />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item
+            label="Адрес"
             prop="pharmacyId"
             v-if="form.role === 'Employee'"
             class="md:col-span-2"
           >
             <el-select
               v-model="form.pharmacyId"
-              placeholder="Выберите аптеку"
+              placeholder="Адрес"
               class="w-full"
               filterable
               remote
               reserve-keyword
-              :remote-method="searchPharmacies"
+              :remote-method="searchPharmacyAddresses"
               :loading="loadingPharmacies"
             >
               <el-option
-                v-for="p in pharmacies"
+                v-for="p in pharmacyAddresses"
                 :key="p.id"
-                :label="p.name"
+                :label="p.address"
                 :value="p.id"
               />
             </el-select>
           </el-form-item>
         </div>
         <div class="text-right">
-          <el-button type="primary" @click="submit" :loading="loading"
-            >Создать</el-button
-          >
+          <el-button type="primary" @click="submit" :loading="loading">
+            Создать
+          </el-button>
         </div>
       </el-form>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -83,6 +116,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { createUser } from "/src/services/UserService";
 import { getPharmacies } from "/src/services/PharmacyService";
+import formatAddress from "/src/utils/formatAddress";
 import PhoneInput from "/src/components/inputs/PhoneInput.vue";
 
 const router = useRouter();
@@ -130,27 +164,61 @@ const submit = () => {
   });
 };
 
-const pharmacies = ref([]);
+const pharmacyNames = ref([]);
+const pharmacyAddresses = ref([]);
+const selectedPharmacyName = ref(null);
 const loadingPharmacies = ref(false);
 
-const searchPharmacies = async (query = "") => {
+const searchPharmacyNames = async (query = "") => {
   loadingPharmacies.value = true;
   try {
     const data = await getPharmacies({ search: query });
-    pharmacies.value = data.items;
+    const names = Array.from(new Set(data.items.map((p) => p.name)));
+    pharmacyNames.value = names;
   } finally {
     loadingPharmacies.value = false;
   }
 };
 
-onMounted(() => searchPharmacies());
+const searchPharmacyAddresses = async (query = "") => {
+  if (!selectedPharmacyName.value) {
+    pharmacyAddresses.value = [];
+    return;
+  }
+  loadingPharmacies.value = true;
+  try {
+    const data = await getPharmacies({ search: selectedPharmacyName.value });
+    let list = data.items.filter((p) => p.name === selectedPharmacyName.value);
+    if (query) {
+      const q = query.toLowerCase();
+      list = list.filter((p) =>
+        formatAddress(p.address).toLowerCase().includes(q)
+      );
+    }
+    pharmacyAddresses.value = list.map((p) => ({
+      id: p.id,
+      address: formatAddress(p.address),
+    }));
+  } finally {
+    loadingPharmacies.value = false;
+  }
+};
+
+onMounted(() => searchPharmacyNames());
 
 watch(
   () => form.value.role,
   (role) => {
     if (role !== "Employee") {
       form.value.pharmacyId = null;
+      selectedPharmacyName.value = null;
+      pharmacyAddresses.value = [];
     }
   }
 );
+
+watch(selectedPharmacyName, () => {
+  form.value.pharmacyId = null;
+  searchPharmacyAddresses();
+});
 </script>

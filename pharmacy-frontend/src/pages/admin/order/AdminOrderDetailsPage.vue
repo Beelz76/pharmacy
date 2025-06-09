@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto">
+  <div class="max-w-5xl mx-auto">
     <div class="flex items-center gap-4 mb-8">
       <button
         @click="router.back()"

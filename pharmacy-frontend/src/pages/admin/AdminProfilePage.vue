@@ -3,7 +3,7 @@
     <h1 class="text-2xl font-semibold mb-6">Профиль администратора</h1>
     <div class="grid lg:grid-cols-2 gap-8">
       <!-- Персональные данные -->
-      <el-card class="!p-6">
+      <el-card class="!p-6 border rounded-xl">
         <template #header>
           <h2 class="text-xl font-semibold text-gray-900">
             Персональные данные
@@ -109,7 +109,7 @@
       <!-- Почта и пароль -->
       <div class="space-y-8">
         <!-- Пароль -->
-        <el-card class="!p-6">
+        <el-card class="!p-6 border rounded-xl">
           <template #header>
             <div class="flex justify-between items-center">
               <h2 class="text-xl font-semibold text-gray-900">

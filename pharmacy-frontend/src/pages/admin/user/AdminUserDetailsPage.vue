@@ -1,24 +1,50 @@
 <template>
-  <div>
-    <el-button type="text" @click="router.back()"
-      ><i class="fas fa-arrow-left mr-1"></i> Назад</el-button
-    >
-    <h1 class="text-2xl font-semibold mb-6">Пользователь #{{ user?.id }}</h1>
+  <div class="max-w-5xl mx-auto">
+    <div class="flex items-center gap-4 mb-8">
+      <button
+        @click="router.back()"
+        class="flex items-center text-primary-600 hover:text-primary-700 text-base group transition"
+      >
+        <i
+          class="text-xl fas fa-arrow-left mr-2 group-hover:-translate-x-1 duration-150"
+        ></i>
+      </button>
+      <h2 class="text-2xl font-bold tracking-tight">
+        Пользователь #{{ user?.id }}
+      </h2>
+    </div>
 
     <div v-if="loading" class="text-center py-10">Загрузка...</div>
     <div v-else-if="!user" class="text-center py-10 text-gray-500">
       Пользователь не найден
     </div>
-    <div v-else class="bg-white rounded-lg shadow p-6 space-y-4">
-      <p><b>Email:</b> {{ user.email }}</p>
-      <p><b>Почта подтверждена:</b> {{ user.emailVerified ? "Да" : "Нет" }}</p>
-      <p><b>Роль:</b> {{ user.role }}</p>
-      <p>
-        <b>Имя:</b> {{ user.lastName }} {{ user.firstName }}
-        {{ user.patronymic }}
+    <div v-else class="bg-white border rounded-xl p-6 shadow-sm space-y-3">
+      <p class="text-base text-gray-700">
+        <span class="font-medium">Email:</span> {{ user.email }}
       </p>
-      <p><b>Телефон:</b> {{ user.phone || "—" }}</p>
-      <p v-if="user.pharmacy"><b>Аптека:</b> {{ user.pharmacy.name }}</p>
+      <p class="text-base text-gray-700">
+        <span class="font-medium">Почта подтверждена:</span>
+        {{ user.emailVerified ? "Да" : "Нет" }}
+      </p>
+      <p class="text-base text-gray-700">
+        <span class="font-medium">Роль:</span> {{ user.role }}
+      </p>
+      <p class="text-base text-gray-700">
+        <span class="font-medium">Имя:</span> {{ user.lastName }}
+        {{ user.firstName }} {{ user.patronymic }}
+      </p>
+      <p class="text-base text-gray-700">
+        <span class="font-medium">Телефон:</span> {{ user.phone || "—" }}
+      </p>
+      <p v-if="user.pharmacy" class="text-base text-gray-700">
+        <span class="font-medium">Аптека:</span> {{ user.pharmacy.name }}
+      </p>
+      <button
+        class="text-primary-600 hover:text-primary-700 text-base underline"
+        @click="goToUserOrders(user.id)"
+      >
+        Заказы пользователя
+      </button>
     </div>
   </div>
 </template>

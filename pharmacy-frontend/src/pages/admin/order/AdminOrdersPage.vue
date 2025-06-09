@@ -6,6 +6,7 @@
     <div class="bg-white rounded-lg shadow p-6 mb-6">
       <el-form :inline="true" @submit.prevent>
         <div class="flex flex-wrap items-end gap-4 mb-4">
+          <!-- Основные фильтры -->
           <el-form-item label-width="0">
             <el-input
               v-model="filters.number"
@@ -30,6 +31,8 @@
               class="!w-52"
             />
           </el-form-item>
+
+          <!-- Аптека и адрес -->
           <el-form-item label="Аптека">
             <el-select
               v-model="selectedPharmacyName"
@@ -50,7 +53,7 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="Адрес">
+          <el-form-item>
             <el-select
               v-model="filters.pharmacyId"
               placeholder="Адрес"
@@ -70,6 +73,8 @@
               />
             </el-select>
           </el-form-item>
+
+          <!-- Статус и период -->
           <el-form-item label="Статус">
             <el-select
               v-model="filters.status"
@@ -94,6 +99,8 @@
               end-placeholder="До"
             />
           </el-form-item>
+
+          <!-- Кнопки действий -->
           <el-form-item>
             <el-button type="primary" plain @click="fetch">Поиск</el-button>
             <el-button @click="resetFilters">Сбросить</el-button>
