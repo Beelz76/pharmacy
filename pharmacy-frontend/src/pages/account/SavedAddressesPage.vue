@@ -139,6 +139,22 @@ function editAddress(addr) {
     address: addr.address,
     osm_id: addr.address.osmId,
   };
+  selectedCity.value = {
+    name:
+      addr.address.city ||
+      addr.address.town ||
+      addr.address.village ||
+      "Москва",
+    display_name:
+      addr.address.city ||
+      addr.address.town ||
+      addr.address.village ||
+      "Москва",
+    lat: addr.address.latitude,
+    lng: addr.address.longitude,
+    place_id: `addr_${addr.id}`,
+    boundingbox: null,
+  };
   apartment.value = addr.apartment || "";
   entrance.value = addr.entrance || "";
   floor.value = addr.floor || "";

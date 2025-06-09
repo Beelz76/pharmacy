@@ -13,7 +13,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   const isAuthenticated = computed(() => !!token.value);
 
-  function setToken(newToken) {
+  function setToken(newToken, { sync = true, fetchServer = false } = {}) {
     token.value = newToken;
     localStorage.setItem("token", newToken);
 
@@ -31,14 +31,19 @@ export const useAuthStore = defineStore("auth", () => {
       userId.value = null;
     }
 
-    useCartStore().syncToServer();
-    useFavoritesStore().syncToServer();
+    if (sync) {
+      useCartStore().syncToServer();
+      useFavoritesStore().syncToServer();
+    } else if (fetchServer) {
+      useCartStore().fetchCart();
+      useFavoritesStore().fetchFavorites();
+    }
   }
 
   function initialize() {
     const savedToken = localStorage.getItem("token");
     if (savedToken) {
-      setToken(savedToken);
+      setToken(savedToken, { sync: false, fetchServer: true });
     }
     const savedReturnUrl = localStorage.getItem("returnUrl");
     if (savedReturnUrl) {
@@ -89,7 +94,7 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   if (token.value) {
-    setToken(token.value);
+    setToken(token.value, { sync: false });
   }
 
   return {

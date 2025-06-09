@@ -328,6 +328,22 @@ function selectSavedAddress(addr) {
   selectedAddressId.value = addr.id;
   selectedAddress.value = addr;
   newAddress.value = null;
+  selectedCity.value = {
+    name:
+      addr.address.city ||
+      addr.address.town ||
+      addr.address.village ||
+      "Москва",
+    display_name:
+      addr.address.city ||
+      addr.address.town ||
+      addr.address.village ||
+      "Москва",
+    lat: addr.address.latitude,
+    lng: addr.address.longitude,
+    place_id: `addr_${addr.id}`,
+    boundingbox: null,
+  };
   addressMapRef.value?.flyToCoordinates(
     addr.address.latitude,
     addr.address.longitude,

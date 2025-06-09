@@ -76,6 +76,15 @@ import LoadingSpinner from "./LoadingSpinner.vue";
 import { ElButton } from "element-plus";
 import debounce from "lodash/debounce";
 
+const defaultCity = {
+  name: "Москва",
+  display_name: "Москва",
+  lat: 55.7558,
+  lng: 37.6173,
+  place_id: "moscow_default",
+  boundingbox: null,
+};
+
 const props = defineProps({
   city: Object,
   triggerInitialLoad: Boolean,
@@ -93,7 +102,7 @@ const isLoading = ref(false);
 const isOutsideCity = ref(false);
 let fetchTimeout = null;
 
-const selectedCity = ref(props.city || null);
+const selectedCity = ref(props.city || defaultCity);
 const selectedStreet = ref(null);
 const cityOptions = ref([]);
 const streetOptions = ref([]);
