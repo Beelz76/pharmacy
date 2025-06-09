@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 import MapComponent from "/src/components/MapComponent.vue";
 import {
@@ -98,6 +98,13 @@ const entrance = ref("");
 const floor = ref("");
 const addressComment = ref("");
 const auth = useAuthStore();
+
+watch(editing, async (val) => {
+  if (val) {
+    await nextTick();
+    mapRef.value?.resize();
+  }
+});
 
 onMounted(() => {
   if (!auth.isAuthenticated) return;

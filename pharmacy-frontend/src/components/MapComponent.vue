@@ -13,44 +13,47 @@
       </div>
     </transition>
 
-    <div class="absolute top-2 left-2 z-[999] space-y-2 w-64">
-      <el-select
-        v-model="selectedCity"
-        filterable
-        remote
-        reserve-keyword
-        placeholder="Город"
-        :remote-method="loadCities"
-        :loading="loadingCities"
-        class="w-full"
-      >
-        <el-option
-          v-for="item in cityOptions"
-          :key="item.place_id"
-          :label="item.display_name"
-          :value="item"
-        />
-      </el-select>
+    <div class="absolute top-2 left-2 z-[999] flex gap-2">
+      <div class="flex flex-col w-64">
+        <el-select
+          v-model="selectedCity"
+          filterable
+          remote
+          reserve-keyword
+          placeholder="Город"
+          :remote-method="loadCities"
+          :loading="loadingCities"
+          class="w-full"
+        >
+          <el-option
+            v-for="item in cityOptions"
+            :key="item.place_id"
+            :label="item.display_name"
+            :value="item"
+          />
+        </el-select>
+      </div>
 
-      <el-select
-        v-if="mode === 'pharmacy' && selectedCity"
-        v-model="selectedStreet"
-        filterable
-        remote
-        reserve-keyword
-        placeholder="Улица"
-        :remote-method="loadStreets"
-        :loading="loadingStreets"
-        class="w-full"
-        @change="onStreetSelect"
-      >
-        <el-option
-          v-for="item in streetOptions"
-          :key="item.place_id"
-          :label="item.display_name"
-          :value="item"
-        />
-      </el-select>
+      <div v-if="selectedCity" class="flex flex-col w-64">
+        <el-select
+          v-model="selectedStreet"
+          filterable
+          remote
+          reserve-keyword
+          placeholder="Улица"
+          :remote-method="loadStreets"
+          :loading="loadingStreets"
+          class="w-full"
+          @change="onStreetSelect"
+        >
+          <el-option
+            v-for="item in streetOptions"
+            :key="item.place_id"
+            :label="item.display_name"
+            :value="item"
+          />
+        </el-select>
+      </div>
     </div>
 
     <div ref="mapContainer" class="w-full h-full"></div>
@@ -127,10 +130,16 @@ function setupMoveEndListener() {
     fetchTimeout = setTimeout(() => {
       const currentZoom = map.getZoom();
       const bounds = map.getBounds();
-      if (currentZoom >= 13 && isInsideCity(bounds)) {
+      if (isInsideCity(bounds)) {
         isOutsideCity.value = false;
         emit("outside", false);
-        fetchPharmaciesInBounds(map.getBounds());
+        if (currentZoom >= 13) {
+          fetchPharmaciesInBounds(bounds);
+        } else {
+          pharmacies.value = [];
+          emit("update:pharmacies", []);
+          clearMarkers();
+        }
       } else {
         isOutsideCity.value = true;
         emit("outside", true);
@@ -146,7 +155,7 @@ onMounted(() => {
   watch(
     () => props.city,
     (city) => {
-      if (city) selectedCity.value = city;
+      selectedCity.value = city || defaultCity;
     },
     { immediate: true }
   );
@@ -503,6 +512,9 @@ defineExpose({
   searchStreets,
   loadCities,
   loadStreets,
+  resize: () => {
+    if (map) map.resize();
+  },
   fetchInitialPharmacies: () => {
     if (map && props.mode === "pharmacy") {
       fetchPharmaciesInBounds(map.getBounds());
