@@ -28,6 +28,17 @@
       </el-form>
     </div>
 
+    <div class="flex justify-end mb-4">
+      <el-pagination
+        layout="sizes, prev, pager, next"
+        :total="totalCount"
+        :page-size="pageSize"
+        :page-sizes="[10, 20, 50]"
+        v-model:page-size="pageSize"
+        v-model:current-page="pageNumber"
+      />
+    </div>
+
     <div class="overflow-x-auto rounded-lg shadow border bg-white">
       <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
         <thead
@@ -73,7 +84,7 @@
         </tbody>
       </table>
     </div>
-    <div v-if="totalCount > pageSize" class="flex justify-center mt-6">
+    <div class="flex justify-end mt-6">
       <el-pagination
         layout="sizes, prev, pager, next"
         :total="totalCount"
