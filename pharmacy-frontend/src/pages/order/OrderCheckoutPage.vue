@@ -143,16 +143,6 @@
             @update:pharmacies="pharmacyList = $event"
             @outside="handleMapOutside"
           />
-
-          <div
-            v-if="isOutsideCity"
-            class="absolute top-2 right-2 z-[1000] bg-yellow-100 text-yellow-800 border border-yellow-400 px-4 py-2 rounded shadow"
-          >
-            <p class="text-sm mb-2">Вы вышли за пределы выбранного города.</p>
-            <el-button type="warning" size="small" plain @click="returnToCity"
-              >Вернуться в город</el-button
-            >
-          </div>
         </div>
 
         <!-- Выбранная аптека + кнопка подтверждения -->
@@ -507,6 +497,7 @@ function detectCity() {
     lat: 55.7558,
     lng: 37.6173,
     place_id: "moscow_fallback",
+    boundingbox: null,
   };
 
   const setCity = (city) => {
@@ -529,6 +520,7 @@ function detectCity() {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             place_id: `geo_${name}_${pos.coords.latitude}`,
+            boundingbox: null,
           });
         } else {
           setCity(moscow);
@@ -563,33 +555,8 @@ const searchCities = async (query) => {
   if (!query) return;
   loadingCities.value = true;
   try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-        query
-      )}&format=json&limit=20&addressdetails=1&countrycodes=ru`
-    );
-    const data = await res.json();
-    const q = query.toLowerCase().trim();
-    const unique = new Map();
-    for (const place of data) {
-      const addr = place.address || {};
-      const name = addr.city || addr.town || addr.village;
-      if (
-        place.address?.country_code === "ru" &&
-        name &&
-        name.toLowerCase().startsWith(q) &&
-        !unique.has(name)
-      ) {
-        unique.set(name, {
-          display_name: name,
-          name,
-          lat: parseFloat(place.lat),
-          lng: parseFloat(place.lon),
-          place_id: place.place_id,
-        });
-      }
-    }
-    cityOptions.value = [...unique.values()];
+    cityOptions.value =
+      (await mapComponentRef.value?.searchCities(query)) || [];
   } catch {
     cityOptions.value = [];
   } finally {
@@ -601,38 +568,11 @@ const searchStreets = debounce(async (query) => {
   if (!query || !selectedCity.value) return;
   loadingStreets.value = true;
   try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?street=${encodeURIComponent(
-        query
-      )}&city=${selectedCity.value.name}&format=json&limit=20&addressdetails=1`
-    );
-    const data = await res.json();
-    const unique = new Map();
-    const allowedTypes = [
-      "residential",
-      "tertiary",
-      "secondary",
-      "primary",
-      "road",
-      "unclassified",
-      "service",
-      "living_street",
-    ];
-    for (const place of data) {
-      const address = place.address || {};
-      const road =
-        address.road || address.footway || address.pedestrian || address.street;
-      const type = place.type;
-      if (road && allowedTypes.includes(type) && !unique.has(road)) {
-        unique.set(road, {
-          display_name: road,
-          place_id: place.place_id,
-          lat: parseFloat(place.lat),
-          lon: parseFloat(place.lon),
-        });
-      }
-    }
-    streetOptions.value = [...unique.values()];
+    streetOptions.value =
+      (await mapComponentRef.value?.searchStreets(
+        query,
+        selectedCity.value.name
+      )) || [];
   } catch {
     streetOptions.value = [];
   } finally {

@@ -50,12 +50,23 @@ const isOutsideCity = ref(false);
 let fetchTimeout = null;
 
 function isInsideCity(centerLat, centerLng) {
+  if (props.city?.boundingbox?.length === 4) {
+    const [south, north, west, east] = props.city.boundingbox.map((v) =>
+      parseFloat(v)
+    );
+    return (
+      centerLat >= south &&
+      centerLat <= north &&
+      centerLng >= west &&
+      centerLng <= east
+    );
+  }
   const d = turf.distance(
     turf.point([centerLng, centerLat]),
     turf.point([props.city.lng, props.city.lat]),
     { units: "kilometers" }
   );
-  return d <= 15;
+  return d <= 10;
 }
 
 function setupMoveEndListener() {
@@ -141,7 +152,7 @@ function addMarkers(pharmaciesList) {
       .addTo(map);
 
     marker.getElement().addEventListener("click", () => {
-      selectPharmacy(pharmacy);
+      flyToPharmacy(pharmacy);
     });
 
     markers.value.push(marker);
@@ -316,9 +327,89 @@ function formatOpeningHours(raw) {
     .replace(/;/g, ",");
 }
 
+async function searchCities(query) {
+  if (!query) return [];
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+        query
+      )}&format=json&limit=20&addressdetails=1&countrycodes=ru`
+    );
+    const data = await res.json();
+    const q = query.toLowerCase().trim();
+    const unique = new Map();
+    for (const place of data) {
+      const addr = place.address || {};
+      const name = addr.city || addr.town || addr.village;
+      if (
+        place.address?.country_code === "ru" &&
+        name &&
+        name.toLowerCase().startsWith(q) &&
+        !unique.has(name)
+      ) {
+        unique.set(name, {
+          display_name: name,
+          name,
+          lat: parseFloat(place.lat),
+          lng: parseFloat(place.lon),
+          place_id: place.place_id,
+          boundingbox: place.boundingbox
+            ? place.boundingbox.map((v) => parseFloat(v))
+            : null,
+        });
+      }
+    }
+    return [...unique.values()];
+  } catch {
+    return [];
+  }
+}
+
+async function searchStreets(query, cityName) {
+  if (!query || !cityName) return [];
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?street=${encodeURIComponent(
+        query
+      )}&city=${cityName}&format=json&limit=20&addressdetails=1`
+    );
+    const data = await res.json();
+    const unique = new Map();
+    const allowedTypes = [
+      "residential",
+      "tertiary",
+      "secondary",
+      "primary",
+      "road",
+      "unclassified",
+      "service",
+      "living_street",
+    ];
+    for (const place of data) {
+      const address = place.address || {};
+      const road =
+        address.road || address.footway || address.pedestrian || address.street;
+      const type = place.type;
+      if (road && allowedTypes.includes(type) && !unique.has(road)) {
+        unique.set(road, {
+          display_name: road,
+          place_id: place.place_id,
+          lat: parseFloat(place.lat),
+          lon: parseFloat(place.lon),
+        });
+      }
+    }
+    return [...unique.values()];
+  } catch {
+    return [];
+  }
+}
+
 defineExpose({
   flyToPharmacy,
   flyToCoordinates,
+  searchCities,
+  searchStreets,
   fetchInitialPharmacies: () => {
     if (map && props.mode === "pharmacy") {
       fetchPharmaciesInBounds(map.getBounds());
