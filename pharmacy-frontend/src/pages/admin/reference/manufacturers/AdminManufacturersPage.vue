@@ -54,11 +54,11 @@
       width="500px"
       :close-on-click-modal="false"
     >
-      <el-form label-width="120px">
-        <el-form-item label="Название">
+      <el-form label-width="120px" :model="form" :rules="rules" ref="formRef">
+        <el-form-item label="Название" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
-        <el-form-item label="Страна">
+        <el-form-item label="Страна" prop="country">
           <el-input v-model="form.country" />
         </el-form-item>
       </el-form>
@@ -82,6 +82,12 @@ import {
 
 const list = ref([]);
 const dialogVisible = ref(false);
+
+const rules = {
+  name: [{ required: true, message: "Введите название", trigger: "blur" }],
+  country: [{ required: true, message: "Введите страну", trigger: "blur" }],
+};
+
 const form = reactive({ id: null, name: "", country: "" });
 
 async function load() {
@@ -103,6 +109,8 @@ function edit(row) {
 }
 
 async function save() {
+  const valid = await formRef.value.validate().catch(() => false);
+  if (!valid) return;
   try {
     if (form.id) {
       await updateManufacturer(form.id, {

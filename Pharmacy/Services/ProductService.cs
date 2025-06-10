@@ -86,6 +86,7 @@ public class ProductService : IProductService
         };
 
         await _repository.AddAsync(product);
+        await _cache.RemoveByTagAsync(new[] { "products", $"filter-values-{product.CategoryId}" });
         return Result.Success(new CreatedDto(product.Id));
     }
     
@@ -163,6 +164,8 @@ public class ProductService : IProductService
         }
 
         await _repository.UpdateAsync(product);
+        await _cache.RemoveByTagAsync(new[] { "products", $"filter-values-{product.CategoryId}" });
+        await _cache.RemoveAsync($"product-{id}");
         return Result.Success();
     }
     
@@ -204,7 +207,8 @@ public class ProductService : IProductService
                     product.Images.Select(x => new ProductImageDto(x.Id, _storage.GetPublicUrl(x.Url))).ToList(),
                     propertyDtos
                 );
-            });
+            },
+            tags: new[] { "products" });
 
         if (dto is null)
         {
@@ -216,8 +220,7 @@ public class ProductService : IProductService
     
     public async Task<Result<PaginatedList<ProductCardDto>>> GetPaginatedProductsAsync(ProductParameters query, int? userId = null)
     {
-        var cacheKey =
-            $"products-{userId}-{query.PageNumber}-{query.PageSize}-{query.Search}-{string.Join(',', query.CategoryIds ?? Enumerable.Empty<int>())}-{string.Join(',', query.ManufacturerIds ?? Enumerable.Empty<int>())}-{string.Join(',', query.Countries ?? Enumerable.Empty<string>())}-{query.SortBy}-{query.SortOrder}-{query.IsAvailable}";
+        var cacheKey = BuildProductsCacheKey(userId, query);
         
         var data = await _cache.GetOrCreateAsync(
             cacheKey,
@@ -322,7 +325,8 @@ public class ProductService : IProductService
                 ).ToList();
                 
                 return new PaginatedList<ProductCardDto>(items, totalCount, query.PageNumber, query.PageSize);
-            });
+            },
+            tags: new[] { "products" });
         
         return Result.Success(data);
     }
@@ -336,6 +340,8 @@ public class ProductService : IProductService
         }
         
         await _repository.DeleteAsync(product);
+        await _cache.RemoveByTagAsync(new[] { "products", $"filter-values-{product.CategoryId}" });
+        await _cache.RemoveAsync($"product-{productId}");
         return Result.Success();
     }
     
@@ -399,7 +405,9 @@ public class ProductService : IProductService
                 }).ToList();
 
                 return finalResult;
-            });
+            },
+            tags: new[] { $"filter-values-{categoryId}" });
+
 
         if (data is null)
         {
@@ -492,5 +500,33 @@ public class ProductService : IProductService
             return $"PRD-{(lastNumber + 1):D6}";
         }
         return "PRD-000001";
+    }
+    
+    private static string BuildProductsCacheKey(int? userId, ProductParameters q)
+    {
+        var parts = new List<string>
+        {
+            "products",
+            userId?.ToString() ?? "none",
+            q.PageNumber.ToString(),
+            q.PageSize.ToString()
+        };
+
+        if (!string.IsNullOrWhiteSpace(q.Search))
+            parts.Add(q.Search);
+        if (q.CategoryIds is { Count: > 0 })
+            parts.Add(string.Join(',', q.CategoryIds));
+        if (q.ManufacturerIds is { Count: > 0 })
+            parts.Add(string.Join(',', q.ManufacturerIds));
+        if (q.Countries is { Count: > 0 })
+            parts.Add(string.Join(',', q.Countries));
+        if (!string.IsNullOrWhiteSpace(q.SortBy))
+            parts.Add(q.SortBy);
+        if (!string.IsNullOrWhiteSpace(q.SortOrder))
+            parts.Add(q.SortOrder);
+        if (q.IsAvailable is not null)
+            parts.Add(q.IsAvailable.ToString());
+
+        return string.Join('-', parts);
     }
 }

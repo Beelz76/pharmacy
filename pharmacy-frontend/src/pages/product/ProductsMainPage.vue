@@ -88,10 +88,10 @@ const categoryStore = useCategoryStore();
 const searchQuery = ref(route.query.search || "");
 const sort = ref("datetime_desc");
 
-pageNumber.value = Number(route.query.page) || 1;
-
 const { products, totalCount, pageNumber, pageSize, loading, fetchProducts } =
   useProducts();
+
+pageNumber.value = Number(route.query.page) || 1;
 
 const fetch = () => {
   const [sortBy, sortOrder] = sort.value.split("_");

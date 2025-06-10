@@ -20,7 +20,7 @@
       <el-form
         label-width="150px"
         :model="productForm"
-        :rules="rules"
+        :rules="allRules"
         ref="productFormRef"
       >
         <el-form-item label="Название">
@@ -64,8 +64,25 @@
         </el-form-item>
 
         <template v-for="field in categoryFields" :key="field.key">
-          <el-form-item :label="field.label">
-            <el-input v-model="propertyValues[field.key]" />
+          <el-form-item :label="field.label" :prop="`prop_${field.key}`">
+            <el-date-picker
+              v-if="field.type === 'date'"
+              v-model="propertyValues[field.key]"
+              type="date"
+            />
+            <el-switch
+              v-else-if="field.type === 'boolean'"
+              v-model="propertyValues[field.key]"
+            />
+            <el-input
+              v-else
+              v-model="propertyValues[field.key]"
+              :type="
+                field.type === 'number' || field.type === 'integer'
+                  ? 'number'
+                  : 'text'
+              "
+            />
           </el-form-item>
         </template>
       </el-form>
@@ -113,7 +130,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, watch, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   getAllCategories,
@@ -158,6 +175,8 @@ const pendingExternalUrls = ref([]);
 const newImageUrl = ref("");
 const loading = ref(false);
 const productFormRef = ref();
+const fieldRules = reactive({});
+
 const rules = {
   name: [{ required: true, message: "Введите название", trigger: "blur" }],
   price: [{ required: true, message: "Введите цену", trigger: "blur" }],
@@ -171,6 +190,8 @@ const rules = {
     { required: true, message: "Введите описание", trigger: "blur" },
   ],
 };
+
+const allRules = computed(() => ({ ...rules, ...fieldRules }));
 
 function flatten(list, prefix = "", arr = []) {
   for (const c of list) {
@@ -211,9 +232,33 @@ onMounted(async () => {
 async function loadCategoryFields(id) {
   const fields = await getCategoryFields(id);
   categoryFields.value = fields;
+  Object.keys(fieldRules).forEach((k) => delete fieldRules[k]);
   fields.forEach((f) => {
     const existing = productForm.properties.find((p) => p.key === f.key);
     propertyValues[f.key] = existing ? existing.value : "";
+    const rulesArr = [];
+    if (f.isRequired) {
+      rulesArr.push({
+        required: true,
+        message: "Обязательное поле",
+        trigger: "blur",
+      });
+    }
+    if (f.type === "number") {
+      rulesArr.push({
+        validator: (_, val, cb) =>
+          isNaN(val) ? cb(new Error("Введите число")) : cb(),
+        trigger: "blur",
+      });
+    }
+    if (f.type === "integer") {
+      rulesArr.push({
+        validator: (_, val, cb) =>
+          !Number.isInteger(+val) ? cb(new Error("Введите целое число")) : cb(),
+        trigger: "blur",
+      });
+    }
+    fieldRules[`prop_${f.key}`] = rulesArr;
   });
 }
 
@@ -285,7 +330,7 @@ async function save() {
     properties: categoryFields.value.map((f) => ({
       key: f.key,
       label: f.label,
-      value: propertyValues[f.key] || "",
+      value: String(propertyValues[f.key] ?? ""),
     })),
   };
   try {

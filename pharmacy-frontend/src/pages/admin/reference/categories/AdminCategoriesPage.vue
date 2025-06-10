@@ -60,11 +60,17 @@
       width="700px"
       :close-on-click-modal="false"
     >
-      <el-form label-width="120px" class="pb-2">
-        <el-form-item label="Название">
+      <el-form
+        label-width="120px"
+        :model="form"
+        :rules="rules"
+        ref="formRef"
+        class="pb-2"
+      >
+        <el-form-item label="Название" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
-        <el-form-item label="Описание">
+        <el-form-item label="Описание" prop="description">
           <el-input v-model="form.description" />
         </el-form-item>
         <el-form-item label="Родитель">
@@ -167,6 +173,15 @@ const tableCategories = ref([]);
 const flatCategories = ref([]);
 const loaded = ref(false);
 const dialogVisible = ref(false);
+
+const formRef = ref();
+const rules = {
+  name: [{ required: true, message: "Введите название", trigger: "blur" }],
+  description: [
+    { required: true, message: "Введите описание", trigger: "blur" },
+  ],
+};
+
 const form = reactive({
   id: null,
   name: "",
@@ -252,6 +267,8 @@ async function editCategory(row) {
 }
 
 async function save() {
+  const valid = await formRef.value.validate().catch(() => false);
+  if (!valid) return;
   try {
     if (form.id) {
       await updateCategory(form.id, {

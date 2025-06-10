@@ -124,8 +124,6 @@ import { ElMessageBox, ElMessage } from "element-plus";
 import api from "/src/utils/axios";
 import ProductService from "/src/services/ProductService";
 
-const productSuggestions = ref([]);
-
 const route = useRoute();
 const router = useRouter();
 const pharmacyId = Number(route.params.id);
@@ -175,18 +173,20 @@ watch(
   }
 );
 
-const fetchProductSuggestions = async (query) => {
+const fetchProductSuggestions = async (query, cb) => {
   const trimmed = query.trim();
   if (!trimmed || trimmed.length < 2) {
-    productSuggestions.value = [];
+    cb([]);
     return;
   }
   try {
     const res = await api.get(
       `/products/search-suggestions?query=${encodeURIComponent(trimmed)}`
     );
-    productSuggestions.value = res.data.map((name) => ({ value: name }));
-  } catch {}
+    cb(res.data.map((name) => ({ value: name })));
+  } catch {
+    cb([]);
+  }
 };
 
 async function onProductSelect(item) {

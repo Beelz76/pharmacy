@@ -114,11 +114,11 @@
           @select="onMapSelect"
         />
       </div>
-      <el-form label-width="120px">
-        <el-form-item label="Название">
+      <el-form label-width="120px" :model="form" :rules="rules" ref="formRef">
+        <el-form-item label="Название" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
-        <el-form-item label="Телефон">
+        <el-form-item label="Телефон" prop="phone">
           <PhoneInput v-model="form.phone" digits-only />
         </el-form-item>
       </el-form>
@@ -154,6 +154,10 @@ const pageSize = ref(20);
 const loading = ref(false);
 const search = ref("");
 const dialogVisible = ref(false);
+const formRef = ref();
+const rules = {
+  name: [{ required: true, message: "Введите название", trigger: "blur" }],
+};
 const editingId = ref(null);
 const form = ref({ name: "", phone: "" });
 const selectedCity = ref(null);
@@ -269,7 +273,8 @@ function onMapSelect(addr) {
 }
 
 async function savePharmacy() {
-  if (!newAddress.value) return;
+  const valid = await formRef.value.validate().catch(() => false);
+  if (!valid || !newAddress.value) return;
   const a = newAddress.value.address || {};
   const payload = {
     name: form.value.name,
