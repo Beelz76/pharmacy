@@ -9,7 +9,7 @@
           class="text-xl fas fa-arrow-left mr-2 group-hover:-translate-x-1 duration-150"
         />
       </button>
-      <h2 class="text-2xl font-bold tracking-tight">
+      <h2 class="text-2xl font-bold tracking-tight flex items-center gap-2">
         Заказ №{{ order?.number }}
       </h2>
     </div>
@@ -20,8 +20,10 @@
     </div>
 
     <template v-else>
-      <div class="flex items-center justify-between text-sm text-gray-600 mb-4">
-        <span>Дата оформления: {{ formatDate(order.createdAt) }}</span>
+      <div
+        class="flex flex-wrap justify-between items-center text-sm text-gray-600 mb-4 gap-2"
+      >
+        <span> Дата оформления: {{ formatDate(order.createdAt) }} </span>
         <span
           class="inline-block px-3 py-2 text-xs rounded-full font-semibold tracking-wide"
           :class="statusClass(order.status)"
@@ -40,9 +42,9 @@
             class="bg-white border rounded-xl p-6 shadow-sm space-y-3 flex-1"
           >
             <h3
-              class="text-sm font-semibold text-gray-700 uppercase tracking-wide"
+              class="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2"
             >
-              <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>
+              <i class="fas fa-map-marker-alt text-gray-400"></i>
               {{ order.isDelivery ? "Адрес доставки" : "Аптека" }}
             </h3>
 
@@ -70,7 +72,7 @@
 
               <div v-if="order.pickupCode" class="pt-4">
                 <h4 class="text-sm font-semibold text-gray-700 mb-1">
-                  Код получения
+                  <i class="fas fa-key mr-1 text-gray-400"></i>Код получения
                 </h4>
                 <div
                   class="inline-block border border-dashed border-gray-400 rounded-lg px-4 py-2 text-xl font-bold tracking-wider text-gray-800 bg-gray-50"
@@ -84,8 +86,9 @@
           <!-- Состав заказа -->
           <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
             <h3
-              class="px-6 py-4 border-b text-lg font-semibold text-gray-800 bg-gray-50"
+              class="px-6 py-4 border-b text-lg font-semibold text-gray-800 bg-gray-50 flex items-center gap-2"
             >
+              <i class="fas fa-box-open text-gray-400"></i>
               Состав заказа
             </h3>
             <ul
@@ -121,8 +124,10 @@
         <div class="space-y-6 h-full flex flex-col">
           <!-- Покупатель -->
           <div class="bg-white border rounded-xl p-6 space-y-3 flex-1">
-            <h3 class="text-lg font-semibold text-gray-800">
-              <i class="fas fa-user mr-2 text-gray-400"></i>Покупатель
+            <h3
+              class="text-lg font-semibold text-gray-800 flex items-center gap-2"
+            >
+              <i class="fas fa-user text-gray-400"></i>Покупатель
             </h3>
             <p class="text-sm text-gray-700">
               <span class="font-medium">ФИО:</span> {{ order.userFullName }}
@@ -134,8 +139,10 @@
 
           <!-- Оплата -->
           <div class="bg-white border rounded-xl shadow-sm p-6 space-y-5">
-            <h3 class="text-lg font-semibold text-gray-800">
-              <i class="fas fa-credit-card mr-2 text-gray-400"></i>Оплата
+            <h3
+              class="text-lg font-semibold text-gray-800 flex items-center gap-2"
+            >
+              <i class="fas fa-credit-card text-gray-400"></i>Оплата
             </h3>
             <div class="text-sm text-gray-700 space-y-2">
               <p>

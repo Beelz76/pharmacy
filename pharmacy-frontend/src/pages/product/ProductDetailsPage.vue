@@ -10,12 +10,12 @@
           class="text-xl fas fa-arrow-left mr-2 group-hover:-translate-x-1 duration-150"
         ></i>
       </button>
-      <router-link to="/" class="hover:underline">Главная</router-link> /
-      <router-link to="/products/catalog" class="hover:underline"
-        >Каталог</router-link
-      >
 
-      <router-link :to="{ name: 'ProductsByCategory' }">
+      <router-link to="/products/catalog" class="hover:underline"
+        >Каталог /
+      </router-link>
+
+      <router-link class="hover:underline" :to="{ name: 'ProductsByCategory' }">
         {{ product.category.name }}
       </router-link>
       / <span class="text-gray-800">{{ product.name }}</span>

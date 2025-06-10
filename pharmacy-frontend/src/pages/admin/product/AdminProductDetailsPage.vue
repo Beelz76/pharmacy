@@ -10,105 +10,137 @@
         ></i>
       </button>
       <h2 class="text-2xl font-bold tracking-tight">
-        {{ isNew ? "Новый товар" : `Товар #${productForm.id}` }}
+        {{ isNew ? "Новый товар" : `Редактирование товара #${productForm.id}` }}
       </h2>
     </div>
 
-    <div v-if="loading" class="text-center py-10">Загрузка...</div>
+    <div v-if="loading" class="text-center py-10 text-gray-500 text-lg">
+      Загрузка данных...
+    </div>
 
-    <div v-else class="bg-white border rounded-xl p-6 shadow-sm space-y-4">
-      <el-form
-        label-width="150px"
-        :model="formModel"
-        :rules="allRules"
-        ref="productFormRef"
-      >
-        <el-form-item label="Название" prop="name">
-          <el-input v-model="productForm.name" />
-        </el-form-item>
-        <el-form-item label="Описание" prop="description">
-          <el-input v-model="productForm.description" />
-        </el-form-item>
-        <el-form-item
-          label="Расшир. описание"
-          prop="extendedDescription"
-          :required="false"
+    <div v-else class="bg-white border rounded-xl p-6 shadow-sm space-y-6">
+      <!-- Общая информация -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+          Основная информация
+        </h3>
+        <el-form
+          label-width="150px"
+          :model="formModel"
+          :rules="allRules"
+          ref="productFormRef"
         >
-          <el-input v-model="productForm.extendedDescription" type="textarea" />
-        </el-form-item>
-        <el-form-item label="Категория" prop="categoryId">
-          <el-select v-model="productForm.categoryId" class="!w-60" filterable>
-            <el-option
-              v-for="c in flatCategories"
-              :key="c.id"
-              :value="c.id"
-              :label="c.name"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Производитель" prop="manufacturerId">
-          <el-select
-            v-model="productForm.manufacturerId"
-            class="!w-60"
-            filterable
+          <el-form-item label="Название" prop="name">
+            <el-input v-model="productForm.name" />
+          </el-form-item>
+          <el-form-item label="Описание" prop="description">
+            <el-input v-model="productForm.description" />
+          </el-form-item>
+          <el-form-item
+            label="Расшир. описание"
+            prop="extendedDescription"
+            :required="false"
           >
-            <el-option
-              v-for="m in manufacturers"
-              :key="m.id"
-              :value="m.id"
-              :label="m.name"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Цена" prop="price">
-          <el-input type="number" v-model.number="productForm.price" />
-        </el-form-item>
-        <el-form-item label="Доступен" prop="isAvailable" :required="false">
-          <el-switch v-model="productForm.isAvailable" />
-        </el-form-item>
-
-        <template v-for="field in categoryFields" :key="field.key">
-          <el-form-item :label="field.label" :prop="field.key">
-            <el-date-picker
-              v-if="field.type === 'date'"
-              v-model="propertyValues[field.key]"
-              type="date"
-            />
-            <el-switch
-              v-else-if="field.type === 'boolean'"
-              v-model="propertyValues[field.key]"
-            />
             <el-input
-              v-else
-              v-model="propertyValues[field.key]"
-              :type="
-                field.type === 'number' || field.type === 'integer'
-                  ? 'number'
-                  : 'text'
-              "
+              v-model="productForm.extendedDescription"
+              type="textarea"
             />
           </el-form-item>
-        </template>
-      </el-form>
+          <el-form-item label="Категория" prop="categoryId">
+            <el-select
+              v-model="productForm.categoryId"
+              class="!w-60"
+              filterable
+            >
+              <el-option
+                v-for="c in flatCategories"
+                :key="c.id"
+                :value="c.id"
+                :label="c.name"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Производитель" prop="manufacturerId">
+            <el-select
+              v-model="productForm.manufacturerId"
+              class="!w-60"
+              filterable
+            >
+              <el-option
+                v-for="m in manufacturers"
+                :key="m.id"
+                :value="m.id"
+                :label="m.name"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Цена" prop="price">
+            <el-input type="number" v-model.number="productForm.price" />
+          </el-form-item>
+          <el-form-item label="Доступен" prop="isAvailable" :required="false">
+            <el-switch v-model="productForm.isAvailable" />
+          </el-form-item>
+        </el-form>
+      </section>
 
-      <div>
-        <h3 class="font-semibold mb-2">Изображения</h3>
-        <div class="flex flex-wrap gap-2 mb-2">
-          <div v-for="img in images" :key="img.id" class="relative">
-            <img
-              :src="img.url"
-              class="w-24 h-24 object-cover rounded-md border"
-            />
+      <hr />
+
+      <!-- Доп. свойства -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+          Дополнительные свойства
+        </h3>
+        <el-form :model="propertyValues" label-width="150px">
+          <template v-for="field in categoryFields" :key="field.key">
+            <el-form-item :label="field.label" :prop="field.key">
+              <el-date-picker
+                v-if="field.type === 'date'"
+                v-model="propertyValues[field.key]"
+                type="date"
+              />
+              <el-switch
+                v-else-if="field.type === 'boolean'"
+                v-model="propertyValues[field.key]"
+              />
+              <el-input
+                v-else
+                v-model="propertyValues[field.key]"
+                :type="
+                  field.type === 'number' || field.type === 'integer'
+                    ? 'number'
+                    : 'text'
+                "
+              />
+            </el-form-item>
+          </template>
+        </el-form>
+      </section>
+
+      <hr />
+
+      <!-- Изображения -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Изображения</h3>
+        <div class="flex flex-wrap gap-3 mb-3">
+          <div
+            v-for="img in images"
+            :key="img.id"
+            class="relative w-24 h-24 border rounded overflow-hidden group"
+          >
+            <img :src="img.url" class="w-full h-full object-cover" />
             <button
-              class="absolute top-0 right-0 bg-white/80 text-red-600 p-1 rounded-bl-md"
               @click.prevent="removeImage(img)"
+              class="absolute top-0 right-0 bg-white text-red-600 p-1 rounded-bl-md opacity-0 group-hover:opacity-100 transition"
             >
               <i class="fas fa-times"></i>
             </button>
           </div>
         </div>
-        <input type="file" multiple @change="onFileChange" />
-        <div class="mt-4 flex items-center gap-2">
+        <div class="flex items-center gap-3">
+          <input type="file" multiple @change="onFileChange" />
+          <span class="text-sm text-gray-500">или вставьте ссылку ниже</span>
+        </div>
+        <div class="mt-2 flex items-center gap-2">
           <el-input
             v-model="newImageUrl"
             placeholder="Ссылка на изображение"
@@ -118,7 +150,7 @@
             >Добавить</el-button
           >
         </div>
-      </div>
+      </section>
 
       <div class="text-right pt-4">
         <el-button type="primary" @click="save">Сохранить</el-button>

@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-5xl mx-auto">
+  <div class="max-w-3xl mx-auto">
     <div class="flex items-center gap-4 mb-8">
       <button
         @click="router.back()"
@@ -14,35 +14,42 @@
       </h2>
     </div>
 
-    <div v-if="loading" class="text-center py-10">Загрузка...</div>
-    <div v-else-if="!delivery" class="text-center py-10 text-gray-500">
-      Доставка не найдена
+    <div v-if="loading" class="text-center py-10 text-gray-500 text-lg">
+      <i class="fas fa-spinner fa-spin mr-2"></i>Загрузка информации о
+      доставке...
     </div>
+
+    <div v-else-if="!delivery" class="text-center py-10 text-gray-500 text-lg">
+      <i class="fas fa-exclamation-circle mr-2"></i>Доставка не найдена
+    </div>
+
     <div v-else class="space-y-6">
-      <div class="bg-white border rounded-xl p-6 shadow-sm space-y-3">
-        <p class="text-base text-gray-700">
-          <span class="font-medium">ID:</span> {{ delivery.id }}
-        </p>
-        <p class="text-base text-gray-700">
-          <span class="font-medium">Номер заказа:</span>
-          {{ delivery.orderNumber }}
-        </p>
-        <p class="text-base text-gray-700">
-          <span class="font-medium">Адрес:</span> {{ delivery.address }}
-        </p>
-        <p class="text-base text-gray-700">
-          <span class="font-medium">Дата:</span>
-          {{ formatDate(delivery.deliveryDate) }}
-        </p>
-        <p v-if="delivery.comment" class="text-base text-gray-700">
-          <span class="font-medium">Комментарий:</span> {{ delivery.comment }}
-        </p>
-        <button
-          class="text-primary-600 hover:text-primary-700 text-base"
-          @click="goOrder(delivery.orderId)"
+      <div class="bg-white border rounded-xl p-6 shadow-sm">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-gray-700"
         >
-          Перейти к заказу
-        </button>
+          <p><span class="font-medium">ID:</span> {{ delivery.id }}</p>
+          <p>
+            <span class="font-medium">Номер заказа:</span>
+            {{ delivery.orderNumber }}
+          </p>
+          <p class="sm:col-span-2">
+            <span class="font-medium">Адрес:</span> {{ delivery.address }}
+          </p>
+          <p>
+            <span class="font-medium">Дата:</span>
+            {{ formatDate(delivery.deliveryDate) }}
+          </p>
+          <p v-if="delivery.comment" class="sm:col-span-2">
+            <span class="font-medium">Комментарий:</span> {{ delivery.comment }}
+          </p>
+        </div>
+
+        <div class="mt-6 text-right">
+          <el-button type="primary" @click="goOrder(delivery.orderId)">
+            <i class="fas fa-receipt mr-2"></i>Перейти к заказу
+          </el-button>
+        </div>
       </div>
     </div>
   </div>

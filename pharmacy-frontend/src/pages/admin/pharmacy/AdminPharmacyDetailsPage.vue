@@ -13,23 +13,33 @@
         Аптека #{{ pharmacy?.id }}
       </h2>
     </div>
-    <div v-if="loading" class="text-center py-10">Загрузка...</div>
-    <div v-else-if="!pharmacy" class="text-center py-10 text-gray-500">
-      Аптека не найдена
+
+    <div v-if="loading" class="text-center py-10 text-gray-500 text-lg">
+      <i class="fas fa-spinner fa-spin mr-2"></i>Загрузка информации...
     </div>
-    <div v-else class="bg-white border rounded-xl p-6 shadow-sm space-y-3">
-      <p class="text-base text-gray-700">
-        <span class="font-medium">Название:</span> {{ pharmacy.name }}
-      </p>
-      <p class="text-base text-gray-700">
-        <span class="font-medium">Телефон:</span> {{ pharmacy.phone || "—" }}
-      </p>
-      <p class="text-base text-gray-700">
-        <span class="font-medium">Адрес:</span>
-        {{ formatAddress(pharmacy.address) }}
-      </p>
-      <div class="text-left pt-2">
-        <el-button type="primary" @click="goWarehouse">Склад</el-button>
+
+    <div v-else-if="!pharmacy" class="text-center py-10 text-gray-500 text-lg">
+      <i class="fas fa-exclamation-circle mr-2"></i>Аптека не найдена
+    </div>
+
+    <div v-else class="bg-white border rounded-xl p-6 shadow-sm space-y-6">
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-gray-700"
+      >
+        <p><span class="font-medium">Название:</span> {{ pharmacy.name }}</p>
+        <p>
+          <span class="font-medium">Телефон:</span> {{ pharmacy.phone || "—" }}
+        </p>
+        <p class="sm:col-span-2">
+          <span class="font-medium">Адрес:</span>
+          {{ formatAddress(pharmacy.address) }}
+        </p>
+      </div>
+
+      <div class="pt-4 text-right">
+        <el-button type="primary" @click="goWarehouse">
+          <i class="fas fa-boxes mr-2"></i>Перейти к складу
+        </el-button>
       </div>
     </div>
   </div>
