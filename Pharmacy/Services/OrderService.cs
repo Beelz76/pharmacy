@@ -365,6 +365,16 @@ public class OrderService : IOrderService
         {
             query = query.Where(o => o.CreatedAt <= filters.ToDate);
         }
+        
+        if (filters.FromPrice.HasValue)
+        {
+            query = query.Where(o => o.TotalPrice >= filters.FromPrice.Value);
+        }
+
+        if (filters.ToPrice.HasValue)
+        {
+            query = query.Where(o => o.TotalPrice <= filters.ToPrice.Value);
+        }
 
         var totalCount = await query.CountAsync();
 

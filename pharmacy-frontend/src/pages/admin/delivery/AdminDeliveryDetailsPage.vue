@@ -38,7 +38,7 @@
           <span class="font-medium">Комментарий:</span> {{ delivery.comment }}
         </p>
         <button
-          class="text-primary-600 hover:text-primary-700 text-base underline"
+          class="text-primary-600 hover:text-primary-700 text-base"
           @click="goOrder(delivery.orderId)"
         >
           Перейти к заказу

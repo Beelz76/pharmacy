@@ -103,6 +103,13 @@
             />
           </el-form-item>
 
+          <el-form-item label="Цена от">
+            <el-input-number v-model="filters.minPrice" :min="0" />
+          </el-form-item>
+          <el-form-item label="до">
+            <el-input-number v-model="filters.maxPrice" :min="0" />
+          </el-form-item>
+
           <!-- Кнопки действий -->
           <el-form-item>
             <el-button type="primary" plain @click="fetch">Поиск</el-button>
@@ -228,6 +235,8 @@ const filters = reactive({
   pharmacyId: null,
   status: null,
   dateRange: [],
+  minPrice: null,
+  maxPrice: null,
 });
 
 const { orders, totalCount, pageNumber, pageSize, loading, fetchOrders } =
@@ -315,6 +324,8 @@ const fetch = () => {
     status: filters.status || null,
     fromDate: filters.dateRange?.[0] || null,
     toDate: filters.dateRange?.[1] || null,
+    fromPrice: filters.minPrice,
+    toPrice: filters.maxPrice,
   };
   fetchOrders({
     page: pageNumber.value,
@@ -327,11 +338,13 @@ const resetFilters = () => {
   filters.number = "";
   filters.userId = null;
   filters.userEmail = "";
-  (filters.userFullName = ""),
-    (filters.pharmacyName = ""),
-    (filters.pharmacyId = null);
+  filters.userFullName = "";
+  filters.pharmacyName = "";
+  filters.pharmacyId = null;
   filters.status = null;
   filters.dateRange = [];
+  filters.minPrice = null;
+  filters.maxPrice = null;
   pageNumber.value = 1;
   fetch();
 };

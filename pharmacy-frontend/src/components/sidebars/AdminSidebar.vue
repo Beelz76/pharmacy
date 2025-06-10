@@ -44,6 +44,11 @@
         Платежи
       </RouterLink>
 
+      <RouterLink to="/admin/products" :class="navLinkClass('/admin/products')">
+        <i class="fas fa-box text-base w-5 text-center mr-3"></i>
+        Товары
+      </RouterLink>
+
       <button
         @click="showRefs = !showRefs"
         :class="

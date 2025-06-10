@@ -116,7 +116,7 @@
                 Изменить пароль
               </h2>
               <button
-                class="text-sm text-primary-600 hover:underline"
+                class="text-sm text-primary-600 hover:text-primary-700"
                 @click="showPasswordResetModal = true"
               >
                 Забыли пароль?

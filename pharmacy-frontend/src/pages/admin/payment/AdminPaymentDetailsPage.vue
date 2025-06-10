@@ -49,7 +49,7 @@
           {{ formatDate(payment.transactionDate) }}
         </p>
         <button
-          class="text-primary-600 hover:text-primary-700 text-base underline"
+          class="text-primary-600 hover:text-primary-700 text-base"
           @click="goOrder(payment.orderId)"
         >
           Перейти к заказу

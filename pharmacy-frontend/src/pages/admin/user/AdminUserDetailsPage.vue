@@ -40,7 +40,8 @@
         <span class="font-medium">Аптека:</span> {{ user.pharmacy.name }}
       </p>
       <button
-        class="text-primary-600 hover:text-primary-700 text-base underline"
+        v-if="user.role === 'User'"
+        class="text-primary-600 hover:text-primary-700 text-base"
         @click="goToUserOrders(user.id)"
       >
         Заказы пользователя

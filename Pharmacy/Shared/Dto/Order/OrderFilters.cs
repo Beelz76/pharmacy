@@ -12,5 +12,7 @@ public record OrderFilters(
     int? PharmacyId,
     OrderStatusEnum? Status,
     DateTime? FromDate,
-    DateTime? ToDate
+    DateTime? ToDate,
+    decimal? FromPrice,
+    decimal? ToPrice
     );

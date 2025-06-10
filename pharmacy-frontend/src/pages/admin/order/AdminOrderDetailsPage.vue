@@ -49,7 +49,7 @@
             <template v-if="order.isDelivery">
               <p class="text-sm text-gray-600">{{ order.deliveryAddress }}</p>
               <button
-                class="mt-2 text-primary-600 hover:text-primary-700 text-sm underline"
+                class="mt-2 text-primary-600 hover:text-primary-700 text-sm"
                 @click="goDelivery(order.id)"
               >
                 Перейти к доставке
@@ -62,7 +62,7 @@
               </p>
               <p class="text-sm text-gray-600">{{ pharmacyAddress }}</p>
               <button
-                class="mt-2 text-primary-600 hover:text-primary-700 text-sm underline"
+                class="mt-2 text-primary-600 hover:text-primary-700 text-sm"
                 @click="goPharmacy(order.pharmacyId)"
               >
                 Перейти к аптеке
@@ -151,7 +151,7 @@
                 {{ order.payment.status }}
               </p>
               <button
-                class="mt-2 text-primary-600 hover:text-primary-700 text-sm underline"
+                class="mt-2 text-primary-600 hover:text-primary-700 text-sm"
                 @click="goPayment(order.payment.id)"
               >
                 Перейти к платежу
