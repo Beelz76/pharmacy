@@ -46,7 +46,6 @@ public class GetAllEndpoint : Endpoint<ProductFilters>
             Search = search,
             PropertyFilters = filters.PropertyFilters,
             IsAvailable = filters.IsAvailable,
-            IsPrescriptionRequired = filters.IsPrescriptionRequired
         };
         
         var result = await _productService.GetPaginatedProductsAsync(parameters, userId);

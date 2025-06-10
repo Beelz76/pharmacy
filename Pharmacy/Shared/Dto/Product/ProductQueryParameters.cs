@@ -11,7 +11,6 @@ public class ProductParameters
     public string? SortOrder { get; set; } = null;
     public string? Search { get; set; } = null;
     public bool? IsAvailable { get; set; }
-    public bool? IsPrescriptionRequired { get; set; }
     public Dictionary<string, List<string>>? PropertyFilters { get; set; } = null;
 }
 
@@ -26,7 +25,6 @@ public class ProductQuery
 public class ProductFilters
 {
     public bool? IsAvailable { get; set; }
-    public bool? IsPrescriptionRequired { get; set; }
     public List<int>? CategoryIds { get; set; }
     public List<int>? ManufacturerIds { get; set; }
     public List<string>? Countries { get; set; }
