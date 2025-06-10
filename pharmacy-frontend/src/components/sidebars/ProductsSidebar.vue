@@ -126,9 +126,11 @@ watch(
   () => props.selectedFilters,
   (newVal) => {
     inStockOnly.value = newVal?.isAvailable ?? true;
-    localFilters.propertyFilters = newVal?.propertyFilters ?? {};
-    localFilters.manufacturerIds = newVal?.manufacturerIds ?? [];
-    localFilters.countries = newVal?.countries ?? [];
+    localFilters.propertyFilters = JSON.parse(
+      JSON.stringify(newVal?.propertyFilters ?? {})
+    );
+    localFilters.manufacturerIds = [...(newVal?.manufacturerIds ?? [])];
+    localFilters.countries = [...(newVal?.countries ?? [])];
   },
   { immediate: true, deep: true }
 );

@@ -35,7 +35,7 @@ public class FavoritesService : IFavoritesService
             x.ManufacturerName,
             x.ManufacturerCountry,
             x.Price,
-            _storage.GetPublicUrl(x.ImageUrl),
+            !string.IsNullOrWhiteSpace(x.ImageUrl) && x.ImageUrl.StartsWith("http") ? x.ImageUrl : _storage.GetPublicUrl(x.ImageUrl),
             x.IsAvailable,
             cartItems.TryGetValue(x.ProductId, out int qty) ? qty : 0
         ));

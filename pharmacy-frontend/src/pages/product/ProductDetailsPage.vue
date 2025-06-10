@@ -14,8 +14,8 @@
       <router-link to="/products/catalog" class="hover:underline"
         >Каталог</router-link
       >
-      /
-      <router-link :to="{ name: 'ProductsByCategory' }" class="hover:underline">
+
+      <router-link :to="{ name: 'ProductsByCategory' }">
         {{ product.category.name }}
       </router-link>
       / <span class="text-gray-800">{{ product.name }}</span>
@@ -40,7 +40,7 @@
             <template v-if="activeImage">
               <img
                 :src="activeImage"
-                class="max-h-full object-contain"
+                class="max-h-full object-cover"
                 :alt="product.name"
               />
             </template>
@@ -48,12 +48,15 @@
               <i class="fas fa-image text-5xl text-gray-300"></i>
             </template>
           </div>
-          <div v-if="product.images?.length > 1" class="flex gap-2">
+          <div
+            v-if="product.images?.length > 1"
+            class="flex gap-2 overflow-x-auto"
+          >
             <img
               v-for="img in product.images"
               :key="img.id"
               :src="img.url"
-              class="w-16 h-16 object-contain border rounded cursor-pointer hover:ring-2"
+              class="w-16 h-16 object-cover border rounded cursor-pointer hover:ring-2 flex-shrink-0"
               @click="activeImage = img.url"
             />
           </div>
@@ -66,16 +69,6 @@
             class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-medium"
           >
             <i class="fas fa-prescription-bottle-alt mr-1"></i> По рецепту
-          </span>
-          <span
-            :class="
-              product.isAvailable
-                ? 'bg-green-100 text-green-800'
-                : 'bg-gray-200 text-gray-600'
-            "
-            class="inline-flex items-center px-3 py-1 rounded-full font-medium"
-          >
-            {{ product.isAvailable ? "В наличии" : "Нет в наличии" }}
           </span>
         </div>
 
@@ -143,14 +136,14 @@
           class="bg-gray-50 p-4 rounded-lg border grid sm:grid-cols-2 gap-4 text-sm text-gray-600"
         >
           <div>
-            <strong>Категория:</strong>
+            <strong>Категория: </strong>
             <router-link :to="categoryLink" class="text-primary-600">
               {{ product.category.name }}
             </router-link>
           </div>
-          <div><strong>Артикул:</strong> {{ product.sku }}</div>
+          <div><strong>Артикул: </strong> {{ product.sku }}</div>
           <div>
-            <strong>Производитель:</strong>
+            <strong>Производитель: </strong>
             <router-link
               :to="manufacturerLink"
               class="text-primary-600 hover:underline"
@@ -159,7 +152,7 @@
             </router-link>
           </div>
           <div>
-            <strong>Страна:</strong>
+            <strong>Страна: </strong>
             <router-link
               :to="countryLink"
               class="text-primary-600 hover:underline"
@@ -167,9 +160,13 @@
               {{ product.manufacturer.country }}
             </router-link>
           </div>
-          <div v-if="product.expirationDate">
-            <strong>Срок годности:</strong>
-            {{ formatRemainingShelfLife(product.expirationDate) }}
+          <div>
+            <strong>Наличие: </strong>
+            <span
+              :class="product.isAvailable ? 'text-green-700' : 'text-gray-600'"
+            >
+              {{ product.isAvailable ? "В наличии" : "Нет в наличии" }}
+            </span>
           </div>
         </div>
 
@@ -228,9 +225,8 @@
 
     <div v-else class="text-center py-16 text-gray-500">Товар не найден</div>
 
-    <!-- Модалка увеличенного изображения (по желанию можно позже улучшить) -->
     <el-dialog v-model="showModal" width="600px" align-center>
-      <img :src="activeImage" class="w-full h-auto object-contain" />
+      <img :src="activeImage" class="w-full h-auto object-cover" />
     </el-dialog>
   </div>
 </template>

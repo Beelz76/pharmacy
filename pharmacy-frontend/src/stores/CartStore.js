@@ -80,7 +80,7 @@ export const useCartStore = defineStore("cart", {
           quantity: 1,
           unitPrice: productData.price,
           totalPrice: productData.price,
-          imageUrl: productData.images?.[0] || null,
+          imageUrl: productData.images?.[0]?.url || null,
           isAvailable: productData.isAvailable,
           isPrescriptionRequired: productData.isPrescriptionRequired,
         });
@@ -125,7 +125,7 @@ export const useCartStore = defineStore("cart", {
             quantity: quantity,
             unitPrice: productData.price,
             totalPrice: productData.price * quantity,
-            imageUrl: productData.images?.[0] || null,
+            imageUrl: productData.images?.[0]?.url || null,
             isAvailable: productData.isAvailable,
             isPrescriptionRequired: productData.isPrescriptionRequired,
           };

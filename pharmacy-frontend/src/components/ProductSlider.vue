@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from "vue";
+import { ref, computed, onMounted, nextTick, watch, onUnmounted } from "vue";
 import ProductCard from "./cards/ProductCard.vue";
 import { getPaginatedProducts } from "../composables/useProducts";
 import { useCartStore } from "../stores/CartStore";
@@ -68,11 +68,17 @@ import { useFavoritesStore } from "../stores/FavoritesStore";
 import { useAuthStore } from "../stores/AuthStore";
 import LoadingSpinner from "./LoadingSpinner.vue";
 
-const visibleCount = 4;
 const cardWidth = 300;
 const products = ref([]);
 const currentIndex = ref(0);
 const sliderRef = ref(null);
+
+const containerWidth = ref(0);
+
+const visibleCount = computed(() => {
+  const count = Math.floor(containerWidth.value / cardWidth) || 1;
+  return Math.min(4, count);
+});
 
 const auth = useAuthStore();
 const cartStore = useCartStore();
@@ -88,7 +94,17 @@ onMounted(async () => {
     applyFavoritesAndCart(products.value);
   }
   await nextTick();
+  updateWidth();
+  window.addEventListener("resize", updateWidth);
 });
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateWidth);
+});
+
+function updateWidth() {
+  containerWidth.value = sliderRef.value?.clientWidth || 0;
+}
 
 watch(
   () => auth.isAuthenticated,
@@ -102,7 +118,7 @@ watch(
 );
 
 const maxIndex = computed(() =>
-  Math.max(0, products.value.length - visibleCount)
+  Math.max(0, products.value.length - visibleCount.value)
 );
 
 const slideOffset = computed(() => currentIndex.value * cardWidth);

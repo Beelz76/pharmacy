@@ -108,12 +108,6 @@
           </div>
         </div>
         <input type="file" multiple @change="onFileChange" />
-        <el-button
-          class="mt-2"
-          @click="uploadFiles"
-          :disabled="pendingFiles.length === 0"
-          >Загрузить</el-button
-        >
         <div class="mt-4 flex items-center gap-2">
           <el-input
             v-model="newImageUrl"
@@ -178,6 +172,7 @@ const images = ref([]);
 const pendingFiles = ref([]);
 const pendingExternalUrls = ref([]);
 const newImageUrl = ref("");
+const imagesToDelete = ref([]);
 const loading = ref(false);
 const productFormRef = ref();
 const fieldRules = reactive({});
@@ -277,19 +272,13 @@ watch(
 );
 
 function onFileChange(e) {
-  pendingFiles.value = Array.from(e.target.files);
-}
-
-async function uploadFiles() {
-  if (!pendingFiles.value.length || !productForm.id) return;
-  try {
-    const res = await uploadProductImages(productForm.id, pendingFiles.value);
-    images.value.push(...res.images);
-    pendingFiles.value = [];
-    ElMessage.success("Загружено");
-  } catch (e) {
-    ElMessage.error(e.message);
+  const files = Array.from(e.target.files);
+  for (const file of files) {
+    const id = Date.now() + Math.random();
+    pendingFiles.value.push({ id, file });
+    images.value.push({ id, url: URL.createObjectURL(file), tmp: true });
   }
+  e.target.value = null;
 }
 
 async function addImageLink() {
@@ -310,14 +299,12 @@ async function removeImage(img) {
     images.value = images.value.filter((i) => i !== img);
     return;
   }
-  if (!productForm.id) {
-    images.value = images.value.filter((i) => i !== img);
-    return;
+  if (img.tmp) {
+    pendingFiles.value = pendingFiles.value.filter((f) => f.id !== img.id);
+  } else {
+    imagesToDelete.value.push(img.id);
   }
-  try {
-    await deleteProductImages(productForm.id, [img.id]);
-    images.value = images.value.filter((i) => i !== img);
-  } catch {}
+  images.value = images.value.filter((i) => i !== img);
 }
 
 async function save() {
@@ -351,7 +338,9 @@ async function save() {
     }
     if (pendingFiles.value.length) {
       try {
-        const res = await uploadProductImages(id, pendingFiles.value);
+        const files = pendingFiles.value.map((f) => f.file);
+        const res = await uploadProductImages(id, files);
+        images.value = images.value.filter((i) => !i.tmp);
         images.value.push(...res.images);
         pendingFiles.value = [];
       } catch {}
@@ -366,11 +355,13 @@ async function save() {
       } catch {}
     }
 
-    if (isNew) {
-      router.replace({ name: "AdminProducts", query: route.query });
-    } else {
-      router.replace({ name: "AdminProducts", query: route.query });
+    if (imagesToDelete.value.length) {
+      try {
+        await deleteProductImages(id, imagesToDelete.value);
+        imagesToDelete.value = [];
+      } catch {}
     }
+    router.replace({ name: "AdminProducts", query: route.query });
   } catch {}
 }
 </script>

@@ -32,7 +32,7 @@ public class CartRepository : ICartRepository
                 c.Quantity,
                 c.Product.Price,
                 c.Quantity * c.Product.Price,
-                c.Product.Images.OrderBy(x => x.Id).Select(x => _storage.GetPublicUrl(x.Url)).FirstOrDefault(),
+                c.Product.Images.OrderBy(x => x.Id).Select(x => x.Url.StartsWith("http") ? x.Url : _storage.GetPublicUrl(x.Url)).FirstOrDefault(),
                 !c.Product.IsGloballyDisabled
                 ))
             .ToListAsync();

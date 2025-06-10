@@ -29,7 +29,7 @@
           v-if="product.imageUrl"
           :src="product.imageUrl || defaultImage"
           alt="image"
-          class="w-full h-full object-contain"
+          class="w-full h-full object-cover"
         />
         <i v-else class="fas fa-image text-4xl text-gray-400"></i>
 
