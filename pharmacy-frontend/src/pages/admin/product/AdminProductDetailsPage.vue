@@ -28,9 +28,9 @@
           <el-input v-model="productForm.extendedDescription" type="textarea" />
         </el-form-item>
         <el-form-item label="Категория">
-          <el-select v-model="productForm.categoryId" class="!w-60">
+          <el-select v-model="productForm.categoryId" class="!w-60" filterable>
             <el-option
-              v-for="c in categories"
+              v-for="c in flatCategories"
               :key="c.id"
               :value="c.id"
               :label="c.name"
@@ -38,7 +38,11 @@
           </el-select>
         </el-form-item>
         <el-form-item label="Производитель">
-          <el-select v-model="productForm.manufacturerId" class="!w-60">
+          <el-select
+            v-model="productForm.manufacturerId"
+            class="!w-60"
+            filterable
+          >
             <el-option
               v-for="m in manufacturers"
               :key="m.id"
@@ -84,7 +88,7 @@
         <el-button
           class="mt-2"
           @click="uploadFiles"
-          :disabled="selectedFiles.length === 0"
+          :disabled="pendingFiles.length === 0"
           >Загрузить</el-button
         >
         <div class="mt-4 flex items-center gap-2">
@@ -142,17 +146,30 @@ const productForm = reactive({
 });
 
 const categories = ref([]);
+const flatCategories = ref([]);
 const manufacturers = ref([]);
 const categoryFields = ref([]);
 const propertyValues = reactive({});
 
 const images = ref([]);
-const selectedFiles = ref([]);
+const pendingFiles = ref([]);
+const pendingExternalUrls = ref([]);
 const newImageUrl = ref("");
 const loading = ref(false);
 
+function flatten(list, prefix = "", arr = []) {
+  for (const c of list) {
+    arr.push({ id: c.id, name: prefix + c.name });
+    if (c.subcategories?.length) {
+      flatten(c.subcategories, prefix + c.name + " / ", arr);
+    }
+  }
+  return arr;
+}
+
 onMounted(async () => {
   categories.value = await getAllCategories();
+  flatCategories.value = flatten(categories.value);
   manufacturers.value = await getManufacturers();
   if (!isNew) {
     loading.value = true;
@@ -199,17 +216,17 @@ watch(
 );
 
 function onFileChange(e) {
-  selectedFiles.value = Array.from(e.target.files);
+  pendingFiles.value = Array.from(e.target.files);
 }
 
 async function uploadFiles() {
-  if (!selectedFiles.value.length || !productForm.id) return;
+  if (!pendingFiles.value.length || !productForm.id) return;
   try {
-    const res = await uploadProductImages(productForm.id, selectedFiles.value);
+    const res = await uploadProductImages(productForm.id, pendingFiles.value);
     images.value.push(
       ...res.urls.map((url) => ({ id: Date.now() + Math.random(), url }))
     );
-    selectedFiles.value = [];
+    pendingFiles.value = [];
     ElMessage.success("Загружено");
   } catch (e) {
     ElMessage.error(e.message);
@@ -218,27 +235,18 @@ async function uploadFiles() {
 
 async function addImageLink() {
   if (!newImageUrl.value) return;
-  if (productForm.id) {
-    try {
-      await addExternalImages(productForm.id, [newImageUrl.value]);
-      images.value.push({
-        id: Date.now() + Math.random(),
-        url: newImageUrl.value,
-      });
-      newImageUrl.value = "";
-    } catch (e) {
-      ElMessage.error(e.message);
-    }
-  } else {
-    images.value.push({
-      id: Date.now() + Math.random(),
-      url: newImageUrl.value,
-    });
-    newImageUrl.value = "";
-  }
+  images.value.push({ id: Date.now() + Math.random(), url: newImageUrl.value });
+  pendingExternalUrls.value.push(newImageUrl.value);
+  newImageUrl.value = "";
 }
 
 async function removeImage(img) {
+  const pendingIdx = pendingExternalUrls.value.indexOf(img.url);
+  if (pendingIdx !== -1) {
+    pendingExternalUrls.value.splice(pendingIdx, 1);
+    images.value = images.value.filter((i) => i !== img);
+    return;
+  }
   if (!productForm.id) {
     images.value = images.value.filter((i) => i !== img);
     return;
@@ -266,13 +274,45 @@ async function save() {
     })),
   };
   try {
+    let id = productForm.id;
     if (isNew) {
       const res = await ProductService.create(payload);
+      id = res.id;
+      productForm.id = id;
       ElMessage.success("Создано");
-      router.replace({ name: "AdminProductDetails", params: { id: res.id } });
     } else {
       await ProductService.update(productForm.id, payload);
       ElMessage.success("Сохранено");
+    }
+    if (pendingFiles.value.length) {
+      try {
+        const res = await uploadProductImages(id, pendingFiles.value);
+        images.value.push(
+          ...res.urls.map((url) => ({ id: Date.now() + Math.random(), url }))
+        );
+        pendingFiles.value = [];
+      } catch (e) {
+        ElMessage.error(e.message);
+      }
+    }
+
+    if (pendingExternalUrls.value.length) {
+      try {
+        await addExternalImages(id, pendingExternalUrls.value);
+        images.value.push(
+          ...pendingExternalUrls.value.map((url) => ({
+            id: Date.now() + Math.random(),
+            url,
+          }))
+        );
+        pendingExternalUrls.value = [];
+      } catch (e) {
+        ElMessage.error(e.message);
+      }
+    }
+
+    if (isNew) {
+      router.replace({ name: "AdminProductDetails", params: { id } });
     }
   } catch (e) {
     ElMessage.error(

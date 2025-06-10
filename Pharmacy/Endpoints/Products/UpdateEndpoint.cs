@@ -49,7 +49,6 @@ public record UpdateProductRequest(
     string Description,
     DateTime? ExpirationDate,
     bool IsAvailable,
-    bool IsPrescriptionRequired,
     List<ProductPropertyDto> Properties);
     
 public class UpdateProductRequestValidator : Validator<UpdateProductRequest>

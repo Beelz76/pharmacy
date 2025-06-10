@@ -18,6 +18,7 @@
             v-model="filters.categoryIds"
             multiple
             clearable
+            filterable
             class="!w-60"
           >
             <el-option
@@ -33,6 +34,7 @@
             v-model="filters.manufacturerIds"
             multiple
             clearable
+            filterable
             class="!w-60"
           >
             <el-option
