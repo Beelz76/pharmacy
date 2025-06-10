@@ -39,14 +39,14 @@
         Аптеки
       </RouterLink>
 
-      <RouterLink to="/admin/payments" :class="navLinkClass('/admin/payments')">
-        <i class="fas fa-credit-card text-base w-5 text-center mr-3"></i>
-        Платежи
-      </RouterLink>
-
       <RouterLink to="/admin/products" :class="navLinkClass('/admin/products')">
         <i class="fas fa-box text-base w-5 text-center mr-3"></i>
         Товары
+      </RouterLink>
+
+      <RouterLink to="/admin/payments" :class="navLinkClass('/admin/payments')">
+        <i class="fas fa-credit-card text-base w-5 text-center mr-3"></i>
+        Платежи
       </RouterLink>
 
       <button

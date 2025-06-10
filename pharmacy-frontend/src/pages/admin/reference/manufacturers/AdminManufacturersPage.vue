@@ -48,7 +48,12 @@
       </table>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="Производитель" width="500px">
+    <el-dialog
+      v-model="dialogVisible"
+      title="Производитель"
+      width="500px"
+      :close-on-click-modal="false"
+    >
       <el-form label-width="120px">
         <el-form-item label="Название">
           <el-input v-model="form.name" />

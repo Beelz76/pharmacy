@@ -33,6 +33,8 @@ import AdminPharmacyDetailsPage from "../pages/admin/pharmacy/AdminPharmacyDetai
 import AdminPharmacyWarehousePage from "../pages/admin/pharmacy/AdminPharmacyWarehousePage.vue";
 import AdminPaymentsPage from "../pages/admin/payment/AdminPaymentsPage.vue";
 import AdminPaymentDetailsPage from "../pages/admin/payment/AdminPaymentDetailsPage.vue";
+import AdminProductsPage from "../pages/admin/product/AdminProductsPage.vue";
+import AdminProductDetailsPage from "../pages/admin/product/AdminProductDetailsPage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -139,6 +141,21 @@ const routes = [
         path: "payments/:id",
         name: "AdminPaymentDetails",
         component: AdminPaymentDetailsPage,
+      },
+      {
+        path: "products",
+        name: "AdminProducts",
+        component: AdminProductsPage,
+      },
+      {
+        path: "products/create",
+        name: "AdminProductCreate",
+        component: AdminProductDetailsPage,
+      },
+      {
+        path: "products/:id",
+        name: "AdminProductDetails",
+        component: AdminProductDetailsPage,
       },
       {
         path: "pharmacies",

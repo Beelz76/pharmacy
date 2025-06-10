@@ -54,7 +54,12 @@
       </table>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="Категория" width="700px">
+    <el-dialog
+      v-model="dialogVisible"
+      title="Категория"
+      width="700px"
+      :close-on-click-modal="false"
+    >
       <el-form label-width="120px" class="pb-2">
         <el-form-item label="Название">
           <el-input v-model="form.name" />

@@ -100,7 +100,12 @@
       />
     </div>
 
-    <el-dialog v-model="dialogVisible" width="800px" title="Аптека">
+    <el-dialog
+      v-model="dialogVisible"
+      width="800px"
+      title="Аптека"
+      :close-on-click-modal="false"
+    >
       <div class="h-96 mb-4">
         <MapComponent
           ref="mapRef"

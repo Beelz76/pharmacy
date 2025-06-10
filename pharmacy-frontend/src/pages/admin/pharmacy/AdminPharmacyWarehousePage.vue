@@ -70,7 +70,12 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="Товар" width="500px">
+    <el-dialog
+      v-model="dialogVisible"
+      title="Товар"
+      width="500px"
+      :close-on-click-modal="false"
+    >
       <el-form label-width="120px">
         <el-form-item label="ID товара" v-if="!editingId">
           <el-input v-model.number="form.productId" type="number" />
