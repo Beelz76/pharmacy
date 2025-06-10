@@ -11,6 +11,11 @@ export async function createUser(payload) {
   return res.data;
 }
 
+export async function updateUser(id, payload) {
+  const res = await api.put(`/users/${id}`, payload);
+  return res.data;
+}
+
 export async function getPaginatedUsers({
   page = 1,
   size = 20,

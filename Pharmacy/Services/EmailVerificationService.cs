@@ -128,6 +128,13 @@ public class EmailVerificationService : IEmailVerificationService
                 user.EmailVerified = true;
                 await _userRepository.UpdateAsync(user);
                 
+                await _emailSender.SendEmailAsync(user.Email,
+                    "Регистрация завершена",
+                    $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                        <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                        <p style='font-size: 16px; color: #333;'>Ваш аккаунт успешно подтвержден.</p>
+                    </div>");
+                
                 var token = _tokenProvider.Create(user.Id, user.Email, user.Role);
                 
                 return Result.Success(new ConfirmCodeDto(true, token));
@@ -145,6 +152,13 @@ public class EmailVerificationService : IEmailVerificationService
                 user.Email = email;
                 await _userRepository.UpdateAsync(user);
 
+                await _emailSender.SendEmailAsync(user.Email,
+                    "Email изменен",
+                    $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                        <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                        <p style='font-size: 16px; color: #333;'>Адрес вашей электронной почты был успешно изменен.</p>
+                    </div>");
+                
                 var token = _tokenProvider.Create(user.Id, user.Email, user.Role);
                 
                 return Result.Success(new ConfirmCodeDto(true, token));
@@ -183,6 +197,13 @@ public class EmailVerificationService : IEmailVerificationService
         
         user.PasswordHash = _passwordProvider.Hash(newPassword);
         await _userRepository.UpdateAsync(user);
+        
+        await _emailSender.SendEmailAsync(user.Email,
+            "Пароль восстановлен",
+            $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                <p style='font-size: 16px; color: #333;'>Ваш пароль был успешно изменен.</p>
+            </div>");
         
         code.ExpiresAt = now;
         await _repository.UpdateAsync(code);

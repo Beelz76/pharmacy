@@ -173,16 +173,18 @@ public class OrderService : IOrderService
             var itemsTable = string.Join("", orderItemDetails.Select(item =>
                 $"<tr><td>{item.Name}</td><td>{item.Quantity}</td><td>{item.Price:C}</td><td>{item.Quantity * item.Price:C}</td></tr>"));
 
-            var body = $@"
-                <h3>Ваш заказ {order.Number} оформлен</h3>
-                <p>Состав заказа:</p>
-                <table border='1' cellpadding='4'>
-                    <tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr>
-                    {itemsTable}
-                </table>
-                <p><strong>Итого:</strong> {totalPrice:C}<br/>
-                <strong>Адрес:</strong> {addressString}<br/>
-                <strong>Оплата:</strong> {(request.PaymentMethod == PaymentMethodEnum.Online ? "Онлайн" : "При получении")}</p>";
+            var body = $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                    <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                    <p style='font-size: 16px; color: #333;'>Ваш заказ <strong>{order.Number}</strong> оформлен.</p>
+                    <p style='font-size: 16px; color: #333;'>Состав заказа:</p>
+                    <table border='1' cellpadding='4' style='width:100%;border-collapse:collapse;'>
+                        <tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr>
+                        {itemsTable}
+                    </table>
+                    <p style='font-size: 16px; color: #333;'><strong>Итого:</strong> {totalPrice:C}<br/>
+                    <strong>Адрес:</strong> {addressString}<br/>
+                    <strong>Оплата:</strong> {(request.PaymentMethod == PaymentMethodEnum.Online ? "Онлайн" : "При получении")}</p>
+                </div>";
 
             await _emailSender.SendEmailAsync(user.Email, $"Заказ {order.Number}", body);
         }
@@ -500,6 +502,18 @@ public class OrderService : IOrderService
         order.StatusId = (int)OrderStatusEnum.Cancelled;
         order.UpdatedAt = _dateTimeProvider.UtcNow;
         await _orderRepository.UpdateAsync(order);
+        
+        var user = await _userRepository.GetByIdAsync(order.UserId);
+        if (user != null)
+        {
+            var subject = $"Заказ {order.Number} отменен";
+            var body = $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                    <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                    <p style='font-size: 16px; color: #333;'>Ваш заказ <strong>{order.Number}</strong> был отменен.</p>
+                </div>";
+            await _emailSender.SendEmailAsync(user.Email, subject, body);
+        }
+        
         return Result.Success();
     }
     
@@ -534,6 +548,18 @@ public class OrderService : IOrderService
         }
         
         await _orderRepository.UpdateAsync(order);
+        
+        var user = await _userRepository.GetByIdAsync(order.UserId);
+        if (user != null)
+        {
+            var subject = $"Заказ {order.Number} возвращен";
+            var body = $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                    <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                    <p style='font-size: 16px; color: #333;'>За заказ <strong>{order.Number}</strong> оформлен возврат средств.</p>
+                </div>";
+            await _emailSender.SendEmailAsync(user.Email, subject, body);
+        }
+        
         return Result.Success();
     }
     

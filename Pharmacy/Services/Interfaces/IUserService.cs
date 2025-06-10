@@ -13,5 +13,6 @@ public interface IUserService
     Task<Result<UserDto>> GetByEmailAsync(string email);
     Task<Result> UpdateEmailRequestAsync(int userId, string newEmail);
     Task<Result> UpdatePasswordAsync(int userId, string currentPassword, string newPassword);
+    Task<Result> UpdateAsync(int userId, UpdateUserDto dto);
     Task<Result<PaginatedList<UserDto>>> GetPaginatedUsersAsync(UserFilters filters, int pageNumber, int pageSize);
 }

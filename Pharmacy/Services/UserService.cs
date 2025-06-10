@@ -165,6 +165,45 @@ public class UserService : IUserService
         return Result.Success();
     }
 
+    public async Task<Result> UpdateAsync(int userId, UpdateUserDto dto)
+    {
+        var user = await _repository.GetByIdAsync(userId);
+        if (user is null)
+        {
+            return Result.Failure(Error.NotFound("Пользователь не найден"));
+        }
+
+        if (!string.Equals(user.Email, dto.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            var existing = await _repository.GetByEmailAsync(dto.Email, userId);
+            if (existing is not null)
+            {
+                return Result.Failure(Error.Conflict("Пользователь с таким email уже зарегистрирован"));
+            }
+        }
+
+        if (dto.Role == UserRoleEnum.Employee && dto.PharmacyId is not null)
+        {
+            var exists = await _pharmacyRepository.ExistsByIdAsync(dto.PharmacyId.Value);
+            if (!exists)
+            {
+                return Result.Failure(Error.NotFound("Указанная аптека не найдена"));
+            }
+        }
+
+        user.Email = dto.Email;
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.Patronymic = dto.Patronymic;
+        user.Phone = dto.Phone;
+        user.Role = dto.Role;
+        user.PharmacyId = dto.Role == UserRoleEnum.Employee ? dto.PharmacyId : null;
+        user.UpdatedAt = _dateTimeProvider.UtcNow;
+
+        await _repository.UpdateAsync(user);
+        return Result.Success();
+    }
+    
     public async Task<Result<PaginatedList<UserDto>>> GetPaginatedUsersAsync(UserFilters filters, int pageNumber, int pageSize)
     {
         var query = _repository.Query();
