@@ -169,6 +169,8 @@ try
     builder.Services.AddScoped<IPaymentStatusRepository, PaymentStatusRepository>();
     builder.Services.AddScoped<IPaymentStatusService, PaymentStatusService>();
     
+    builder.Services.AddScoped<TransactionRunner>();
+    
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
     

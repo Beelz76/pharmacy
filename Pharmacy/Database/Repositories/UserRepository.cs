@@ -4,10 +4,10 @@ using Pharmacy.Database.Repositories.Interfaces;
 
 namespace Pharmacy.Database.Repositories;
 
-public class UserRepository : BaseRepository, IUserRepository
+public class UserRepository : IUserRepository
 {
     private readonly PharmacyDbContext _context;
-    public UserRepository(PharmacyDbContext context) : base(context)
+    public UserRepository(PharmacyDbContext context)
     {
         _context = context;
     }

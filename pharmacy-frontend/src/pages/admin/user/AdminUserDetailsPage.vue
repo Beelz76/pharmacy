@@ -45,7 +45,32 @@
           <el-form-item
             label="Аптека"
             v-if="form.role === 'Employee'"
+            class="md:col-span-2"
+          >
+            <el-select
+              v-model="selectedPharmacyName"
+              placeholder="Выберите аптеку"
+              class="w-full"
+              clearable
+              filterable
+              remote
+              reserve-keyword
+              :remote-method="searchPharmacyNames"
+              :loading="loadingPharmacies"
+            >
+              <el-option
+                v-for="n in pharmacyNames"
+                :key="n"
+                :label="n"
+                :value="n"
+              />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item
+            label="Адрес"
             prop="pharmacyId"
+            v-if="form.role === 'Employee'"
             class="md:col-span-2"
           >
             <el-select
@@ -55,11 +80,11 @@
               filterable
               remote
               reserve-keyword
-              :remote-method="searchPharmacy"
+              :remote-method="searchPharmacyAddresses"
               :loading="loadingPharmacies"
             >
               <el-option
-                v-for="p in pharmacyOptions"
+                v-for="p in pharmacyAddresses"
                 :key="p.id"
                 :label="p.address"
                 :value="p.id"
@@ -84,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { getUserById, updateUser } from "/src/services/UserService";
@@ -125,6 +150,9 @@ const rules = {
   ],
 };
 
+const pharmacyNames = ref([]);
+const pharmacyAddresses = ref([]);
+const selectedPharmacyName = ref(null);
 const pharmacyOptions = ref([]);
 const loadingPharmacies = ref(false);
 
@@ -141,8 +169,10 @@ onMounted(async () => {
       form.value.phone = data.phone || "";
       form.value.role = data.role;
       form.value.pharmacyId = data.pharmacy?.id || null;
+      selectedPharmacyName.value = data.pharmacy?.name || null;
     }
-    searchPharmacy();
+    searchPharmacyNames();
+    if (selectedPharmacyName.value) searchPharmacyAddresses();
   } catch (e) {
     user.value = null;
   } finally {
@@ -154,11 +184,33 @@ const goToUserOrders = (id) => {
   router.push({ name: "AdminOrders", query: { userId: id } });
 };
 
-const searchPharmacy = async (query = "") => {
+const searchPharmacyNames = async (query = "") => {
   loadingPharmacies.value = true;
   try {
     const data = await getPharmacies({ search: query });
-    pharmacyOptions.value = data.items.map((p) => ({
+    const names = Array.from(new Set(data.items.map((p) => p.name)));
+    pharmacyNames.value = names;
+  } finally {
+    loadingPharmacies.value = false;
+  }
+};
+
+const searchPharmacyAddresses = async (query = "") => {
+  if (!selectedPharmacyName.value) {
+    pharmacyAddresses.value = [];
+    return;
+  }
+  loadingPharmacies.value = true;
+  try {
+    const data = await getPharmacies({ search: selectedPharmacyName.value });
+    let list = data.items.filter((p) => p.name === selectedPharmacyName.value);
+    if (query) {
+      const q = query.toLowerCase();
+      list = list.filter((p) =>
+        formatAddress(p.address).toLowerCase().includes(q)
+      );
+    }
+    pharmacyAddresses.value = list.map((p) => ({
       id: p.id,
       address: formatAddress(p.address),
     }));
@@ -166,6 +218,22 @@ const searchPharmacy = async (query = "") => {
     loadingPharmacies.value = false;
   }
 };
+
+watch(
+  () => form.value.role,
+  (role) => {
+    if (role !== "Employee") {
+      form.value.pharmacyId = null;
+      selectedPharmacyName.value = null;
+      pharmacyAddresses.value = [];
+    }
+  }
+);
+
+watch(selectedPharmacyName, () => {
+  form.value.pharmacyId = null;
+  searchPharmacyAddresses();
+});
 
 const submit = () => {
   if (!formRef.value) return;

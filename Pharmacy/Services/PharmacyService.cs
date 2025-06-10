@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
+using Pharmacy.Database;
 using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.Services.Interfaces;
@@ -15,12 +16,14 @@ public class PharmacyService : IPharmacyService
     private readonly IPharmacyRepository _pharmacyRepository;
     private readonly IAddressRepository _addressRepository;
     private readonly HybridCache _cache;
+    private readonly TransactionRunner _transactionRunner;
 
-    public PharmacyService(IPharmacyRepository pharmacyRepository, IAddressRepository addressRepository, HybridCache cache)
+    public PharmacyService(IPharmacyRepository pharmacyRepository, IAddressRepository addressRepository, HybridCache cache, TransactionRunner transactionRunner)
     {
         _pharmacyRepository = pharmacyRepository;
         _addressRepository = addressRepository;
         _cache = cache;
+        _transactionRunner = transactionRunner;
     }
 
     public async Task<Result<IEnumerable<PharmacyDto>>> GetAllAsync()
@@ -138,32 +141,38 @@ public class PharmacyService : IPharmacyService
             return Result.Failure<CreatedDto>(Error.Conflict("Аптека с таким адресом уже существует"));
         }
         
-        var address = await _addressRepository.GetOrCreateAddressAsync(new Address
+        var result = await _transactionRunner.ExecuteAsync(async () =>
         {
-            OsmId = dto.Address.OsmId,
-            Region = dto.Address.Region,
-            State = dto.Address.State,
-            City = dto.Address.City,
-            Suburb = dto.Address.Suburb,
-            Street = dto.Address.Street,
-            HouseNumber = dto.Address.HouseNumber,
-            Postcode = dto.Address.Postcode,
-            Latitude = dto.Address.Latitude,
-            Longitude = dto.Address.Longitude
+            var address = await _addressRepository.GetOrCreateAddressAsync(new Address
+            {
+                OsmId = dto.Address.OsmId,
+                Region = dto.Address.Region,
+                State = dto.Address.State,
+                City = dto.Address.City,
+                Suburb = dto.Address.Suburb,
+                Street = dto.Address.Street,
+                HouseNumber = dto.Address.HouseNumber,
+                Postcode = dto.Address.Postcode,
+                Latitude = dto.Address.Latitude,
+                Longitude = dto.Address.Longitude
+            });
+
+            var pharmacy = new Database.Entities.Pharmacy
+            {
+                Name = dto.Name,
+                Phone = dto.Phone,
+                AddressId = address.Id,
+                IsActive = true
+            };
+
+            await _pharmacyRepository.AddAsync(pharmacy);
+            await _cache.RemoveAsync("pharmacies-all");
+            await _cache.RemoveAsync($"pharmacy-{pharmacy.Id}");
+
+            return Result.Success(new CreatedDto(pharmacy.Id));
         });
 
-        var pharmacy = new Database.Entities.Pharmacy
-        {
-            Name = dto.Name,
-            Phone = dto.Phone,
-            AddressId = address.Id,
-            IsActive = true
-        };
-
-        await _pharmacyRepository.AddAsync(pharmacy);
-        await _cache.RemoveAsync("pharmacies-all");
-        await _cache.RemoveAsync($"pharmacy-{pharmacy.Id}");
-        return Result.Success(new CreatedDto(pharmacy.Id));
+        return result;
     }
     
     public async Task<Result<int?>> GetExistingPharmacyIdAsync(string name, string? osmId, double latitude, double longitude)
@@ -207,28 +216,33 @@ public class PharmacyService : IPharmacyService
             return Result.Failure(Error.Conflict("Аптека с таким адресом уже существует"));
         }
 
-        var address = await _addressRepository.GetOrCreateAddressAsync(new Address
+        var result = await _transactionRunner.ExecuteAsync(async () =>
         {
-            OsmId = dto.Address.OsmId,
-            Region = dto.Address.Region,
-            State = dto.Address.State,
-            City = dto.Address.City,
-            Suburb = dto.Address.Suburb,
-            Street = dto.Address.Street,
-            HouseNumber = dto.Address.HouseNumber,
-            Postcode = dto.Address.Postcode,
-            Latitude = dto.Address.Latitude,
-            Longitude = dto.Address.Longitude
+            var address = await _addressRepository.GetOrCreateAddressAsync(new Address
+            {
+                OsmId = dto.Address.OsmId,
+                Region = dto.Address.Region,
+                State = dto.Address.State,
+                City = dto.Address.City,
+                Suburb = dto.Address.Suburb,
+                Street = dto.Address.Street,
+                HouseNumber = dto.Address.HouseNumber,
+                Postcode = dto.Address.Postcode,
+                Latitude = dto.Address.Latitude,
+                Longitude = dto.Address.Longitude
+            });
+
+            pharmacy.Name = dto.Name;
+            pharmacy.Phone = dto.Phone;
+            pharmacy.AddressId = address.Id;
+
+            await _pharmacyRepository.UpdateAsync(pharmacy);
+            await _cache.RemoveAsync("pharmacies-all");
+            await _cache.RemoveAsync($"pharmacy-{id}");
+            return Result.Success();
         });
 
-        pharmacy.Name = dto.Name;
-        pharmacy.Phone = dto.Phone;
-        pharmacy.AddressId = address.Id;
-
-        await _pharmacyRepository.UpdateAsync(pharmacy);
-        await _cache.RemoveAsync("pharmacies-all");
-        await _cache.RemoveAsync($"pharmacy-{id}");
-        return Result.Success();
+        return result;
     }
 
     public async Task<Result> DeleteAsync(int id)
@@ -239,9 +253,14 @@ public class PharmacyService : IPharmacyService
             return Result.Failure(Error.NotFound("Аптека не найдена"));
         }
 
-        await _pharmacyRepository.DeleteAsync(pharmacy);
-        await _cache.RemoveAsync("pharmacies-all");
-        await _cache.RemoveAsync($"pharmacy-{id}");
-        return Result.Success();
+        var result = await _transactionRunner.ExecuteAsync(async () =>
+        {
+            await _pharmacyRepository.DeleteAsync(pharmacy);
+            await _cache.RemoveAsync("pharmacies-all");
+            await _cache.RemoveAsync($"pharmacy-{id}");
+            return Result.Success();
+        });
+
+        return result;
     }
 }

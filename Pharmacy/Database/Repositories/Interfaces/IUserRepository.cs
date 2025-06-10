@@ -12,6 +12,5 @@ public interface IUserRepository
     Task AddAsync(User user);
     Task UpdateAsync(User user);
     Task DeleteAsync(User user);
-    Task<Result> ExecuteInTransactionAsync(Func<Task<Result>> action);
     IQueryable<User> Query();
 }

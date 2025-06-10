@@ -5,11 +5,11 @@ using Pharmacy.Shared.Enums;
 
 namespace Pharmacy.Database.Repositories;
 
-public class EmailVerificationCodeRepository : BaseRepository, IEmailVerificationCodeRepository
+public class EmailVerificationCodeRepository : IEmailVerificationCodeRepository
 {
     private readonly PharmacyDbContext _context;
 
-    public EmailVerificationCodeRepository(PharmacyDbContext context) : base(context)
+    public EmailVerificationCodeRepository(PharmacyDbContext context)
     {
         _context = context;
     }

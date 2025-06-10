@@ -149,6 +149,11 @@ public class UserService : IUserService
             return Result.Failure(Error.NotFound("Пользователь не найден"));
         }
 
+        if (user.Role != UserRoleEnum.Employee)
+        {
+            return Result.Failure(Error.Failure("Редактирование доступно только для сотрудников"));
+        }
+        
         if (!_passwordProvider.Verify(currentPassword, user.PasswordHash))
         {
             return Result.Failure(Error.Failure("Неверный текущий пароль"));

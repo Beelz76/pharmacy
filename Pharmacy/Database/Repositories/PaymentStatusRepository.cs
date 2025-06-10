@@ -4,11 +4,11 @@ using Pharmacy.Database.Repositories.Interfaces;
 
 namespace Pharmacy.Database.Repositories;
 
-public class PaymentStatusRepository : BaseRepository, IPaymentStatusRepository
+public class PaymentStatusRepository : IPaymentStatusRepository
 {
     private readonly PharmacyDbContext _context;
 
-    public PaymentStatusRepository(PharmacyDbContext context) : base(context)
+    public PaymentStatusRepository(PharmacyDbContext context)
     {
         _context = context;
     }

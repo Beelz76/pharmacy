@@ -11,5 +11,4 @@ public interface IManufacturerRepository
     Task AddAsync(Manufacturer manufacturer);
     Task UpdateAsync(Manufacturer manufacturer);
     Task DeleteAsync(Manufacturer manufacturer);
-    Task<Result> ExecuteInTransactionAsync(Func<Task<Result>> action);
 }

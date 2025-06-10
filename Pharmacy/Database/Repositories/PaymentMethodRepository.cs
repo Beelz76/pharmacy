@@ -4,11 +4,11 @@ using Pharmacy.Database.Repositories.Interfaces;
 
 namespace Pharmacy.Database.Repositories;
 
-public class PaymentMethodRepository : BaseRepository, IPaymentMethodRepository
+public class PaymentMethodRepository : IPaymentMethodRepository
 {
     private readonly PharmacyDbContext _context;
 
-    public PaymentMethodRepository(PharmacyDbContext context) : base(context)
+    public PaymentMethodRepository(PharmacyDbContext context)
     {
         _context = context;
     }

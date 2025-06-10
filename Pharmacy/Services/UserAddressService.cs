@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Hybrid;
+using Pharmacy.Database;
 using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.Endpoints.UserAddresses;
@@ -17,13 +18,15 @@ public class UserAddressService : IUserAddressService
     private readonly IAddressRepository _addressRepository;
     private readonly IDeliveryRepository _deliveryRepository;
     private readonly HybridCache _cache;
+    private readonly TransactionRunner _transactionRunner;
 
-    public UserAddressService(IUserAddressRepository repository, IAddressRepository addressRepository, HybridCache cache, IDeliveryRepository deliveryRepository)
+    public UserAddressService(IUserAddressRepository repository, IAddressRepository addressRepository, HybridCache cache, IDeliveryRepository deliveryRepository, TransactionRunner transactionRunner)
     {
         _repository = repository;
         _addressRepository = addressRepository;
         _cache = cache;
         _deliveryRepository = deliveryRepository;
+        _transactionRunner = transactionRunner;
     }
 
     public async Task<Result<IEnumerable<UserAddressDto>>> GetAllAsync(int userId)
@@ -81,20 +84,25 @@ public class UserAddressService : IUserAddressService
             return Result.Failure<CreatedDto>(Error.Conflict("Такой адрес уже добавлен"));
         }
 
-        var userAddress = new UserAddress
+        var result = await _transactionRunner.ExecuteAsync(async () =>
         {
-            UserId = userId,
-            AddressId = address.Id,
-            Apartment = request.Apartment,
-            Entrance = request.Entrance,
-            Floor = request.Floor,
-            Comment = request.Comment,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            var userAddress = new UserAddress
+            {
+                UserId = userId,
+                AddressId = address.Id,
+                Apartment = request.Apartment,
+                Entrance = request.Entrance,
+                Floor = request.Floor,
+                Comment = request.Comment,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-        await _repository.AddAsync(userAddress);
-        return Result.Success(new CreatedDto(userAddress.Id));
+            await _repository.AddAsync(userAddress);
+            return Result.Success(new CreatedDto(userAddress.Id));
+        });
+
+        return result;
     }
 
 
@@ -130,15 +138,20 @@ public class UserAddressService : IUserAddressService
             return Result.Failure(Error.Conflict("Такой адрес уже добавлен"));
         }
 
-        userAddress.AddressId = address.Id;
-        userAddress.Apartment = request.Apartment;
-        userAddress.Entrance = request.Entrance;
-        userAddress.Floor = request.Floor;
-        userAddress.Comment = request.Comment;
-        userAddress.UpdatedAt = DateTime.UtcNow;
+        var result = await _transactionRunner.ExecuteAsync(async () =>
+        {
+            userAddress.AddressId = address.Id;
+            userAddress.Apartment = request.Apartment;
+            userAddress.Entrance = request.Entrance;
+            userAddress.Floor = request.Floor;
+            userAddress.Comment = request.Comment;
+            userAddress.UpdatedAt = DateTime.UtcNow;
 
-        await _repository.UpdateAsync(userAddress);
-        return Result.Success();
+            await _repository.UpdateAsync(userAddress);
+            return Result.Success();
+        });
+
+        return result;
     }
 
     public async Task<Result> DeleteAsync(int userId, int userAddressId)
@@ -154,8 +167,13 @@ public class UserAddressService : IUserAddressService
             return Result.Failure(Error.Conflict("Нельзя удалить адрес, который использован в доставке"));
         }
         
-        await _repository.DeleteAsync(userAddress);
-        return Result.Success();
+        var result = await _transactionRunner.ExecuteAsync(async () =>
+        {
+            await _repository.DeleteAsync(userAddress);
+            return Result.Success();
+        });
+
+        return result;
     }
 
     private static UserAddressDto ToDto(UserAddress ua) =>
