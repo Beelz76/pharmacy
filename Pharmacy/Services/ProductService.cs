@@ -201,7 +201,7 @@ public class ProductService : IProductService
                     product.Description,
                     product.ExtendedDescription,
                     !product.IsGloballyDisabled,
-                    product.Images.Select(x => _storage.GetPublicUrl(x.Url)).ToList(),
+                    product.Images.Select(x => new ProductImageDto(x.Id, _storage.GetPublicUrl(x.Url))).ToList(),
                     propertyDtos
                 );
             });
@@ -437,7 +437,7 @@ public class ProductService : IProductService
             product.Description,
             product.ExtendedDescription,
             !product.IsGloballyDisabled,
-            product.Images.Select(x => _storage.GetPublicUrl(x.Url)).ToList(),
+            product.Images.Select(x => new ProductImageDto(x.Id, _storage.GetPublicUrl(x.Url))).ToList(),
             propertyDtos
         );
 

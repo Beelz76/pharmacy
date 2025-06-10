@@ -17,7 +17,12 @@
     <div v-if="loading" class="text-center py-10">Загрузка...</div>
 
     <div v-else class="bg-white border rounded-xl p-6 shadow-sm space-y-4">
-      <el-form label-width="150px">
+      <el-form
+        label-width="150px"
+        :model="productForm"
+        :rules="rules"
+        ref="productFormRef"
+      >
         <el-form-item label="Название">
           <el-input v-model="productForm.name" />
         </el-form-item>
@@ -53,9 +58,6 @@
         </el-form-item>
         <el-form-item label="Цена">
           <el-input type="number" v-model.number="productForm.price" />
-        </el-form-item>
-        <el-form-item label="Количество">
-          <el-input type="number" v-model.number="productForm.stockQuantity" />
         </el-form-item>
         <el-form-item label="Доступен">
           <el-switch v-model="productForm.isAvailable" />
@@ -138,7 +140,6 @@ const productForm = reactive({
   description: "",
   extendedDescription: "",
   price: 0,
-  stockQuantity: 0,
   categoryId: null,
   manufacturerId: null,
   isAvailable: true,
@@ -156,6 +157,20 @@ const pendingFiles = ref([]);
 const pendingExternalUrls = ref([]);
 const newImageUrl = ref("");
 const loading = ref(false);
+const productFormRef = ref();
+const rules = {
+  name: [{ required: true, message: "Введите название", trigger: "blur" }],
+  price: [{ required: true, message: "Введите цену", trigger: "blur" }],
+  categoryId: [
+    { required: true, message: "Выберите категорию", trigger: "change" },
+  ],
+  manufacturerId: [
+    { required: true, message: "Выберите производителя", trigger: "change" },
+  ],
+  description: [
+    { required: true, message: "Введите описание", trigger: "blur" },
+  ],
+};
 
 function flatten(list, prefix = "", arr = []) {
   for (const c of list) {
@@ -181,19 +196,15 @@ onMounted(async () => {
         description: data.description,
         extendedDescription: data.extendedDescription,
         price: data.price,
-        stockQuantity: data.stockQuantity,
         categoryId: data.category.id,
         manufacturerId: data.manufacturer.id,
         isAvailable: data.isAvailable,
         properties: data.properties || [],
       });
-      images.value = (data.images || []).map((url, idx) => ({ id: idx, url }));
+      images.value = data.images || [];
     } finally {
       loading.value = false;
     }
-  }
-  if (productForm.categoryId) {
-    await loadCategoryFields(productForm.categoryId);
   }
 });
 
@@ -223,9 +234,7 @@ async function uploadFiles() {
   if (!pendingFiles.value.length || !productForm.id) return;
   try {
     const res = await uploadProductImages(productForm.id, pendingFiles.value);
-    images.value.push(
-      ...res.urls.map((url) => ({ id: Date.now() + Math.random(), url }))
-    );
+    images.value.push(...res.images);
     pendingFiles.value = [];
     ElMessage.success("Загружено");
   } catch (e) {
@@ -235,7 +244,11 @@ async function uploadFiles() {
 
 async function addImageLink() {
   if (!newImageUrl.value) return;
-  images.value.push({ id: Date.now() + Math.random(), url: newImageUrl.value });
+  images.value.push({
+    id: Date.now() + Math.random(),
+    url: newImageUrl.value,
+    tmp: true,
+  });
   pendingExternalUrls.value.push(newImageUrl.value);
   newImageUrl.value = "";
 }
@@ -258,6 +271,8 @@ async function removeImage(img) {
 }
 
 async function save() {
+  const valid = await productFormRef.value.validate().catch(() => false);
+  if (!valid) return;
   const payload = {
     name: productForm.name,
     price: productForm.price,
@@ -287,9 +302,7 @@ async function save() {
     if (pendingFiles.value.length) {
       try {
         const res = await uploadProductImages(id, pendingFiles.value);
-        images.value.push(
-          ...res.urls.map((url) => ({ id: Date.now() + Math.random(), url }))
-        );
+        images.value.push(...res.images);
         pendingFiles.value = [];
       } catch (e) {
         ElMessage.error(e.message);
@@ -299,12 +312,10 @@ async function save() {
     if (pendingExternalUrls.value.length) {
       try {
         await addExternalImages(id, pendingExternalUrls.value);
-        images.value.push(
-          ...pendingExternalUrls.value.map((url) => ({
-            id: Date.now() + Math.random(),
-            url,
-          }))
-        );
+        const res = await addExternalImages(id, pendingExternalUrls.value);
+        images.value = images.value.filter((i) => !i.tmp);
+        images.value.push(...res.images);
+        pendingExternalUrls.value = [];
         pendingExternalUrls.value = [];
       } catch (e) {
         ElMessage.error(e.message);

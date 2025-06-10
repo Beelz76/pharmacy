@@ -43,7 +43,6 @@ public class UpdateEndpoint : Endpoint<UpdateProductRequest>
 public record UpdateProductRequest(
     string Name,
     decimal Price,
-    int StockQuantity,
     int CategoryId,
     int ManufacturerId,
     string Description,
@@ -59,9 +58,6 @@ public class UpdateProductRequestValidator : Validator<UpdateProductRequest>
             .NotEmpty();
 
         RuleFor(x => x.Price)
-            .NotEmpty();
-        
-        RuleFor(x => x.StockQuantity)
             .NotEmpty();
         
         RuleFor(x => x.CategoryId)

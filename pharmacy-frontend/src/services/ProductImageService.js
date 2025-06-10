@@ -10,7 +10,10 @@ export async function uploadProductImages(productId, files) {
 }
 
 export async function addExternalImages(productId, urls) {
-  await api.post(`/products/${productId}/add-external-images`, { urls });
+  const res = await api.post(`/products/${productId}/add-external-images`, {
+    urls,
+  });
+  return res.data;
 }
 
 export async function deleteProductImages(productId, imageIds) {

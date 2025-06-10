@@ -3,6 +3,7 @@ using Pharmacy.Database;
 using Pharmacy.Database.Entities;
 using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
+using Pharmacy.Shared.Dto.Product;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services;
@@ -18,15 +19,15 @@ public class ProductImageService : IProductImageService
         _storage = storage;
     }
 
-    public async Task<Result<List<string>>> UploadImagesAsync(int productId, IReadOnlyList<IFormFile> files)
+    public async Task<Result<List<ProductImageDto>>> UploadImagesAsync(int productId, IReadOnlyList<IFormFile> files)
     {
         var product = await _context.Products.FindAsync(productId);
         if (product == null)
         {
-            return Result.Failure<List<string>>(Error.NotFound("Товар не найден"));
+            return Result.Failure<List<ProductImageDto>>(Error.NotFound("Товар не найден"));
         }
 
-        var urls = new List<string>();
+        var result = new List<ProductImageDto>();
 
         foreach (var file in files)
         {
@@ -38,19 +39,20 @@ public class ProductImageService : IProductImageService
             await using var stream = file.OpenReadStream();
             await _storage.UploadAsync(key, stream, file.ContentType);
 
-            _context.ProductImages.Add(new ProductImage
+            var image = new ProductImage
             {
                 ProductId = productId,
                 Url = key,
                 CreatedAt = DateTime.UtcNow
-            });
+            };
 
-            urls.Add(_storage.GetPublicUrl(key));
+            _context.ProductImages.Add(image);
+            result.Add(new ProductImageDto(image.Id, _storage.GetPublicUrl(key)));
         }
 
         await _context.SaveChangesAsync();
 
-        return Result.Success(urls);
+        return Result.Success(result);
     }
 
     public async Task<Result> DeleteProductImagesAsync(int productId, List<int> imageIds)
@@ -78,28 +80,31 @@ public class ProductImageService : IProductImageService
         return Result.Success();
     }
     
-    public async Task<Result> AddExternalImagesAsync(int productId, List<string> imageUrls)
+    public async Task<Result<List<ProductImageDto>>> AddExternalImagesAsync(int productId, List<string> imageUrls)
     {
         var product = await _context.Products.FindAsync(productId);
         if (product == null)
         {
-            return Result.Failure(Error.NotFound("Товар не найден"));
+            return Result.Failure<List<ProductImageDto>>(Error.NotFound("Товар не найден"));
         }
 
         var now = DateTime.UtcNow;
 
+        var dtos = new List<ProductImageDto>();
         foreach (var imageUrl in imageUrls)
         {
-            _context.ProductImages.Add(new ProductImage
+            var entity = new ProductImage
             {
                 ProductId = productId,
                 Url = imageUrl,
                 CreatedAt = now
-            });
+            };
+            _context.ProductImages.Add(entity);
+            dtos.Add(new ProductImageDto(entity.Id, imageUrl));
         }
 
         await _context.SaveChangesAsync();
-        return Result.Success();
+        return Result.Success(dtos);
     }
 
 }

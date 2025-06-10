@@ -76,9 +76,21 @@
       width="500px"
       :close-on-click-modal="false"
     >
-      <el-form label-width="120px">
-        <el-form-item label="ID товара" v-if="!editingId">
-          <el-input v-model.number="form.productId" type="number" />
+      <el-form label-width="120px" :model="form" :rules="rules" ref="formRef">
+        <el-form-item label="Товар" v-if="!editingId">
+          <div class="flex gap-2">
+            <el-input
+              v-model.number="form.productId"
+              type="number"
+              class="!w-28"
+            />
+            <el-autocomplete
+              v-model="form.productName"
+              :fetch-suggestions="fetchProductSuggestions"
+              @select="onProductSelect"
+              class="!w-60"
+            />
+          </div>
         </el-form-item>
         <el-form-item label="Количество">
           <el-input v-model.number="form.stockQuantity" type="number" />
@@ -99,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   getPharmacyById,
@@ -109,6 +121,10 @@ import {
   deletePharmacyProduct,
 } from "/src/services/PharmacyService";
 import { ElMessageBox, ElMessage } from "element-plus";
+import api from "/src/utils/axios";
+import ProductService from "/src/services/ProductService";
+
+const productSuggestions = ref([]);
 
 const route = useRoute();
 const router = useRouter();
@@ -121,10 +137,19 @@ const dialogVisible = ref(false);
 const editingId = ref(null);
 const form = ref({
   productId: null,
+  productName: "",
   stockQuantity: 0,
   price: 0,
   isAvailable: true,
 });
+const formRef = ref();
+const rules = {
+  productId: [{ required: true, message: "ID обязателен", trigger: "blur" }],
+  stockQuantity: [
+    { required: true, message: "Введите количество", trigger: "blur" },
+  ],
+  price: [{ required: true, message: "Введите цену", trigger: "blur" }],
+};
 
 onMounted(async () => {
   loading.value = true;
@@ -136,10 +161,55 @@ onMounted(async () => {
   }
 });
 
+watch(
+  () => form.value.productId,
+  async (val) => {
+    if (!val) {
+      form.value.productName = "";
+      return;
+    }
+    try {
+      const p = await ProductService.getById(val);
+      form.value.productName = p.name;
+    } catch {}
+  }
+);
+
+const fetchProductSuggestions = async (query) => {
+  const trimmed = query.trim();
+  if (!trimmed || trimmed.length < 2) {
+    productSuggestions.value = [];
+    return;
+  }
+  try {
+    const res = await api.get(
+      `/products/search-suggestions?query=${encodeURIComponent(trimmed)}`
+    );
+    productSuggestions.value = res.data.map((name) => ({ value: name }));
+  } catch {}
+};
+
+async function onProductSelect(item) {
+  form.value.productName = item.value;
+  try {
+    const res = await api.post(
+      `/products/paginated?pageNumber=1&pageSize=1&search=${encodeURIComponent(
+        item.value
+      )}`,
+      {}
+    );
+    const first = res.data.items?.[0];
+    if (first) {
+      form.value.productId = first.id;
+    }
+  } catch {}
+}
+
 function openAdd() {
   editingId.value = null;
   form.value = {
     productId: null,
+    productName: "",
     stockQuantity: 0,
     price: 0,
     isAvailable: true,
@@ -154,6 +224,8 @@ function editProduct(p) {
 }
 
 async function saveProduct() {
+  const valid = await formRef.value.validate().catch(() => false);
+  if (!valid) return;
   const payload = {
     productId: form.value.productId,
     stockQuantity: form.value.stockQuantity,

@@ -13,6 +13,6 @@ public record ProductDto(
     string Description,
     string ExtendedDescription,
     bool IsAvailable,
-    List<string>? Images,
+    List<ProductImageDto>? Images,
     List<ProductPropertyDto> Properties
 );

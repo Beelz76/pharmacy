@@ -34,7 +34,7 @@ public class UploadEndpoint : EndpointWithoutRequest
         var result = await _productImageService.UploadImagesAsync(productId, Files);
         if (result.IsSuccess)
         {
-            await SendOkAsync (new { urls = result.Value }, ct);
+            await SendOkAsync(new { images = result.Value }, ct);
         }
         else
         {

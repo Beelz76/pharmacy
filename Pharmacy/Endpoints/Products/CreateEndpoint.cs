@@ -41,7 +41,6 @@ public class CreateEndpoint : Endpoint<CreateProductRequest>
 public record CreateProductRequest(
     string Name,
     decimal Price,
-    int StockQuantity,
     int CategoryId,
     int ManufacturerId,
     string Description,
@@ -57,9 +56,6 @@ public class CreateProductRequestValidator : Validator<CreateProductRequest>
             .NotEmpty();
 
         RuleFor(x => x.Price)
-            .NotEmpty();
-        
-        RuleFor(x => x.StockQuantity)
             .NotEmpty();
         
         RuleFor(x => x.CategoryId)

@@ -30,7 +30,7 @@ public class AddExternalImagesEndpoint : Endpoint<AddExternalImagesRequest>
 
         if (result.IsSuccess)
         {
-            await SendOkAsync(ct);
+            await SendOkAsync(new { images = result.Value }, ct);
         }
         else
         {
