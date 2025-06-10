@@ -31,10 +31,11 @@ export const useAuthStore = defineStore("auth", () => {
       userId.value = null;
     }
 
-    if (sync) {
+    const isUser = role.value === "User";
+    if (sync && isUser) {
       useCartStore().syncToServer();
       useFavoritesStore().syncToServer();
-    } else if (fetchServer) {
+    } else if (fetchServer && isUser) {
       useCartStore().fetchCart();
       useFavoritesStore().fetchFavorites();
     }

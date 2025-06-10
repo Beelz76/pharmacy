@@ -1,8 +1,8 @@
 ﻿using FastEndpoints;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
-using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Product;
+using Pharmacy.Shared.Enums;
 
 namespace Pharmacy.Endpoints.Products;
 
@@ -33,6 +33,11 @@ public class GetAllEndpoint : Endpoint<ProductFilters>
         string? search = Query<string>("search", isRequired: false);
      
         var userId = User.GetUserId();
+        var role = User.GetUserRole();
+        if (role != UserRoleEnum.User)
+        {
+            userId = null;
+        }
         
         var parameters = new ProductParameters
         {

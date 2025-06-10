@@ -87,6 +87,16 @@
           :disabled="selectedFiles.length === 0"
           >Загрузить</el-button
         >
+        <div class="mt-4 flex items-center gap-2">
+          <el-input
+            v-model="newImageUrl"
+            placeholder="Ссылка на изображение"
+            class="!w-72"
+          />
+          <el-button @click="addImageLink" :disabled="!newImageUrl"
+            >Добавить</el-button
+          >
+        </div>
       </div>
 
       <div class="text-right pt-4">
@@ -108,6 +118,7 @@ import ProductService from "/src/services/ProductService";
 import {
   uploadProductImages,
   deleteProductImages,
+  addExternalImages,
 } from "/src/services/ProductImageService";
 import { ElMessage } from "element-plus";
 
@@ -137,6 +148,7 @@ const propertyValues = reactive({});
 
 const images = ref([]);
 const selectedFiles = ref([]);
+const newImageUrl = ref("");
 const loading = ref(false);
 
 onMounted(async () => {
@@ -201,6 +213,28 @@ async function uploadFiles() {
     ElMessage.success("Загружено");
   } catch (e) {
     ElMessage.error(e.message);
+  }
+}
+
+async function addImageLink() {
+  if (!newImageUrl.value) return;
+  if (productForm.id) {
+    try {
+      await addExternalImages(productForm.id, [newImageUrl.value]);
+      images.value.push({
+        id: Date.now() + Math.random(),
+        url: newImageUrl.value,
+      });
+      newImageUrl.value = "";
+    } catch (e) {
+      ElMessage.error(e.message);
+    }
+  } else {
+    images.value.push({
+      id: Date.now() + Math.random(),
+      url: newImageUrl.value,
+    });
+    newImageUrl.value = "";
   }
 }
 

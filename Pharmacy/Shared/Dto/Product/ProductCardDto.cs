@@ -8,5 +8,7 @@ public record ProductCardDto(
     string? ImageUrl,
     bool IsAvailable,
     bool IsFavorite,
-    int CartQuantity
+    int CartQuantity,
+    int CategoryId,
+    string CategoryName
 );

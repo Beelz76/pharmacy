@@ -24,4 +24,9 @@ export default {
     const res = await api.get(`/products/by-sku/${sku}`);
     return res.data;
   },
+
+  async getFilterValues(categoryId) {
+    const res = await api.get(`/products/filter-values/${categoryId}`);
+    return res.data;
+  },
 };

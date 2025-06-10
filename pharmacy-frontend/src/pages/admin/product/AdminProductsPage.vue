@@ -21,7 +21,7 @@
             class="!w-60"
           >
             <el-option
-              v-for="c in categories"
+              v-for="c in flatCategories"
               :key="c.id"
               :value="c.id"
               :label="c.name"
@@ -43,8 +43,35 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item
+          v-for="filter in propertyFilterOptions"
+          :key="filter.key"
+          :label="filter.label"
+        >
+          <el-select
+            v-model="filters.propertyFilters[filter.key]"
+            multiple
+            clearable
+            class="!w-60"
+          >
+            <el-option
+              v-for="val in filter.values"
+              :key="val"
+              :value="val"
+              :label="val"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="Доступен">
           <el-switch v-model="filters.isAvailable" />
+        </el-form-item>
+        <el-form-item label="Сортировка">
+          <el-select v-model="sort" class="!w-40">
+            <el-option label="Сначала новые" value="datetime_desc" />
+            <el-option label="Сначала старые" value="datetime_asc" />
+            <el-option label="Цена ↑" value="price_asc" />
+            <el-option label="Цена ↓" value="price_desc" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" plain @click="fetch">Поиск</el-button>
@@ -85,7 +112,7 @@
           <tr v-for="p in products" :key="p.id">
             <td class="px-6 py-4">{{ p.id }}</td>
             <td class="px-6 py-4">{{ p.name }}</td>
-            <td class="px-6 py-4">{{ p.category.name }}</td>
+            <td class="px-6 py-4">{{ p.categoryName }}</td>
             <td class="px-6 py-4">{{ p.price }}</td>
             <td class="px-6 py-4">{{ p.isAvailable ? "Да" : "Нет" }}</td>
             <td class="px-6 py-4">
@@ -134,23 +161,54 @@ const route = useRoute();
 const { products, totalCount, pageNumber, pageSize, loading, fetchProducts } =
   useProducts();
 
+const sort = ref("datetime_desc");
+
 const search = ref(route.query.search || "");
 const filters = ref({
   categoryIds: [],
   manufacturerIds: [],
   isAvailable: true,
+  propertyFilters: {},
 });
 
 const categories = ref([]);
 const manufacturers = ref([]);
+const flatCategories = ref([]);
+const propertyFilterOptions = ref([]);
+
+function flatten(list, prefix = "", arr = []) {
+  for (const c of list) {
+    arr.push({ id: c.id, name: prefix + c.name });
+    if (c.subcategories?.length) {
+      flatten(c.subcategories, prefix + c.name + " / ", arr);
+    }
+  }
+  return arr;
+}
 
 onMounted(async () => {
   categories.value = await getAllCategories();
+  flatCategories.value = flatten(categories.value);
   manufacturers.value = await getManufacturers();
   pageNumber.value = Number(route.query.page) || 1;
   pageSize.value = Number(route.query.size) || pageSize.value;
   fetch();
 });
+
+watch(
+  () => filters.value.categoryIds,
+  async (val) => {
+    if (val.length === 1) {
+      propertyFilterOptions.value = await ProductService.getFilterValues(
+        val[0]
+      );
+    } else {
+      propertyFilterOptions.value = [];
+      filters.value.propertyFilters = {};
+    }
+  },
+  { deep: true }
+);
 
 watch(pageNumber, (val) => {
   router.replace({
@@ -170,10 +228,14 @@ function fetch() {
     categoryIds: filters.value.categoryIds,
     manufacturerIds: filters.value.manufacturerIds,
     isAvailable: filters.value.isAvailable,
+    propertyFilters: filters.value.propertyFilters,
   };
+  const [sortBy, sortOrder] = sort.value.split("_");
   fetchProducts({
     page: pageNumber.value,
     size: pageSize.value,
+    sortBy: sortBy === "datetime" ? "datetime" : sortBy,
+    sortOrder,
     search: search.value || null,
     filters: filterPayload,
   });
@@ -181,7 +243,13 @@ function fetch() {
 
 function resetFilters() {
   search.value = "";
-  filters.value = { categoryIds: [], manufacturerIds: [], isAvailable: true };
+  filters.value = {
+    categoryIds: [],
+    manufacturerIds: [],
+    propertyFilters: {},
+    isAvailable: true,
+  };
+  sort.value = "datetime_desc";
   pageNumber.value = 1;
   fetch();
 }

@@ -217,7 +217,7 @@ public class ProductService : IProductService
     public async Task<Result<PaginatedList<ProductCardDto>>> GetPaginatedProductsAsync(ProductParameters query, int? userId = null)
     {
         var cacheKey =
-            $"products-{userId}-{query.PageNumber}-{query.PageSize}-{query.Search}-{string.Join(',', query.CategoryIds ?? Enumerable.Empty<int>())}-{string.Join(',', query.ManufacturerIds ?? Enumerable.Empty<int>())}-{string.Join(',', query.Countries ?? Enumerable.Empty<string>())}-{query.SortBy}-{query.SortOrder}-{query.IsAvailable}-{query.IsPrescriptionRequired}";
+            $"products-{userId}-{query.PageNumber}-{query.PageSize}-{query.Search}-{string.Join(',', query.CategoryIds ?? Enumerable.Empty<int>())}-{string.Join(',', query.ManufacturerIds ?? Enumerable.Empty<int>())}-{string.Join(',', query.Countries ?? Enumerable.Empty<string>())}-{query.SortBy}-{query.SortOrder}-{query.IsAvailable}";
         
         var data = await _cache.GetOrCreateAsync(
             cacheKey,
@@ -297,19 +297,16 @@ public class ProductService : IProductService
                         p.Name,
                         p.Description,
                         p.Price,
+                        p.CategoryId,
+                        CategoryName = p.ProductCategory.Name,
                         ImageUrl = p.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
                         IsAvailable = !p.IsGloballyDisabled,
                     })
                     .AsNoTracking()
                     .ToListAsync(cancellationToken: ct);
 
-                var favoriteIds = userId is null
-                    ? new HashSet<int>()
-                    : (await _favoritesRepository.GetFavoriteProductIdsAsync(userId.Value)).ToHashSet();
-                var cartItems = userId is null
-                    ? new Dictionary<int, int>()
-                    : (await _cartRepository.GetRawUserCartAsync(userId.Value)).ToDictionary(x => x.ProductId,
-                        x => x.Quantity);
+                var favoriteIds = userId is null ? new HashSet<int>() : (await _favoritesRepository.GetFavoriteProductIdsAsync(userId.Value)).ToHashSet();
+                var cartItems = userId is null ? new Dictionary<int, int>() : (await _cartRepository.GetRawUserCartAsync(userId.Value)).ToDictionary(x => x.ProductId, x => x.Quantity);
 
                 var items = pageItems.Select(p => new ProductCardDto(
                     p.Id,
@@ -319,7 +316,9 @@ public class ProductService : IProductService
                     _storage.GetPublicUrl(p.ImageUrl),
                     p.IsAvailable,
                     favoriteIds.Contains(p.Id),
-                    cartItems.TryGetValue(p.Id, out var qty) ? qty : 0)
+                    cartItems.TryGetValue(p.Id, out var qty) ? qty : 0,
+                    p.CategoryId,
+                    p.CategoryName)
                 ).ToList();
                 
                 return new PaginatedList<ProductCardDto>(items, totalCount, query.PageNumber, query.PageSize);
