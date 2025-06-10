@@ -77,6 +77,8 @@ public class ManufacturerService : IManufacturerService
         };
 
         await _repository.AddAsync(manufacturer);
+        await _cache.RemoveAsync("manufacturers-all");
+        await _cache.RemoveAsync("manufacturer-countries");
         return Result.Success(new CreatedDto(manufacturer.Id));
     }
 
@@ -96,6 +98,9 @@ public class ManufacturerService : IManufacturerService
         manufacturer.Name = request.Name;
         manufacturer.Country = request.Country;
         await _repository.UpdateAsync(manufacturer);
+        await _cache.RemoveAsync("manufacturers-all");
+        await _cache.RemoveAsync("manufacturer-countries");
+        await _cache.RemoveAsync($"manufacturer-{id}");
         return Result.Success();
     }
 
@@ -108,6 +113,9 @@ public class ManufacturerService : IManufacturerService
         }
 
         await _repository.DeleteAsync(manufacturer);
+        await _cache.RemoveAsync("manufacturers-all");
+        await _cache.RemoveAsync("manufacturer-countries");
+        await _cache.RemoveAsync($"manufacturer-{id}");
         return Result.Success();
     }
     

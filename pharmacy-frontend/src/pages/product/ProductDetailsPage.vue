@@ -136,10 +136,7 @@
         >
           <div>
             <strong>Категория:</strong>
-            <router-link
-              :to="{ name: 'ProductsByCategory' }"
-              class="text-primary-600 hover:underline"
-            >
+            <router-link :to="categoryLink" class="text-primary-600">
               {{ product.category.name }}
             </router-link>
           </div>
@@ -147,24 +144,20 @@
           <div>
             <strong>Производитель:</strong>
             <router-link
-              :to="{
-                path: '/products/catalog',
-                query: { manufacturerIds: product.manufacturer.id },
-              }"
+              :to="manufacturerLink"
               class="text-primary-600 hover:underline"
-              >{{ product.manufacturer.name }}</router-link
             >
+              {{ product.manufacturer.name }}
+            </router-link>
           </div>
           <div>
             <strong>Страна:</strong>
             <router-link
-              :to="{
-                path: '/products/catalog',
-                query: { countries: product.manufacturer.country },
-              }"
+              :to="countryLink"
               class="text-primary-600 hover:underline"
-              >{{ product.manufacturer.country }}</router-link
             >
+              {{ product.manufacturer.country }}
+            </router-link>
           </div>
           <div v-if="product.expirationDate">
             <strong>Срок годности:</strong>
@@ -241,6 +234,7 @@ import ProductService from "../../services/ProductService";
 import { useCartStore } from "/src/stores/CartStore";
 import { useFavoritesStore } from "/src/stores/FavoritesStore";
 import LoadingSpinner from "../../components/LoadingSpinner.vue";
+import { toSlug } from "../../utils/slugify";
 
 const route = useRoute();
 const product = ref(null);
@@ -271,6 +265,25 @@ const isFavorite = computed(() =>
   product.value ? favoritesStore.ids.includes(product.value.id) : false
 );
 
+const categoryLink = computed(() =>
+  product.value
+    ? {
+        name: "ProductsByCategory",
+        params: { slug: toSlug(product.value.category.name) },
+      }
+    : { name: "Products" }
+);
+
+const manufacturerLink = computed(() => ({
+  path: "/products/catalog",
+  query: { manufacturerIds: product.value?.manufacturer.id },
+}));
+
+const countryLink = computed(() => ({
+  path: "/products/catalog",
+  query: { countries: product.value?.manufacturer.country },
+}));
+
 onMounted(async () => {
   try {
     const id = Number(route.params.id);
@@ -284,8 +297,11 @@ onMounted(async () => {
   }
 });
 
-const getProperty = (key) =>
-  product.value?.properties?.find((p) => p.key === key)?.value;
+const getProperty = (key) => {
+  if (!product.value?.properties) return undefined;
+  const prop = product.value.properties.find((p) => (p.key ?? p.Key) === key);
+  return prop ? prop.value ?? prop.Value : undefined;
+};
 
 const formatKey = (key) => {
   const map = {
@@ -297,10 +313,17 @@ const formatKey = (key) => {
   return map[key] || key;
 };
 
+const normalizedProperties = computed(() =>
+  (product.value?.properties || []).map((p) => ({
+    key: p.key ?? p.Key,
+    label: p.label ?? p.Label,
+    value: p.value ?? p.Value,
+  }))
+);
+
 const filteredProperties = computed(() =>
-  (product.value?.properties || []).filter(
-    (prop) =>
-      prop && prop.key && !["composition", "instruction"].includes(prop.key)
+  normalizedProperties.value.filter(
+    (prop) => prop.key && !["composition", "instruction"].includes(prop.key)
   )
 );
 

@@ -161,6 +161,8 @@ public class PharmacyService : IPharmacyService
         };
 
         await _pharmacyRepository.AddAsync(pharmacy);
+        await _cache.RemoveAsync("pharmacies-all");
+        await _cache.RemoveAsync($"pharmacy-{pharmacy.Id}");
         return Result.Success(new CreatedDto(pharmacy.Id));
     }
     
@@ -224,6 +226,8 @@ public class PharmacyService : IPharmacyService
         pharmacy.AddressId = address.Id;
 
         await _pharmacyRepository.UpdateAsync(pharmacy);
+        await _cache.RemoveAsync("pharmacies-all");
+        await _cache.RemoveAsync($"pharmacy-{id}");
         return Result.Success();
     }
 
@@ -236,6 +240,8 @@ public class PharmacyService : IPharmacyService
         }
 
         await _pharmacyRepository.DeleteAsync(pharmacy);
+        await _cache.RemoveAsync("pharmacies-all");
+        await _cache.RemoveAsync($"pharmacy-{id}");
         return Result.Success();
     }
 }

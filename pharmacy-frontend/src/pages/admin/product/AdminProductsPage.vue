@@ -257,11 +257,15 @@ function resetFilters() {
 }
 
 function createProduct() {
-  router.push({ name: "AdminProductCreate" });
+  router.push({ name: "AdminProductCreate", query: route.query });
 }
 
 function editProduct(id) {
-  router.push({ name: "AdminProductDetails", params: { id } });
+  router.push({
+    name: "AdminProductDetails",
+    params: { id },
+    query: route.query,
+  });
 }
 
 async function removeProduct(id) {

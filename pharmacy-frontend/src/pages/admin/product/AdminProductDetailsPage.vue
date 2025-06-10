@@ -19,7 +19,7 @@
     <div v-else class="bg-white border rounded-xl p-6 shadow-sm space-y-4">
       <el-form
         label-width="150px"
-        :model="productForm"
+        :model="formModel"
         :rules="allRules"
         ref="productFormRef"
       >
@@ -64,7 +64,7 @@
         </el-form-item>
 
         <template v-for="field in categoryFields" :key="field.key">
-          <el-form-item :label="field.label" :prop="`prop_${field.key}`">
+          <el-form-item :label="field.label" :prop="field.key">
             <el-date-picker
               v-if="field.type === 'date'"
               v-model="propertyValues[field.key]"
@@ -168,6 +168,7 @@ const flatCategories = ref([]);
 const manufacturers = ref([]);
 const categoryFields = ref([]);
 const propertyValues = reactive({});
+const formModel = computed(() => ({ ...productForm, ...propertyValues }));
 
 const images = ref([]);
 const pendingFiles = ref([]);
@@ -258,7 +259,7 @@ async function loadCategoryFields(id) {
         trigger: "blur",
       });
     }
-    fieldRules[`prop_${f.key}`] = rulesArr;
+    fieldRules[f.key] = rulesArr;
   });
 }
 
@@ -349,9 +350,7 @@ async function save() {
         const res = await uploadProductImages(id, pendingFiles.value);
         images.value.push(...res.images);
         pendingFiles.value = [];
-      } catch (e) {
-        ElMessage.error(e.message);
-      }
+      } catch {}
     }
 
     if (pendingExternalUrls.value.length) {
@@ -362,18 +361,14 @@ async function save() {
         images.value.push(...res.images);
         pendingExternalUrls.value = [];
         pendingExternalUrls.value = [];
-      } catch (e) {
-        ElMessage.error(e.message);
-      }
+      } catch {}
     }
 
     if (isNew) {
-      router.replace({ name: "AdminProductDetails", params: { id } });
+      router.replace({ name: "AdminProducts", query: route.query });
+    } else {
+      router.replace({ name: "AdminProducts", query: route.query });
     }
-  } catch (e) {
-    ElMessage.error(
-      `${e.response?.status} ${e.response?.data?.message || e.message}`
-    );
-  }
+  } catch {}
 }
 </script>

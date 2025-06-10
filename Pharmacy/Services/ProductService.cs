@@ -204,7 +204,7 @@ public class ProductService : IProductService
                     product.Description,
                     product.ExtendedDescription,
                     !product.IsGloballyDisabled,
-                    product.Images.Select(x => new ProductImageDto(x.Id, _storage.GetPublicUrl(x.Url))).ToList(),
+                    product.Images.Select(x => new ProductImageDto(x.Id, x.Url.StartsWith("http") ? x.Url : _storage.GetPublicUrl(x.Url))).ToList(),
                     propertyDtos
                 );
             },
@@ -316,7 +316,7 @@ public class ProductService : IProductService
                     p.Name,
                     p.Description,
                     p.Price,
-                    _storage.GetPublicUrl(p.ImageUrl),
+                    !string.IsNullOrWhiteSpace(p.ImageUrl) && p.ImageUrl.StartsWith("http") ? p.ImageUrl : _storage.GetPublicUrl(p.ImageUrl),
                     p.IsAvailable,
                     favoriteIds.Contains(p.Id),
                     cartItems.TryGetValue(p.Id, out var qty) ? qty : 0,
@@ -445,7 +445,7 @@ public class ProductService : IProductService
             product.Description,
             product.ExtendedDescription,
             !product.IsGloballyDisabled,
-            product.Images.Select(x => new ProductImageDto(x.Id, _storage.GetPublicUrl(x.Url))).ToList(),
+            product.Images.Select(x => new ProductImageDto(x.Id, x.Url.StartsWith("http") ? x.Url :_storage.GetPublicUrl(x.Url))).ToList(),
             propertyDtos
         );
 
