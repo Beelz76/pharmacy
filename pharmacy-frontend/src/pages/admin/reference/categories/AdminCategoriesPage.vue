@@ -1,18 +1,17 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-2">
-      <h1 class="text-2xl font-semibold">Категории</h1>
+    <h1 class="text-2xl font-semibold mb-2">Категории</h1>
+    <div class="mb-4 text-gray-600">
+      Всего категорий: {{ flatCategories.length }}
+    </div>
+
+    <div class="flex justify-between mb-4">
       <el-button type="primary" @click="openCreate">
         <i class="fas fa-plus mr-1"></i> Создать
       </el-button>
     </div>
-    <div class="mb-4 text-gray-600">
-      Всего категорий: {{ flatCategories.length }}
-    </div>
-    <div
-      v-if="loaded"
-      class="overflow-x-auto rounded-lg shadow border bg-white"
-    >
+
+    <div class="overflow-x-auto rounded-lg shadow border bg-white">
       <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
         <thead
           class="bg-secondary-50 text-left text-secondary-700 uppercase text-sm"
@@ -20,7 +19,7 @@
           <tr>
             <th class="px-6 py-5 font-semibold">Название</th>
             <th class="px-6 py-5 font-semibold">Описание</th>
-            <th class="px-6 py-5 font-semibold text-right"></th>
+            <th class="px-6 py-5 font-semibold">Действия</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -31,22 +30,18 @@
               }}</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">{{ c.description }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right">
-              <div class="flex justify-end gap-2">
-                <el-button
-                  size="small"
-                  type="primary"
-                  @click.stop="editCategory(c)"
-                >
-                  Редактировать</el-button
-                >
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex justify-start gap-2">
+                <el-button size="small" @click.stop="editCategory(c)">
+                  <i class="fas fa-edit" />
+                </el-button>
                 <el-button
                   size="small"
                   type="danger"
                   @click.stop="removeCategory(c)"
                 >
-                  Удалить</el-button
-                >
+                  <i class="fas fa-trash" />
+                </el-button>
               </div>
             </td>
           </tr>
@@ -59,8 +54,6 @@
       </table>
     </div>
 
-    <div v-else class="text-center py-10">Загрузка...</div>
-
     <el-dialog v-model="dialogVisible" title="Категория" width="700px">
       <el-form label-width="120px" class="pb-2">
         <el-form-item label="Название">
@@ -71,13 +64,13 @@
         </el-form-item>
         <el-form-item label="Родитель">
           <el-select v-model="form.parentCategoryId" clearable>
-            <el-option :value="null" label="Нет"></el-option>
+            <el-option :value="null" label="Нет" />
             <el-option
               v-for="c in flatCategories"
               :key="c.id"
               :value="c.id"
               :label="c.name"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
       </el-form>
@@ -102,7 +95,7 @@
                 :key="t"
                 :label="t"
                 :value="t"
-              ></el-option>
+              />
             </el-select>
           </template>
         </el-table-column>
@@ -142,10 +135,8 @@
       <el-button size="small" @click="addField">Добавить поле</el-button>
 
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <el-button @click="dialogVisible = false">Отмена</el-button>
-          <el-button type="primary" @click="save">Сохранить</el-button>
-        </div>
+        <el-button @click="dialogVisible = false">Отмена</el-button>
+        <el-button type="primary" @click="save">Сохранить</el-button>
       </template>
     </el-dialog>
   </div>

@@ -13,4 +13,6 @@ public interface IPharmacyService
     Task<Result<int>> GetOrCreatePharmacyIdAsync(CreatePharmacyDto dto);
     Task<Result<int?>> GetNearestPharmacyIdAsync(double latitude, double longitude);
     Task<Result<PaginatedList<PharmacyDto>>> GetPaginatedAsync(string? search, int pageNumber, int pageSize);
+    Task<Result> UpdateAsync(int id, UpdatePharmacyDto dto);
+    Task<Result> DeleteAsync(int id);
 }

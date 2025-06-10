@@ -18,7 +18,10 @@
         </el-form-item>
       </el-form>
     </div>
-    <div class="flex justify-end mb-4">
+    <div class="flex justify-between mb-4">
+      <el-button type="primary" @click="openCreate">
+        <i class="fas fa-plus mr-1"></i> Добавить
+      </el-button>
       <el-pagination
         layout="sizes, prev, pager, next"
         :total="totalCount"
@@ -37,6 +40,7 @@
             <th class="px-6 py-5 font-semibold">ID</th>
             <th class="px-6 py-5 font-semibold">Название</th>
             <th class="px-6 py-5 font-semibold">Адрес</th>
+            <th class="px-6 py-5 font-semibold">Действия</th>
             <th class="px-6 py-5 font-semibold text-right">
               <span class="sr-only">Детали</span>
             </th>
@@ -54,17 +58,31 @@
             <td class="px-6 py-4 whitespace-nowrap">
               {{ formatAddress(p.address) }}
             </td>
+            <td class="px-6 py-4 whitespace-nowrap" @click.stop>
+              <div class="flex gap-2 justify-start">
+                <el-button size="small" @click.stop="editPharmacy(p)">
+                  <i class="fas fa-edit" />
+                </el-button>
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click.stop="removePharmacy(p)"
+                >
+                  <i class="fas fa-trash" />
+                </el-button>
+              </div>
+            </td>
             <td class="px-6 py-4 text-right text-gray-400">
               <i class="fas fa-chevron-right"></i>
             </td>
           </tr>
           <tr v-if="!loading && pharmacies.length === 0">
-            <td colspan="4" class="text-center py-6 text-gray-500">
+            <td colspan="5" class="text-center py-6 text-gray-500">
               Аптеки не найдены
             </td>
           </tr>
           <tr v-if="loading">
-            <td colspan="4" class="text-center py-6 text-gray-500">
+            <td colspan="5" class="text-center py-6 text-gray-500">
               Загрузка...
             </td>
           </tr>
@@ -81,13 +99,45 @@
         v-model:current-page="pageNumber"
       />
     </div>
+
+    <el-dialog v-model="dialogVisible" width="800px" title="Аптека">
+      <div class="h-96 mb-4">
+        <MapComponent
+          ref="mapRef"
+          :city="selectedCity"
+          mode="address"
+          @select="onMapSelect"
+        />
+      </div>
+      <el-form label-width="120px">
+        <el-form-item label="Название">
+          <el-input v-model="form.name" />
+        </el-form-item>
+        <el-form-item label="Телефон">
+          <PhoneInput v-model="form.phone" digits-only />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">Отмена</el-button>
+        <el-button type="primary" @click="savePharmacy">Сохранить</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { getPharmacies } from "/src/services/PharmacyService";
+import {
+  getPharmacies,
+  createPharmacy,
+  updatePharmacy,
+  deletePharmacy,
+} from "/src/services/PharmacyService";
+import MapComponent from "/src/components/MapComponent.vue";
+import PhoneInput from "/src/components/inputs/PhoneInput.vue";
+import { ElMessageBox, ElMessage } from "element-plus";
+import { nextTick } from "vue";
 import formatAddress from "/src/utils/formatAddress";
 
 const route = useRoute();
@@ -98,6 +148,19 @@ const pageNumber = ref(1);
 const pageSize = ref(20);
 const loading = ref(false);
 const search = ref("");
+const dialogVisible = ref(false);
+const editingId = ref(null);
+const form = ref({ name: "", phone: "" });
+const selectedCity = ref(null);
+const mapRef = ref(null);
+const newAddress = ref(null);
+
+watch(dialogVisible, async (val) => {
+  if (val) {
+    await nextTick();
+    mapRef.value?.resize();
+  }
+});
 
 pageNumber.value = Number(route.query.page) || 1;
 pageSize.value = Number(route.query.size) || pageSize.value;
@@ -136,6 +199,101 @@ const resetFilters = () => {
   pageNumber.value = 1;
   fetch();
 };
+
+function openCreate() {
+  editingId.value = null;
+  form.value = { name: "", phone: "" };
+  selectedCity.value = null;
+  newAddress.value = null;
+  dialogVisible.value = true;
+}
+
+function editPharmacy(p) {
+  editingId.value = p.id;
+  form.value = { name: p.name, phone: p.phone || "" };
+  selectedCity.value = {
+    name: p.address.city || p.address.state,
+    display_name: p.address.city || p.address.state,
+    lat: p.address.latitude,
+    lng: p.address.longitude,
+    place_id: `ph_${p.id}`,
+  };
+  newAddress.value = {
+    lat: p.address.latitude,
+    lon: p.address.longitude,
+    address: {
+      city: p.address.city,
+      state: p.address.state,
+      suburb: p.address.suburb,
+      road: p.address.street,
+      house_number: p.address.houseNumber,
+      postcode: p.address.postcode,
+      region: p.address.region,
+    },
+    osm_id: p.address.osmId,
+  };
+  dialogVisible.value = true;
+  nextTick(() =>
+    mapRef.value?.flyToCoordinates(
+      p.address.latitude,
+      p.address.longitude,
+      p.name
+    )
+  );
+}
+
+async function removePharmacy(p) {
+  try {
+    await ElMessageBox.confirm("Удалить аптеку?", "Подтверждение", {
+      confirmButtonText: "Удалить",
+      cancelButtonText: "Отмена",
+      type: "warning",
+    });
+  } catch {
+    return;
+  }
+  try {
+    await deletePharmacy(p.id);
+    ElMessage.success("Удалено");
+    fetch();
+  } catch {}
+}
+
+function onMapSelect(addr) {
+  newAddress.value = addr;
+}
+
+async function savePharmacy() {
+  if (!newAddress.value) return;
+  const a = newAddress.value.address || {};
+  const payload = {
+    name: form.value.name,
+    phone: form.value.phone || null,
+    address: {
+      osmId: newAddress.value.osm_id?.toString() || null,
+      region: a.region || a.state || null,
+      state: a.state || null,
+      city: a.city || a.town || a.village || null,
+      suburb: a.suburb || null,
+      street: a.road || null,
+      houseNumber: a.house_number || null,
+      postcode: a.postcode || null,
+      latitude: parseFloat(newAddress.value.lat),
+      longitude: parseFloat(newAddress.value.lon),
+    },
+  };
+  try {
+    if (editingId.value) {
+      await updatePharmacy(editingId.value, payload);
+      ElMessage.success("Аптека обновлена");
+    } else {
+      await createPharmacy(payload);
+      ElMessage.success("Аптека создана");
+    }
+    dialogVisible.value = false;
+    fetch();
+  } catch {}
+}
 
 const goDetails = (id) => {
   router.push({ name: "AdminPharmacyDetails", params: { id } });

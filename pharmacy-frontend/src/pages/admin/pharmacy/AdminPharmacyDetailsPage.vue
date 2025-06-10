@@ -28,6 +28,9 @@
         <span class="font-medium">Адрес:</span>
         {{ formatAddress(pharmacy.address) }}
       </p>
+      <div class="text-left pt-2">
+        <el-button type="primary" @click="goWarehouse">Склад</el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -42,6 +45,15 @@ const route = useRoute();
 const router = useRouter();
 const pharmacy = ref(null);
 const loading = ref(false);
+
+const goWarehouse = () => {
+  if (pharmacy.value) {
+    router.push({
+      name: "AdminPharmacyWarehouse",
+      params: { id: pharmacy.value.id },
+    });
+  }
+};
 
 onMounted(async () => {
   loading.value = true;

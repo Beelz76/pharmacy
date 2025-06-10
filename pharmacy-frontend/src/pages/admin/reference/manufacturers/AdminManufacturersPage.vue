@@ -1,14 +1,16 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-2">
-      <h2 class="text-2xl font-semibold">Производители</h2>
+    <h1 class="text-2xl font-semibold mb-2">Производители</h1>
+    <div class="mb-4 text-gray-600">
+      Всего производителей: {{ list.length }}
+    </div>
+
+    <div class="flex justify-between mb-4">
       <el-button type="primary" @click="openCreate">
         <i class="fas fa-plus mr-1"></i> Добавить
       </el-button>
     </div>
-    <div class="mb-4 text-gray-600">
-      Всего производителей: {{ list.length }}
-    </div>
+
     <div class="overflow-x-auto rounded-lg shadow border bg-white">
       <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
         <thead
@@ -18,7 +20,7 @@
             <th class="px-6 py-5 font-semibold">ID</th>
             <th class="px-6 py-5 font-semibold">Название</th>
             <th class="px-6 py-5 font-semibold">Страна</th>
-            <th class="px-6 py-5 font-semibold text-right"></th>
+            <th class="px-6 py-5 font-semibold">Действия</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -26,14 +28,14 @@
             <td class="px-6 py-4">{{ m.id }}</td>
             <td class="px-6 py-4">{{ m.name }}</td>
             <td class="px-6 py-4">{{ m.country }}</td>
-            <td class="px-6 py-4 text-right">
-              <div class="flex justify-end gap-2">
-                <el-button size="small" type="primary" @click="edit(m)"
-                  >Редактировать</el-button
-                >
-                <el-button size="small" type="danger" @click="remove(m.id)"
-                  >Удалить</el-button
-                >
+            <td class="px-6 py-4">
+              <div class="flex justify-left gap-2">
+                <el-button size="small" @click="edit(m)">
+                  <i class="fas fa-edit" />
+                </el-button>
+                <el-button size="small" type="danger" @click="remove(m.id)">
+                  <i class="fas fa-trash" />
+                </el-button>
               </div>
             </td>
           </tr>
@@ -46,7 +48,7 @@
       </table>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="Производитель">
+    <el-dialog v-model="dialogVisible" title="Производитель" width="500px">
       <el-form label-width="120px">
         <el-form-item label="Название">
           <el-input v-model="form.name" />
@@ -56,10 +58,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">Отмена</el-button>
-          <el-button type="primary" @click="save">Сохранить</el-button>
-        </span>
+        <el-button @click="dialogVisible = false">Отмена</el-button>
+        <el-button type="primary" @click="save">Сохранить</el-button>
       </template>
     </el-dialog>
   </div>

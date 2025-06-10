@@ -188,4 +188,54 @@ public class PharmacyService : IPharmacyService
         var nearest = await _pharmacyRepository.GetNearestAsync(latitude, longitude);
         return Result.Success(nearest?.Id);
     }
+    
+    public async Task<Result> UpdateAsync(int id, UpdatePharmacyDto dto)
+    {
+        var pharmacy = await _pharmacyRepository.GetByIdAsync(id);
+        if (pharmacy is null)
+        {
+            return Result.Failure(Error.NotFound("Аптека не найдена"));
+        }
+
+        var exists = await _pharmacyRepository.ExistsAsync(dto.Name, dto.Address.OsmId, dto.Address.Latitude, dto.Address.Longitude);
+        if (exists && (pharmacy.Name != dto.Name || pharmacy.Address.OsmId != dto.Address.OsmId ||
+                       Math.Abs(pharmacy.Address.Latitude - dto.Address.Latitude) > 0.0001 ||
+                       Math.Abs(pharmacy.Address.Longitude - dto.Address.Longitude) > 0.0001))
+        {
+            return Result.Failure(Error.Conflict("Аптека с таким адресом уже существует"));
+        }
+
+        var address = await _addressRepository.GetOrCreateAddressAsync(new Address
+        {
+            OsmId = dto.Address.OsmId,
+            Region = dto.Address.Region,
+            State = dto.Address.State,
+            City = dto.Address.City,
+            Suburb = dto.Address.Suburb,
+            Street = dto.Address.Street,
+            HouseNumber = dto.Address.HouseNumber,
+            Postcode = dto.Address.Postcode,
+            Latitude = dto.Address.Latitude,
+            Longitude = dto.Address.Longitude
+        });
+
+        pharmacy.Name = dto.Name;
+        pharmacy.Phone = dto.Phone;
+        pharmacy.AddressId = address.Id;
+
+        await _pharmacyRepository.UpdateAsync(pharmacy);
+        return Result.Success();
+    }
+
+    public async Task<Result> DeleteAsync(int id)
+    {
+        var pharmacy = await _pharmacyRepository.GetByIdAsync(id);
+        if (pharmacy is null)
+        {
+            return Result.Failure(Error.NotFound("Аптека не найдена"));
+        }
+
+        await _pharmacyRepository.DeleteAsync(pharmacy);
+        return Result.Success();
+    }
 }

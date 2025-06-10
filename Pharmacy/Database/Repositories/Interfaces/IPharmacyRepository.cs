@@ -10,4 +10,6 @@ public interface IPharmacyRepository
     Task<bool> ExistsByIdAsync(int pharmacyId);
     Task<Entities.Pharmacy?> GetNearestAsync(double latitude, double longitude);
     IQueryable<Entities.Pharmacy> Query();
+    Task UpdateAsync(Entities.Pharmacy pharmacy);
+    Task DeleteAsync(Entities.Pharmacy pharmacy);
 }

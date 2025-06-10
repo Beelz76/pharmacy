@@ -73,6 +73,18 @@ public class PharmacyRepository : IPharmacyRepository
             .FirstOrDefaultAsync();
     }
     
+    public async Task UpdateAsync(Entities.Pharmacy pharmacy)
+    {
+        _context.Pharmacies.Update(pharmacy);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Entities.Pharmacy pharmacy)
+    {
+        _context.Pharmacies.Remove(pharmacy);
+        await _context.SaveChangesAsync();
+    }
+    
     public IQueryable<Entities.Pharmacy> Query()
     {
         return _context.Pharmacies
