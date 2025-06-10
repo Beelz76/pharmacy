@@ -1,7 +1,11 @@
-﻿using Pharmacy.Database.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
+using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.Payment;
 using Pharmacy.Shared.Enums;
 using Pharmacy.Shared.Result;
 
@@ -66,5 +70,86 @@ public class PaymentService : IPaymentService
 
         await _paymentRepository.UpdateAsync(payment);
         return Result.Success();
+    }
+    
+    public async Task<Result<PaymentDetailsDto>> GetByIdAsync(int id)
+    {
+        var payment = await _paymentRepository.GetByIdWithDetailsAsync(id);
+        if (payment is null)
+        {
+            return Result.Failure<PaymentDetailsDto>(Error.NotFound("Платёж не найден"));
+        }
+
+        var dto = new PaymentDetailsDto(
+            payment.Id,
+            payment.OrderId,
+            payment.Order.Number,
+            payment.Order.PharmacyId,
+            payment.Order.Pharmacy.Name,
+            AddressExtensions.FormatAddress(payment.Order.Pharmacy.Address)!,
+            payment.Amount,
+            ((PaymentMethodEnum)payment.PaymentMethodId).GetDescription(),
+            ((PaymentStatusEnum)payment.StatusId).GetDescription(),
+            payment.TransactionDate
+        );
+
+        return Result.Success(dto);
+    }
+
+    public async Task<Result<PaginatedList<PaymentDetailsDto>>> GetPaginatedAsync(PaymentFilters filters, int pageNumber, int pageSize)
+    {
+        var query = _paymentRepository.QueryWithDetails();
+
+        if (!string.IsNullOrWhiteSpace(filters.OrderNumber))
+        {
+            query = query.Where(p => p.Order.Number.Contains(filters.OrderNumber));
+        }
+
+        if (filters.PharmacyId.HasValue)
+        {
+            query = query.Where(p => p.Order.PharmacyId == filters.PharmacyId.Value);
+        }
+
+        if (filters.Status.HasValue)
+        {
+            query = query.Where(p => p.StatusId == (int)filters.Status.Value);
+        }
+
+        if (filters.Method.HasValue)
+        {
+            query = query.Where(p => p.PaymentMethodId == (int)filters.Method.Value);
+        }
+
+        if (filters.FromDate.HasValue)
+        {
+            query = query.Where(p => p.CreatedAt >= filters.FromDate.Value);
+        }
+
+        if (filters.ToDate.HasValue)
+        {
+            query = query.Where(p => p.CreatedAt <= filters.ToDate.Value);
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(p => p.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new PaymentDetailsDto(
+                p.Id,
+                p.OrderId,
+                p.Order.Number,
+                p.Order.PharmacyId,
+                p.Order.Pharmacy.Name,
+                AddressExtensions.FormatAddress(p.Order.Pharmacy.Address)!,
+                p.Amount,
+                ((PaymentMethodEnum)p.PaymentMethodId).GetDescription(),
+                ((PaymentStatusEnum)p.StatusId).GetDescription(),
+                p.TransactionDate
+            ))
+            .ToListAsync();
+
+        return Result.Success(new PaginatedList<PaymentDetailsDto>(items, totalCount, pageNumber, pageSize));
     }
 }

@@ -7,7 +7,7 @@
       >
         <i
           class="text-xl fas fa-arrow-left mr-2 group-hover:-translate-x-1 duration-150"
-        ></i>
+        />
       </button>
       <h2 class="text-2xl font-bold tracking-tight">
         Заказ №{{ order?.number }}
@@ -18,8 +18,9 @@
     <div v-else-if="!order" class="text-center py-10 text-gray-500">
       Заказ не найден
     </div>
-    <div v-else class="space-y-6">
-      <div class="flex items-center justify-between text-sm text-gray-600">
+
+    <template v-else>
+      <div class="flex items-center justify-between text-sm text-gray-600 mb-4">
         <span>Дата оформления: {{ formatDate(order.createdAt) }}</span>
         <span
           class="inline-block px-3 py-2 text-xs rounded-full font-semibold tracking-wide"
@@ -28,15 +29,23 @@
           {{ order.status }}
         </span>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div class="lg:col-span-2 space-y-6">
-          <div class="bg-white border rounded-xl p-6 shadow-sm space-y-3">
+
+      <div
+        class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start min-h-[400px]"
+      >
+        <!-- Левая часть -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+          <!-- Адрес или аптека -->
+          <div
+            class="bg-white border rounded-xl p-6 shadow-sm space-y-3 flex-1"
+          >
             <h3
               class="text-sm font-semibold text-gray-700 uppercase tracking-wide"
             >
               <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>
               {{ order.isDelivery ? "Адрес доставки" : "Аптека" }}
             </h3>
+
             <template v-if="order.isDelivery">
               <p class="text-sm text-gray-600">{{ order.deliveryAddress }}</p>
               <button
@@ -46,11 +55,19 @@
                 Перейти к доставке
               </button>
             </template>
+
             <template v-else>
               <p class="text-base font-medium text-gray-900">
                 «{{ pharmacyName }}»
               </p>
               <p class="text-sm text-gray-600">{{ pharmacyAddress }}</p>
+              <button
+                class="mt-2 text-primary-600 hover:text-primary-700 text-sm underline"
+                @click="goPharmacy(order.pharmacyId)"
+              >
+                Перейти к аптеке
+              </button>
+
               <div v-if="order.pickupCode" class="pt-4">
                 <h4 class="text-sm font-semibold text-gray-700 mb-1">
                   Код получения
@@ -64,6 +81,7 @@
             </template>
           </div>
 
+          <!-- Состав заказа -->
           <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
             <h3
               class="px-6 py-4 border-b text-lg font-semibold text-gray-800 bg-gray-50"
@@ -98,8 +116,11 @@
             </div>
           </div>
         </div>
-        <div class="space-y-6">
-          <div class="bg-white border rounded-xl p-6 space-y-3">
+
+        <!-- Правая часть -->
+        <div class="space-y-6 h-full flex flex-col">
+          <!-- Покупатель -->
+          <div class="bg-white border rounded-xl p-6 space-y-3 flex-1">
             <h3 class="text-lg font-semibold text-gray-800">
               <i class="fas fa-user mr-2 text-gray-400"></i>Покупатель
             </h3>
@@ -111,6 +132,7 @@
             </p>
           </div>
 
+          <!-- Оплата -->
           <div class="bg-white border rounded-xl shadow-sm p-6 space-y-5">
             <h3 class="text-lg font-semibold text-gray-800">
               <i class="fas fa-credit-card mr-2 text-gray-400"></i>Оплата
@@ -128,11 +150,17 @@
                 <span class="font-medium">Статус:</span>
                 {{ order.payment.status }}
               </p>
+              <button
+                class="mt-2 text-primary-600 hover:text-primary-700 text-sm underline"
+                @click="goPayment(order.payment.id)"
+              >
+                Перейти к платежу
+              </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -144,6 +172,14 @@ import { statusClass } from "/src/utils/statusClass";
 
 const goDelivery = (orderId) => {
   router.push({ name: "AdminDeliveryDetails", params: { orderId } });
+};
+
+const goPharmacy = (id) => {
+  router.push({ name: "AdminPharmacyDetails", params: { id } });
+};
+
+const goPayment = (id) => {
+  router.push({ name: "AdminPaymentDetails", params: { id } });
 };
 
 const router = useRouter();
