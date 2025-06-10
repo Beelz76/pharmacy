@@ -77,7 +77,7 @@
       :close-on-click-modal="false"
     >
       <el-form label-width="120px" :model="form" :rules="rules" ref="formRef">
-        <el-form-item label="Товар" v-if="!editingId">
+        <el-form-item label="Товар" prop="productId" v-if="!editingId">
           <div class="flex gap-2">
             <el-input
               v-model.number="form.productId"
@@ -92,13 +92,13 @@
             />
           </div>
         </el-form-item>
-        <el-form-item label="Количество">
+        <el-form-item label="Количество" prop="stockQuantity">
           <el-input v-model.number="form.stockQuantity" type="number" />
         </el-form-item>
-        <el-form-item label="Цена">
+        <el-form-item label="Цена" prop="price">
           <el-input v-model.number="form.price" type="number" />
         </el-form-item>
-        <el-form-item label="Доступен">
+        <el-form-item label="Доступен" :required="false">
           <el-switch v-model="form.isAvailable" />
         </el-form-item>
       </el-form>

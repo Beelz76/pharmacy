@@ -83,7 +83,15 @@
               class="px-6 py-4 flex justify-between items-start text-sm"
             >
               <div>
-                <p class="font-medium text-gray-900">{{ item.productName }}</p>
+                <p class="font-medium text-gray-900 flex items-center gap-2">
+                  {{ item.productName }}
+                  <button
+                    @click="goProduct(item.productId, item.productName)"
+                    class="text-primary-600 hover:text-primary-700"
+                  >
+                    <i class="fas fa-link"></i>
+                  </button>
+                </p>
                 <p class="text-gray-500">Количество: {{ item.quantity }}</p>
               </div>
               <p
@@ -142,6 +150,7 @@ import { useRoute, useRouter } from "vue-router";
 import { getOrderById, payOrder } from "/src/services/OrderService";
 import { useOrderStore } from "../../stores/OrderStore";
 import { statusClass } from "../../utils/statusClass";
+import { toSlug } from "../../utils/slugify";
 
 const router = useRouter();
 const orderStore = useOrderStore();
@@ -189,6 +198,10 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+const goProduct = (id, name) => {
+  router.push({ name: "ProductDetails", params: { id, slug: toSlug(name) } });
+};
 
 const pay = async () => {
   try {

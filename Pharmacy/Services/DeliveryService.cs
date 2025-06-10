@@ -30,7 +30,7 @@ public class DeliveryService : IDeliveryService
             entity.Id,
             entity.OrderId,
             entity.Order.Number,
-            AddressExtensions.FormatAddress(entity.UserAddress.Address)!,
+            AddressExtensions.FormatAddress(entity.UserAddress)!,
             entity.Comment,
             entity.DeliveryDate
         );

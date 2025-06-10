@@ -228,6 +228,11 @@ public class ProductService : IProductService
             {
                 var productsQuery = _repository.Query();
 
+                if (query.Id is not null)
+                {
+                    productsQuery = productsQuery.Where(p => p.Id == query.Id);
+                }
+                
                 if (query.CategoryIds is not null && query.CategoryIds.Any())
                 {
                     var categoryIds = new List<int>(query.CategoryIds);
@@ -526,6 +531,8 @@ public class ProductService : IProductService
             parts.Add(q.SortOrder);
         if (q.IsAvailable is not null)
             parts.Add(q.IsAvailable.ToString());
+        if (q.Id is not null)
+            parts.Add($"id-{q.Id}");
 
         return string.Join('-', parts);
     }

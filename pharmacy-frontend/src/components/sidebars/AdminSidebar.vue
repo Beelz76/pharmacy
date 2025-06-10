@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="w-full md:w-64 flex-shrink-0 flex flex-col md:min-h-screen bg-white border-r shadow-sm"
+    class="w-full md:w-64 flex-shrink-0 flex flex-col md:h-screen md:sticky md:top-0 bg-white border-r shadow-sm"
   >
     <div
       class="px-4 py-5 text-lg text-center font-semibold text-secondary-700 border-b"

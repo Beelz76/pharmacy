@@ -100,8 +100,14 @@
                 class="px-6 py-4 flex justify-between items-start text-sm"
               >
                 <div>
-                  <p class="font-medium text-gray-900">
+                  <p class="font-medium text-gray-900 flex items-center gap-2">
                     {{ item.productName }}
+                    <button
+                      @click="goProduct(item.productId)"
+                      class="text-primary-600 hover:text-primary-700"
+                    >
+                      <i class="fas fa-link"></i>
+                    </button>
                   </p>
                   <p class="text-gray-500">Количество: {{ item.quantity }}</p>
                 </div>
@@ -183,6 +189,10 @@ const goDelivery = (orderId) => {
 
 const goPharmacy = (id) => {
   router.push({ name: "AdminPharmacyDetails", params: { id } });
+};
+
+const goProduct = (id) => {
+  router.push({ name: "AdminProducts", query: { productId: id } });
 };
 
 const goPayment = (id) => {

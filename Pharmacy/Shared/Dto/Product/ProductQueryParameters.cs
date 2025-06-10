@@ -12,6 +12,7 @@ public class ProductParameters
     public string? Search { get; set; } = null;
     public bool? IsAvailable { get; set; }
     public Dictionary<string, List<string>>? PropertyFilters { get; set; } = null;
+    public int? Id { get; set; }
 }
 
 public class ProductQuery
@@ -29,4 +30,5 @@ public class ProductFilters
     public List<int>? ManufacturerIds { get; set; }
     public List<string>? Countries { get; set; }
     public Dictionary<string, List<string>>? PropertyFilters { get; set; }
+    public int? Id { get; set; }
 }

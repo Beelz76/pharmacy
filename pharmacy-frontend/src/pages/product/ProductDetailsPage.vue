@@ -15,7 +15,7 @@
         >Каталог /
       </router-link>
 
-      <router-link class="hover:underline" :to="{ name: 'ProductsByCategory' }">
+      <router-link class="hover:underline" :to="categoryLink">
         {{ product.category.name }}
       </router-link>
       / <span class="text-gray-800">{{ product.name }}</span>

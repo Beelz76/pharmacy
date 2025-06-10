@@ -171,6 +171,7 @@ const filters = ref({
   manufacturerIds: [],
   isAvailable: true,
   propertyFilters: {},
+  id: null,
 });
 
 const categories = ref([]);
@@ -194,6 +195,9 @@ onMounted(async () => {
   manufacturers.value = await getManufacturers();
   pageNumber.value = Number(route.query.page) || 1;
   pageSize.value = Number(route.query.size) || pageSize.value;
+  filters.value.id = route.query.productId
+    ? Number(route.query.productId)
+    : null;
   fetch();
 });
 
@@ -225,12 +229,22 @@ watch(pageSize, (val) => {
   fetch();
 });
 
+watch(
+  () => route.query.productId,
+  (val) => {
+    filters.value.id = val ? Number(val) : null;
+    pageNumber.value = 1;
+    fetch();
+  }
+);
+
 function fetch() {
   const filterPayload = {
     categoryIds: filters.value.categoryIds,
     manufacturerIds: filters.value.manufacturerIds,
     isAvailable: filters.value.isAvailable,
     propertyFilters: filters.value.propertyFilters,
+    id: filters.value.id,
   };
   const [sortBy, sortOrder] = sort.value.split("_");
   fetchProducts({
@@ -250,6 +264,7 @@ function resetFilters() {
     manufacturerIds: [],
     propertyFilters: {},
     isAvailable: true,
+    id: null,
   };
   sort.value = "datetime_desc";
   pageNumber.value = 1;
