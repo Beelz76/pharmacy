@@ -5,5 +5,6 @@ public record PaymentDto(
     string Method,
     decimal Amount,
     string Status,
-    DateTime? TransactionDate
+    DateTime? TransactionDate,
+    string? ExternalPaymentId
 );

@@ -7,5 +7,6 @@ public record PaymentFilters(
     int? PharmacyId,
     PaymentStatusEnum? Status,
     PaymentMethodEnum? Method,
+    string? ExternalPaymentId,
     DateTime? FromDate,
     DateTime? ToDate);

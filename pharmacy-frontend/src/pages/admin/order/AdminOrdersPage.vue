@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h1 class="text-2xl font-semibold mb-2">Заказы</h1>
+    <h1 class="text-2xl font-semibold mb-2">
+      Заказы
+      <template v-if="user"> пользователя {{ user.email }} </template>
+    </h1>
     <div class="mb-4 text-gray-600">Всего заказов: {{ totalCount }}</div>
 
     <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -205,6 +208,7 @@ import { reactive, watch, ref } from "vue";
 import { useOrders } from "/src/composables/useOrders";
 import { useRouter, useRoute } from "vue-router";
 import { getPharmacies } from "/src/services/PharmacyService";
+import { getUserById } from "/src/services/UserService";
 import {
   getOrderStatuses,
   updateOrderStatus,
@@ -214,6 +218,7 @@ import formatAddress from "/src/utils/formatAddress";
 
 const route = useRoute();
 const router = useRouter();
+const user = ref(null);
 const filters = reactive({
   number: "",
   userId: null,
@@ -231,6 +236,19 @@ const { orders, totalCount, pageNumber, pageSize, loading, fetchOrders } =
 pageNumber.value = Number(route.query.page) || 1;
 pageSize.value = Number(route.query.size) || pageSize.value;
 filters.userId = route.query.userId ? Number(route.query.userId) : null;
+
+const loadUser = async (id) => {
+  if (!id) {
+    user.value = null;
+    return;
+  }
+  try {
+    user.value = await getUserById(id);
+  } catch {
+    user.value = null;
+  }
+};
+loadUser(filters.userId);
 
 const pharmacyNames = ref([]);
 const pharmacyAddresses = ref([]);
@@ -335,6 +353,7 @@ watch(
   () => route.query.userId,
   (val) => {
     filters.userId = val ? Number(val) : null;
+    loadUser(filters.userId);
     pageNumber.value = 1;
     fetch();
   }

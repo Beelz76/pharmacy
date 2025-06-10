@@ -37,6 +37,10 @@
         <p class="text-base text-gray-700">
           <span class="font-medium">Метод:</span> {{ payment.method }}
         </p>
+        <p v-if="payment.externalPaymentId" class="text-base text-gray-700">
+          <span class="font-medium">Внешний GUID:</span>
+          {{ payment.externalPaymentId }}
+        </p>
         <p class="text-base text-gray-700">
           <span class="font-medium">Статус:</span> {{ payment.status }}
         </p>

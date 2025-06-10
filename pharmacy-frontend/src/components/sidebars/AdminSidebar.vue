@@ -40,7 +40,7 @@
       </RouterLink>
 
       <RouterLink to="/admin/payments" :class="navLinkClass('/admin/payments')">
-        <i class="fas fa-clinic-medical text-base w-5 text-center mr-3"></i>
+        <i class="fas fa-credit-card text-base w-5 text-center mr-3"></i>
         Платежи
       </RouterLink>
 

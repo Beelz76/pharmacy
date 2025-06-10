@@ -90,7 +90,8 @@ public class PaymentService : IPaymentService
             payment.Amount,
             ((PaymentMethodEnum)payment.PaymentMethodId).GetDescription(),
             ((PaymentStatusEnum)payment.StatusId).GetDescription(),
-            payment.TransactionDate
+            payment.TransactionDate,
+            payment.ExternalPaymentId
         );
 
         return Result.Success(dto);
@@ -119,6 +120,11 @@ public class PaymentService : IPaymentService
         {
             query = query.Where(p => p.PaymentMethodId == (int)filters.Method.Value);
         }
+        
+        if (!string.IsNullOrWhiteSpace(filters.ExternalPaymentId))
+        {
+            query = query.Where(p => p.ExternalPaymentId != null && p.ExternalPaymentId.Contains(filters.ExternalPaymentId));
+        }
 
         if (filters.FromDate.HasValue)
         {
@@ -146,7 +152,8 @@ public class PaymentService : IPaymentService
                 p.Amount,
                 ((PaymentMethodEnum)p.PaymentMethodId).GetDescription(),
                 ((PaymentStatusEnum)p.StatusId).GetDescription(),
-                p.TransactionDate
+                p.TransactionDate,
+                p.ExternalPaymentId
             ))
             .ToListAsync();
 

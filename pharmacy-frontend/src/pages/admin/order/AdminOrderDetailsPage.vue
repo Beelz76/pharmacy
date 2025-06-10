@@ -31,7 +31,7 @@
       </div>
 
       <div
-        class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start min-h-[400px]"
+        class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start max-h-[400px]"
       >
         <!-- Левая часть -->
         <div class="lg:col-span-2 flex flex-col gap-6">

@@ -281,6 +281,7 @@ public class OrderService : IOrderService
             order.PickupCode,
             order.Pharmacy.Name,
             AddressExtensions.FormatAddress(order.Pharmacy.Address)!,
+            order.PharmacyId,
             order.IsDelivery ? AddressExtensions.FormatAddress(order.Delivery?.UserAddress) : null,
             order.IsDelivery,
             order.UserId,
@@ -298,7 +299,8 @@ public class OrderService : IOrderService
                 ((PaymentMethodEnum)order.Payment.PaymentMethodId).GetDescription(),
                 order.Payment.Amount,
                 ((PaymentStatusEnum)order.Payment.StatusId).GetDescription(),
-                order.Payment.TransactionDate
+                order.Payment.TransactionDate,
+                order.Payment.ExternalPaymentId
             )
         ));
     }

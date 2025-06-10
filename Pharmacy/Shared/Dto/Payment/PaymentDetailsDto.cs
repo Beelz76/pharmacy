@@ -10,4 +10,5 @@ public record PaymentDetailsDto(
     decimal Amount,
     string Method,
     string Status,
-    DateTime? TransactionDate);
+    DateTime? TransactionDate,
+    string? ExternalPaymentId);

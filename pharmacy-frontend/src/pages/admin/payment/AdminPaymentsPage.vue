@@ -12,6 +12,14 @@
             class="!w-40"
           />
         </el-form-item>
+        <el-form-item label-width="0">
+          <el-input
+            v-model="filters.externalPaymentId"
+            placeholder="GUID"
+            size="large"
+            class="!w-48"
+          />
+        </el-form-item>
         <el-form-item label="Статус">
           <el-select
             v-model="filters.status"
@@ -81,6 +89,7 @@
             <th class="px-6 py-5 font-semibold">Сумма</th>
             <th class="px-6 py-5 font-semibold">Метод</th>
             <th class="px-6 py-5 font-semibold">Статус</th>
+            <th class="px-6 py-5 font-semibold">External GUID</th>
             <th class="px-6 py-5 font-semibold text-right">
               <span class="sr-only">Детали</span>
             </th>
@@ -101,17 +110,20 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap">{{ p.method }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ p.status }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {{ p.externalPaymentId }}
+            </td>
             <td class="px-6 py-4 text-right text-gray-400">
               <i class="fas fa-chevron-right"></i>
             </td>
           </tr>
           <tr v-if="!loading && payments.length === 0">
-            <td colspan="7" class="text-center py-6 text-gray-500">
+            <td colspan="8" class="text-center py-6 text-gray-500">
               Платежи не найдены
             </td>
           </tr>
           <tr v-if="loading">
-            <td colspan="7" class="text-center py-6 text-gray-500">
+            <td colspan="8" class="text-center py-6 text-gray-500">
               Загрузка...
             </td>
           </tr>
@@ -155,6 +167,7 @@ const filters = reactive({
   status: null,
   method: null,
   dateRange: [],
+  externalPaymentId: "",
 });
 
 const statuses = ref([]);
@@ -175,6 +188,7 @@ const fetch = async () => {
       orderNumber: filters.orderNumber || null,
       status: filters.status || null,
       method: filters.method || null,
+      externalPaymentId: filters.externalPaymentId || null,
       fromDate: filters.dateRange?.[0] || null,
       toDate: filters.dateRange?.[1] || null,
     };
@@ -194,6 +208,7 @@ const resetFilters = () => {
   filters.orderNumber = "";
   filters.status = null;
   filters.method = null;
+  filters.externalPaymentId = "";
   filters.dateRange = [];
   pageNumber.value = 1;
   fetch();

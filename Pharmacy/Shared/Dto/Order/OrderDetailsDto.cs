@@ -11,6 +11,7 @@ public record OrderDetailsDto(
     string? PickupCode,
     string? PharmacyName,
     string? PharmacyAddress,
+    int PharmacyId,
     string? DeliveryAddress,
     bool IsDelivery,
     int UserId,
