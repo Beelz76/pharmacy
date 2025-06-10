@@ -81,7 +81,7 @@ const favoritesStore = useFavoritesStore();
 onMounted(async () => {
   const data = await getPaginatedProducts({ page: 1, size: 12 });
   products.value = data.items;
-  if (auth.isAuthenticated) {
+  if (auth.isAuthenticated && auth.role === "User") {
     cartStore.syncFromProducts(products.value);
     favoritesStore.syncFromProducts(products.value);
   } else {
@@ -93,7 +93,7 @@ onMounted(async () => {
 watch(
   () => auth.isAuthenticated,
   async (val) => {
-    if (val) {
+    if (val && auth.role === "User") {
       await cartStore.fetchCart();
       await favoritesStore.fetchFavorites();
       applyFavoritesAndCart(products.value);

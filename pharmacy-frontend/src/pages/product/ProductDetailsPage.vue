@@ -2,6 +2,14 @@
   <div class="max-w-7xl mx-auto px-4 py-8">
     <!-- Хлебные крошки -->
     <nav v-if="product" class="text-sm text-gray-500 mb-6">
+      <button
+        @click="$router.back()"
+        class="mb-2 mr-6 items-center text-primary-600 hover:text-primary-700 text-base group"
+      >
+        <i
+          class="text-xl fas fa-arrow-left mr-2 group-hover:-translate-x-1 duration-150"
+        ></i>
+      </button>
       <router-link to="/" class="hover:underline">Главная</router-link> /
       <router-link to="/products/catalog" class="hover:underline"
         >Каталог</router-link
@@ -42,11 +50,11 @@
           </div>
           <div v-if="product.images?.length > 1" class="flex gap-2">
             <img
-              v-for="(img, index) in product.images"
-              :key="index"
-              :src="img"
+              v-for="img in product.images"
+              :key="img.id"
+              :src="img.url"
               class="w-16 h-16 object-contain border rounded cursor-pointer hover:ring-2"
-              @click="activeImage = img"
+              @click="activeImage = img.url"
             />
           </div>
         </div>
@@ -289,7 +297,7 @@ onMounted(async () => {
     const id = Number(route.params.id);
     if (!id) throw new Error("Неверный ID");
     product.value = await ProductService.getById(id);
-    activeImage.value = product.value?.images[0] || "";
+    activeImage.value = product.value?.images[0]?.url || "";
   } catch (error) {
     console.error("Ошибка загрузки товара:", error);
   } finally {

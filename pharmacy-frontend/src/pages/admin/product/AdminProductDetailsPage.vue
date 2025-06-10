@@ -23,16 +23,20 @@
         :rules="allRules"
         ref="productFormRef"
       >
-        <el-form-item label="Название">
+        <el-form-item label="Название" prop="name">
           <el-input v-model="productForm.name" />
         </el-form-item>
-        <el-form-item label="Описание">
+        <el-form-item label="Описание" prop="description">
           <el-input v-model="productForm.description" />
         </el-form-item>
-        <el-form-item label="Расшир. описание">
+        <el-form-item
+          label="Расшир. описание"
+          prop="extendedDescription"
+          :required="false"
+        >
           <el-input v-model="productForm.extendedDescription" type="textarea" />
         </el-form-item>
-        <el-form-item label="Категория">
+        <el-form-item label="Категория" prop="categoryId">
           <el-select v-model="productForm.categoryId" class="!w-60" filterable>
             <el-option
               v-for="c in flatCategories"
@@ -42,7 +46,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="Производитель">
+        <el-form-item label="Производитель" prop="manufacturerId">
           <el-select
             v-model="productForm.manufacturerId"
             class="!w-60"
@@ -56,10 +60,10 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="Цена">
+        <el-form-item label="Цена" prop="price">
           <el-input type="number" v-model.number="productForm.price" />
         </el-form-item>
-        <el-form-item label="Доступен">
+        <el-form-item label="Доступен" prop="isAvailable" :required="false">
           <el-switch v-model="productForm.isAvailable" />
         </el-form-item>
 
@@ -355,11 +359,9 @@ async function save() {
 
     if (pendingExternalUrls.value.length) {
       try {
-        await addExternalImages(id, pendingExternalUrls.value);
         const res = await addExternalImages(id, pendingExternalUrls.value);
         images.value = images.value.filter((i) => !i.tmp);
         images.value.push(...res.images);
-        pendingExternalUrls.value = [];
         pendingExternalUrls.value = [];
       } catch {}
     }
