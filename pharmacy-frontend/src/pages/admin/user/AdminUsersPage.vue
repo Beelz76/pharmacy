@@ -1,27 +1,28 @@
 <template>
   <div>
     <h1 class="text-2xl font-semibold mb-2">Пользователи</h1>
-    <div class="mb-4 text-gray-600">Всего пользователей: {{ totalCount }}</div>
+    <p class="mb-4 text-gray-600">Всего пользователей: {{ totalCount }}</p>
 
+    <!-- Фильтры -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
       <el-form :inline="true" @submit.prevent>
-        <el-form-item label-width="0">
+        <el-form-item>
           <el-input
             v-model="filters.firstName"
             placeholder="Имя"
             size="large"
-            class="!w-48"
+            class="!w-44"
           />
         </el-form-item>
-        <el-form-item label-width="0">
+        <el-form-item>
           <el-input
             v-model="filters.lastName"
             placeholder="Фамилия"
             size="large"
-            class="!w-48"
+            class="!w-44"
           />
         </el-form-item>
-        <el-form-item label-width="0">
+        <el-form-item>
           <el-input
             v-model="filters.email"
             placeholder="Email"
@@ -29,12 +30,12 @@
             class="!w-52"
           />
         </el-form-item>
-        <el-form-item label="Роль">
+        <el-form-item>
           <el-select
             v-model="filters.role"
-            placeholder="Все"
+            placeholder="Роль"
             clearable
-            class="!w-40"
+            class="!w-44"
           >
             <el-option label="Администратор" value="Admin" />
             <el-option label="Сотрудник" value="Employee" />
@@ -42,39 +43,43 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" plain @click="fetch">Поиск</el-button>
-          <el-button @click="resetFilters">Сбросить</el-button>
+          <el-button type="primary" @click="fetch">
+            <i class="fas fa-search mr-1" /> Поиск
+          </el-button>
+          <el-button @click="resetFilters">
+            <i class="fas fa-sync-alt mr-1" /> Сбросить
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <div class="flex justify-between mb-4">
-      <el-button type="primary" @click="goCreate"
-        ><i class="fas fa-plus mr-1"></i> Новый пользователь</el-button
-      >
-      <div class="flex justify-end mb-4">
-        <el-pagination
-          layout="sizes, prev, pager, next"
-          :total="totalCount"
-          :page-size="pageSize"
-          :page-sizes="[10, 20, 50]"
-          v-model:page-size="pageSize"
-          v-model:current-page="pageNumber"
-        />
-      </div>
+    <!-- Верхняя панель -->
+    <div class="flex justify-between items-center mb-4">
+      <el-button type="primary" @click="goCreate">
+        <i class="fas fa-plus mr-1" /> Новый пользователь
+      </el-button>
+      <el-pagination
+        layout="sizes, prev, pager, next"
+        :total="totalCount"
+        :page-size="pageSize"
+        :page-sizes="[10, 20, 50]"
+        v-model:page-size="pageSize"
+        v-model:current-page="pageNumber"
+      />
     </div>
 
+    <!-- Таблица -->
     <div class="overflow-x-auto rounded-lg shadow border bg-white">
       <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
         <thead
           class="bg-secondary-50 text-left text-secondary-700 uppercase text-sm"
         >
           <tr>
-            <th class="px-6 py-5 font-semibold">ID</th>
-            <th class="px-6 py-5 font-semibold">Email</th>
-            <th class="px-6 py-5 font-semibold">Имя</th>
-            <th class="px-6 py-5 font-semibold">Роль</th>
-            <th class="px-6 py-5 font-semibold text-right">
+            <th class="px-6 py-4 font-semibold">ID</th>
+            <th class="px-6 py-4 font-semibold">Email</th>
+            <th class="px-6 py-4 font-semibold">Имя</th>
+            <th class="px-6 py-4 font-semibold">Роль</th>
+            <th class="px-6 py-4 font-semibold text-right">
               <span class="sr-only">Детали</span>
             </th>
           </tr>
@@ -83,15 +88,19 @@
           <tr
             v-for="u in users"
             :key="u.id"
-            class="hover:bg-secondary-50 cursor-pointer"
+            class="hover:bg-secondary-100 cursor-pointer"
             @click="goDetails(u.id)"
           >
             <td class="px-6 py-4 whitespace-nowrap">{{ u.id }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ u.email }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ fullName(u) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap capitalize">{{ u.role }}</td>
+            <td class="px-6 py-4 whitespace-nowrap capitalize">
+              <span v-if="u.role === 'Admin'">Администратор</span>
+              <span v-else-if="u.role === 'Employee'">Сотрудник</span>
+              <span v-else>Пользователь</span>
+            </td>
             <td class="px-6 py-4 text-right text-gray-400">
-              <i class="fas fa-chevron-right"></i>
+              <i class="fas fa-chevron-right" />
             </td>
           </tr>
           <tr v-if="!loading && users.length === 0">
@@ -108,6 +117,7 @@
       </table>
     </div>
 
+    <!-- Нижняя пагинация -->
     <div class="flex justify-end mt-6">
       <el-pagination
         layout="sizes, prev, pager, next"

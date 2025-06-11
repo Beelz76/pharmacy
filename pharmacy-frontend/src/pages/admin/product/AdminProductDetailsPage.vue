@@ -147,6 +147,8 @@
         </div>
         <div class="flex items-center gap-3">
           <input type="file" multiple @change="onFileChange" />
+        </div>
+        <div class="mt-2">
           <span class="text-sm text-gray-500">или вставьте ссылку ниже</span>
         </div>
         <div class="mt-2 flex items-center gap-2">

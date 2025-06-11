@@ -56,95 +56,123 @@
 
     <el-dialog
       v-model="dialogVisible"
-      title="Категория"
+      :title="form.id ? 'Редактирование категории' : 'Новая категория'"
       width="700px"
       :close-on-click-modal="false"
     >
-      <el-form
-        label-width="120px"
-        :model="form"
-        :rules="rules"
-        ref="formRef"
-        class="pb-2"
-      >
-        <el-form-item label="Название" prop="name">
-          <el-input v-model="form.name" />
-        </el-form-item>
-        <el-form-item label="Описание" prop="description">
-          <el-input v-model="form.description" />
-        </el-form-item>
-        <el-form-item label="Родитель">
-          <el-select v-model="form.parentCategoryId" clearable>
-            <el-option :value="null" label="Нет" />
-            <el-option
-              v-for="c in flatCategories"
-              :key="c.id"
-              :value="c.id"
-              :label="c.name"
+      <!-- Основная информация -->
+      <div class="mb-6">
+        <el-form
+          label-width="120px"
+          :model="form"
+          :rules="rules"
+          ref="formRef"
+          class="pb-2"
+        >
+          <el-form-item label="Название" prop="name">
+            <el-input
+              v-model="form.name"
+              placeholder="Введите название категории"
             />
-          </el-select>
-        </el-form-item>
-      </el-form>
-
-      <h3 class="font-semibold mb-2">Поля</h3>
-      <el-table :data="fields" size="small" row-key="localId" class="mb-2">
-        <el-table-column prop="label" label="Метка">
-          <template #default="scope">
-            <el-input v-model="scope.row.label" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="key" label="Ключ" width="150">
-          <template #default="scope">
-            <el-input v-model="scope.row.key" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="type" label="Тип" width="140">
-          <template #default="scope">
-            <el-select v-model="scope.row.type" placeholder="Тип">
+          </el-form-item>
+          <el-form-item label="Описание" prop="description">
+            <el-input
+              v-model="form.description"
+              type="textarea"
+              placeholder="Краткое описание"
+            />
+          </el-form-item>
+          <el-form-item label="Родитель">
+            <el-select
+              v-model="form.parentCategoryId"
+              clearable
+              placeholder="Нет родителя"
+            >
+              <el-option :value="null" label="Нет" />
               <el-option
-                v-for="t in fieldTypes"
-                :key="t"
-                :label="t"
-                :value="t"
+                v-for="c in flatCategories"
+                :key="c.id"
+                :value="c.id"
+                :label="c.name"
               />
             </el-select>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="isRequired"
-          label="Обяз."
-          width="80"
-          align="center"
-        >
-          <template #default="scope">
-            <el-checkbox v-model="scope.row.isRequired" />
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="isFilterable"
-          label="Фильтр"
-          width="80"
-          align="center"
-        >
-          <template #default="scope">
-            <el-checkbox v-model="scope.row.isFilterable" />
-          </template>
-        </el-table-column>
-        <el-table-column width="70">
-          <template #default="scope">
-            <el-button
-              size="small"
-              type="danger"
-              @click="deleteField(scope.$index)"
-            >
-              <i class="fas fa-trash" />
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+          </el-form-item>
+        </el-form>
+      </div>
 
-      <el-button size="small" @click="addField">Добавить поле</el-button>
+      <!-- Поля категории -->
+      <div>
+        <el-table
+          :data="fields"
+          size="small"
+          row-key="localId"
+          class="mb-4 border rounded"
+        >
+          <el-table-column prop="label" label="Метка">
+            <template #default="scope">
+              <el-input
+                v-model="scope.row.label"
+                placeholder="Напр. 'Форма выпуска'"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column prop="key" label="Ключ" width="150">
+            <template #default="scope">
+              <el-input v-model="scope.row.key" placeholder="Напр. 'form'" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="type" label="Тип" width="140">
+            <template #default="scope">
+              <el-select v-model="scope.row.type" placeholder="Тип данных">
+                <el-option
+                  v-for="t in fieldTypes"
+                  :key="t"
+                  :label="t"
+                  :value="t"
+                />
+              </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="isRequired"
+            label="Обяз."
+            width="80"
+            align="center"
+          >
+            <template #default="scope">
+              <el-checkbox v-model="scope.row.isRequired" />
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="isFilterable"
+            label="Фильтр"
+            width="80"
+            align="center"
+          >
+            <template #default="scope">
+              <el-checkbox v-model="scope.row.isFilterable" />
+            </template>
+          </el-table-column>
+          <el-table-column width="70">
+            <template #default="scope">
+              <el-button
+                size="small"
+                type="danger"
+                @click="deleteField(scope.$index)"
+                :title="'Удалить поле ' + (scope.row.label || '')"
+              >
+                <i class="fas fa-trash" />
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
 
+        <el-button size="small" @click="addField">
+          <i class="fas fa-plus mr-1" /> Добавить поле
+        </el-button>
+      </div>
+
+      <!-- Кнопки -->
       <template #footer>
         <el-button @click="dialogVisible = false">Отмена</el-button>
         <el-button type="primary" @click="save">Сохранить</el-button>

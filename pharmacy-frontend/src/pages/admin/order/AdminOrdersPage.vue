@@ -112,8 +112,12 @@
 
           <!-- Кнопки действий -->
           <el-form-item>
-            <el-button type="primary" plain @click="fetch">Поиск</el-button>
-            <el-button @click="resetFilters">Сбросить</el-button>
+            <el-button type="primary" @click="fetch"
+              ><i class="fas fa-search mr-1" /> Поиск</el-button
+            >
+            <el-button @click="resetFilters">
+              <i class="fas fa-sync-alt mr-1" />Сбросить</el-button
+            >
           </el-form-item>
         </div>
       </el-form>

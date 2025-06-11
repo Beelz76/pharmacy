@@ -137,7 +137,10 @@
         >
           <div>
             <strong>Категория: </strong>
-            <router-link :to="categoryLink" class="text-primary-600">
+            <router-link
+              :to="categoryLink"
+              class="text-primary-600 hover:text-primary-700"
+            >
               {{ product.category.name }}
             </router-link>
           </div>
@@ -146,7 +149,7 @@
             <strong>Производитель: </strong>
             <router-link
               :to="manufacturerLink"
-              class="text-primary-600 hover:underline"
+              class="text-primary-600 hover:text-primary-700"
             >
               {{ product.manufacturer.name }}
             </router-link>
@@ -155,7 +158,7 @@
             <strong>Страна: </strong>
             <router-link
               :to="countryLink"
-              class="text-primary-600 hover:underline"
+              class="text-primary-600 hover:text-primary-700"
             >
               {{ product.manufacturer.country }}
             </router-link>
