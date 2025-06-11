@@ -41,6 +41,7 @@ import EmployeeOrderDetailsPage from "../pages/employee/order/EmployeeOrderDetai
 import EmployeeWarehousePage from "../pages/employee/warehouse/EmployeeWarehousePage.vue";
 import EmployeePharmacyPage from "../pages/employee/pharmacy/EmployeePharmacyPage.vue";
 import EmployeeProfilePage from "../pages/employee/EmployeeProfilePage.vue";
+import EmployeeProductDetailsPage from "../pages/employee/product/EmployeeProductDetailsPage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -121,6 +122,11 @@ const routes = [
         path: "orders/:id",
         name: "EmployeeOrderDetails",
         component: EmployeeOrderDetailsPage,
+      },
+      {
+        path: "products/:id",
+        name: "EmployeeProductDetails",
+        component: EmployeeProductDetailsPage,
       },
       {
         path: "warehouse",

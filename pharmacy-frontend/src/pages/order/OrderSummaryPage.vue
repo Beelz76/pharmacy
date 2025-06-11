@@ -197,7 +197,12 @@ const submitOrder = async () => {
       try {
         const payRes = await api.post(`/orders/${id}/pay`);
         orderStore.resetOrder();
-        window.location.href = payRes.data;
+        const url = payRes.data;
+        if (url && /^https?:\/\//.test(url)) {
+          window.location.href = url;
+        } else {
+          console.error("Неверная ссылка для оплаты", url);
+        }
       } catch (e) {
         console.error("Ошибка оплаты:", e);
       }

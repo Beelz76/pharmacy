@@ -206,7 +206,11 @@ const goProduct = (id, name) => {
 const pay = async () => {
   try {
     const url = await payOrder(order.value.id);
-    window.location.href = url;
+    if (url && /^https?:\/\//.test(url)) {
+      window.location.href = url;
+    } else {
+      console.error("Invalid payment url", url);
+    }
   } catch (e) {
     console.error("Ошибка оплаты", e);
   }

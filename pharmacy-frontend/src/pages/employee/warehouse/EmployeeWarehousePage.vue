@@ -44,8 +44,8 @@
               <td class="px-6 py-4">
                 <RouterLink
                   :to="{
-                    name: 'ProductDetails',
-                    params: { id: p.productId, slug: toSlug(p.productName) },
+                    name: 'EmployeeProductDetails',
+                    params: { id: p.productId },
                   }"
                   class="text-primary-600 hover:underline"
                 >
@@ -62,10 +62,7 @@
               <td class="px-6 py-4">{{ p.isAvailable ? "Да" : "Нет" }}</td>
               <td class="px-6 py-4">
                 <div class="flex justify-start gap-2">
-                  <el-button
-                    size="small"
-                    @click="goProduct(p.productId, p.productName)"
-                  >
+                  <el-button size="small" @click="goProduct(p.productId)">
                     <i class="fas fa-link" />
                   </el-button>
                   <el-button size="small" @click="editProduct(p)">
@@ -146,7 +143,6 @@ import { useAccountStore } from "/src/stores/AccountStore";
 import { ElMessageBox, ElMessage } from "element-plus";
 import api from "/src/utils/axios";
 import ProductService from "/src/services/ProductService";
-import { toSlug } from "/src/utils/slugify";
 
 const router = useRouter();
 const accountStore = useAccountStore();
@@ -176,8 +172,8 @@ const rules = {
   ],
 };
 
-function goProduct(id, name) {
-  router.push({ name: "ProductDetails", params: { id, slug: toSlug(name) } });
+function goProduct(id) {
+  router.push({ name: "EmployeeProductDetails", params: { id } });
 }
 
 onMounted(async () => {
