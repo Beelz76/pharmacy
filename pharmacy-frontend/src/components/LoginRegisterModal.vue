@@ -397,6 +397,18 @@ watch(
   }
 );
 
+watch(verificationCode, (val, oldVal) => {
+  if (
+    props.visible &&
+    showVerification.value &&
+    !showResetPasswordFields.value &&
+    val.length === 6 &&
+    oldVal.length !== 6
+  ) {
+    confirmCode();
+  }
+});
+
 function validateAnd(callback) {
   if (!formRef.value) return;
   formRef.value.validate((valid) => {

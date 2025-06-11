@@ -1,11 +1,10 @@
-﻿using Pharmacy.Database.Entities;
-using Pharmacy.Database.Repositories;
+﻿using Pharmacy.Database;
+using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Users.Authentication;
 using Pharmacy.Endpoints.Users.Authorization;
 using Pharmacy.Services.Interfaces;
-using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Auth;
 using Pharmacy.Shared.Dto.User;
 using Pharmacy.Shared.Enums;
@@ -21,8 +20,9 @@ public class AuthorizationService : IAuthorizationService
     private readonly IEmailVerificationService _emailVerificationService;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly TransactionRunner _transactionRunner;
 
-    public AuthorizationService(IUserService userService, PasswordProvider passwordProvider, TokenProvider tokenProvider, IEmailVerificationService emailVerificationService, IRefreshTokenRepository refreshTokenRepository, IDateTimeProvider dateTimeProvider)
+    public AuthorizationService(IUserService userService, PasswordProvider passwordProvider, TokenProvider tokenProvider, IEmailVerificationService emailVerificationService, IRefreshTokenRepository refreshTokenRepository, IDateTimeProvider dateTimeProvider, TransactionRunner transactionRunner)
     {
         _userService = userService;
         _passwordProvider = passwordProvider;
@@ -30,6 +30,7 @@ public class AuthorizationService : IAuthorizationService
         _emailVerificationService = emailVerificationService;
         _refreshTokenRepository = refreshTokenRepository;
         _dateTimeProvider = dateTimeProvider;
+        _transactionRunner = transactionRunner;
     }
 
     public async Task<Result<string>> RegisterAsync(RegisterRequest request)
@@ -116,22 +117,28 @@ public class AuthorizationService : IAuthorizationService
             return Result.Failure<LoginResponse>(userResult.Error);
         }
 
-        await _refreshTokenRepository.RemoveAsync(existing);
-
-        var jwtId = Guid.NewGuid().ToString();
-        var newToken = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email, userResult.Value.Role, jwtId);
-
-        var newRefresh = new RefreshToken
+        var transactionResult = await _transactionRunner.ExecuteAsync(async () =>
         {
-            UserId = userResult.Value.Id,
-            Token = Guid.NewGuid().ToString(),
-            JwtId = jwtId,
-            ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
-            CreatedAt = _dateTimeProvider.UtcNow,
-            IsUsed = false
-        };
-        await _refreshTokenRepository.AddAsync(newRefresh);
+            await _refreshTokenRepository.RemoveAsync(existing);
 
-        return Result.Success(new LoginResponse(null, newToken, newRefresh.Token));
+            var jwtId = Guid.NewGuid().ToString();
+            var newToken = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email, userResult.Value.Role, jwtId);
+
+            var newRefresh = new RefreshToken
+            {
+                UserId = userResult.Value.Id,
+                Token = Guid.NewGuid().ToString(),
+                JwtId = jwtId,
+                ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
+                CreatedAt = _dateTimeProvider.UtcNow,
+                IsUsed = false
+            };
+
+            await _refreshTokenRepository.AddAsync(newRefresh);
+
+            return Result.Success(new LoginResponse(null, newToken, newRefresh.Token));
+        });
+
+        return transactionResult;
     }
 }

@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, watchEffect, onUnmounted } from "vue";
+import { ref, watchEffect, onUnmounted, watch } from "vue";
 import { ElMessage } from "element-plus";
 import VerificationService from "/src/services/VerificationService.js";
 import useVerificationCodeInput from "/src/composables/useVerificationCodeInput.js";
@@ -109,6 +109,12 @@ watchEffect(() => {
     startResendTimer();
   } else {
     clearResendTimer();
+  }
+});
+
+watch(verificationCode, (val, oldVal) => {
+  if (props.visible && val.length === 6 && oldVal.length !== 6) {
+    confirmCode();
   }
 });
 

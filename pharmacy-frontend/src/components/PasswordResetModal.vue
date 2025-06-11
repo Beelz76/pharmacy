@@ -152,6 +152,7 @@ import {
   nextTick,
   onUnmounted,
   watchEffect,
+  watch,
 } from "vue";
 import { ElMessage } from "element-plus";
 import VerificationService from "/src/services/VerificationService.js";
@@ -235,6 +236,17 @@ watchEffect(() => {
     }, 50);
   } else {
     clearResendTimer();
+  }
+});
+
+watch(verificationCode, (val, oldVal) => {
+  if (
+    props.visible &&
+    step.value === 2 &&
+    val.length === 6 &&
+    oldVal.length !== 6
+  ) {
+    confirmCode();
   }
 });
 

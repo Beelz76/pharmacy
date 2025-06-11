@@ -1,4 +1,5 @@
-﻿using Pharmacy.Database.Entities;
+﻿using Pharmacy.Database;
+using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
@@ -25,10 +26,11 @@ public class EmailVerificationService : IEmailVerificationService
     private readonly CodeGenerator _codeGenerator;
     private readonly IConfiguration _configuration;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly TransactionRunner _transactionRunner;
     
     private const int CodeLength = 6;
 
-    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserRepository userRepository, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator, IEmailSender emailSender, IConfiguration configuration, IRefreshTokenRepository refreshTokenRepository)
+    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserRepository userRepository, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator, IEmailSender emailSender, IConfiguration configuration, IRefreshTokenRepository refreshTokenRepository, TransactionRunner transactionRunner)
     {
         _tokenProvider = tokenProvider;
         _dateTimeProvider = dateTimeProvider;
@@ -39,6 +41,7 @@ public class EmailVerificationService : IEmailVerificationService
         _emailSender = emailSender;
         _configuration = configuration;
         _refreshTokenRepository = refreshTokenRepository;
+        _transactionRunner = transactionRunner;
     }
 
     public async Task<EmailVerificationCode> GenerateVerificationCodeAsync(int userId, string email, VerificationPurposeEnum purpose)
@@ -115,80 +118,83 @@ public class EmailVerificationService : IEmailVerificationService
             return Result.Failure<ConfirmCodeDto>(Error.Failure("Неверный или просроченный код"));
         }
 
-        verificationCode.IsUsed = true;
-        await _repository.UpdateAsync(verificationCode);
-        
-        switch (purpose)
+        return await _transactionRunner.ExecuteAsync(async () =>
         {
-            case VerificationPurposeEnum.Registration:
+            verificationCode.IsUsed = true;
+            await _repository.UpdateAsync(verificationCode);
+
+            switch (purpose)
             {
-                var user = await _userRepository.GetByEmailAsync(email);
-                if (user is null)
+                case VerificationPurposeEnum.Registration:
                 {
-                    return Result.Failure<ConfirmCodeDto>(Error.NotFound("Пользователь не найден"));
+                    var user = await _userRepository.GetByEmailAsync(email);
+                    if (user is null)
+                    {
+                        return Result.Failure<ConfirmCodeDto>(Error.NotFound("Пользователь не найден"));
+                    }
+
+                    user.EmailVerified = true;
+                    await _userRepository.UpdateAsync(user);
+
+                    await _emailSender.SendEmailAsync(user.Email,
+                        "Регистрация завершена",
+                        $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                            <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                            <p style='font-size: 16px; color: #333;'>Ваш аккаунт успешно подтвержден.</p>
+                        </div>");
+
+                    var jwtId = Guid.NewGuid().ToString();
+                    var token = _tokenProvider.Create(user.Id, user.Email, user.Role, jwtId);
+                    var refresh = new RefreshToken
+                    {
+                        UserId = user.Id,
+                        Token = Guid.NewGuid().ToString(),
+                        JwtId = jwtId,
+                        ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
+                        CreatedAt = _dateTimeProvider.UtcNow
+                    };
+                    await _refreshTokenRepository.AddAsync(refresh);
+
+                    return Result.Success(new ConfirmCodeDto(true, token, refresh.Token));
                 }
-
-                user.EmailVerified = true;
-                await _userRepository.UpdateAsync(user);
-                
-                await _emailSender.SendEmailAsync(user.Email,
-                    "Регистрация завершена",
-                    $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
-                        <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
-                        <p style='font-size: 16px; color: #333;'>Ваш аккаунт успешно подтвержден.</p>
-                    </div>");
-                
-                var jwtId = Guid.NewGuid().ToString();
-                var token = _tokenProvider.Create(user.Id, user.Email, user.Role, jwtId);
-                var refresh = new RefreshToken
+                case VerificationPurposeEnum.PasswordReset:
+                    return Result.Success(new ConfirmCodeDto(true, null, null));
+                case VerificationPurposeEnum.EmailChange:
                 {
-                    UserId = user.Id,
-                    Token = Guid.NewGuid().ToString(),
-                    JwtId = jwtId,
-                    ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
-                    CreatedAt = _dateTimeProvider.UtcNow
-                };
-                await _refreshTokenRepository.AddAsync(refresh);
+                    var user = await _userRepository.GetByIdAsync(userId!.Value);
+                    if (user is null)
+                    {
+                        return Result.Failure<ConfirmCodeDto>(Error.NotFound("Пользователь не найден"));
+                    }
 
-                return Result.Success(new ConfirmCodeDto(true, token, refresh.Token));
-            }
-            case VerificationPurposeEnum.PasswordReset:
-                return Result.Success(new ConfirmCodeDto(true, null, null));
-            case VerificationPurposeEnum.EmailChange:
-            {
-                var user = await _userRepository.GetByIdAsync(userId!.Value);
-                if (user is null)
-                {
-                    return Result.Failure<ConfirmCodeDto>(Error.NotFound("Пользователь не найден"));
+                    user.Email = email;
+                    await _userRepository.UpdateAsync(user);
+
+                    await _emailSender.SendEmailAsync(user.Email,
+                        "Email изменен",
+                        $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                            <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                            <p style='font-size: 16px; color: #333;'>Адрес вашей электронной почты был успешно изменен.</p>
+                        </div>");
+
+                    var jwtId2 = Guid.NewGuid().ToString();
+                    var token2 = _tokenProvider.Create(user.Id, user.Email, user.Role, jwtId2);
+                    var refresh2 = new RefreshToken
+                    {
+                        UserId = user.Id,
+                        Token = Guid.NewGuid().ToString(),
+                        JwtId = jwtId2,
+                        ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
+                        CreatedAt = _dateTimeProvider.UtcNow
+                    };
+                    await _refreshTokenRepository.AddAsync(refresh2);
+
+                    return Result.Success(new ConfirmCodeDto(true, token2, refresh2.Token));
                 }
-                
-                user.Email = email;
-                await _userRepository.UpdateAsync(user);
-
-                await _emailSender.SendEmailAsync(user.Email,
-                    "Email изменен",
-                    $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
-                        <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
-                        <p style='font-size: 16px; color: #333;'>Адрес вашей электронной почты был успешно изменен.</p>
-                    </div>");
-                
-                var jwtId2 = Guid.NewGuid().ToString();
-                var token2 = _tokenProvider.Create(user.Id, user.Email, user.Role, jwtId2);
-                var refresh2 = new RefreshToken
-                {
-                    UserId = user.Id,
-                    Token = Guid.NewGuid().ToString(),
-                    JwtId = jwtId2,
-                    ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
-                    CreatedAt = _dateTimeProvider.UtcNow
-                };
-                await _refreshTokenRepository.AddAsync(refresh2);
-
-                return Result.Success(new ConfirmCodeDto(true, token2, refresh2.Token));
+                default:
+                    return Result.Failure<ConfirmCodeDto>(Error.Failure("Неподдерживаемая цель кода"));
             }
-            default:
-                return Result.Failure<ConfirmCodeDto>(Error.Failure("Неподдерживаемая цель кода"));
-        }
+        });
     }
     
     public async Task<Result<bool>> CheckEmailVerifiedAsync(string email)
@@ -218,19 +224,22 @@ public class EmailVerificationService : IEmailVerificationService
             return Result.Failure(Error.Failure("Подтверждение восстановления пароля не выполнено или код просрочен"));
         }
         
-        user.PasswordHash = _passwordProvider.Hash(newPassword);
-        await _userRepository.UpdateAsync(user);
-        
-        await _emailSender.SendEmailAsync(user.Email,
-            "Пароль восстановлен",
-            $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
-                <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
-                <p style='font-size: 16px; color: #333;'>Ваш пароль был успешно изменен.</p>
-            </div>");
-        
-        code.ExpiresAt = now;
-        await _repository.UpdateAsync(code);
+        return await _transactionRunner.ExecuteAsync(async () =>
+        {
+            user.PasswordHash = _passwordProvider.Hash(newPassword);
+            await _userRepository.UpdateAsync(user);
 
-        return Result.Success();
+            await _emailSender.SendEmailAsync(user.Email,
+                "Пароль восстановлен",
+                $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                    <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                    <p style='font-size: 16px; color: #333;'>Ваш пароль был успешно изменен.</p>
+                </div>");
+
+            code.ExpiresAt = now;
+            await _repository.UpdateAsync(code);
+
+            return Result.Success();
+        });
     }
 }
