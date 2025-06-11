@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using FluentValidation;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
@@ -53,3 +54,13 @@ public record UpdateUserAddressRequest(
     string? Floor,
     string? Comment
 );
+
+public class UpdateUserAddressRequestValidator : Validator<UpdateUserAddressRequest>
+{
+    public UpdateUserAddressRequestValidator()
+    {
+        RuleFor(x => x.Address).NotNull();
+        RuleFor(x => x.Address.Latitude).NotEmpty();
+        RuleFor(x => x.Address.Longitude).NotEmpty();
+    }
+}

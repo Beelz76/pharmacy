@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using FluentValidation;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Enums;
 
@@ -53,4 +54,14 @@ public class WebhookEndpoint : Endpoint<WebhookRequest>
 
 public record YooKassaPaymentObject(Dictionary<string, string> Metadata);
 public record WebhookRequest(string Event, YooKassaPaymentObject Object);
+
+public class WebhookRequestValidator : Validator<WebhookRequest>
+{
+    public WebhookRequestValidator()
+    {
+        RuleFor(x => x.Event).NotEmpty();
+        RuleFor(x => x.Object).NotNull();
+    }
+}
+
 

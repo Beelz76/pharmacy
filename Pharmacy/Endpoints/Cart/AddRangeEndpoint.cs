@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using FluentValidation;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
@@ -45,3 +46,18 @@ public class AddRangeEndpoint : Endpoint<AddCartItemsRequest>
 }
 
 public record AddCartItemsRequest(List<CartItemQuantityDto> Items);
+
+public class AddCartItemsRequestValidator : Validator<AddCartItemsRequest>
+{
+    public AddCartItemsRequestValidator()
+    {
+        RuleFor(x => x.Items)
+            .NotEmpty();
+
+        RuleForEach(x => x.Items).ChildRules(item =>
+        {
+            item.RuleFor(i => i.ProductId).GreaterThan(0);
+            item.RuleFor(i => i.Quantity).GreaterThan(0);
+        });
+    }
+}

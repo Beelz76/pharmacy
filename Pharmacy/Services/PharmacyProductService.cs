@@ -25,13 +25,17 @@ public class PharmacyProductService : IPharmacyProductService
     public async Task<Result<IEnumerable<PharmacyProductDto>>> GetByPharmacyAsync(int pharmacyId)
     {
         var list = await _repository.GetByPharmacyIdAsync(pharmacyId);
-        var result = list.Select(x => new PharmacyProductDto(
-            x.ProductId,
-            x.Product.Name,
-            x.StockQuantity,
-            x.LocalPrice ?? x.Product.Price,
-            !x.Product.IsGloballyDisabled && x.IsAvailable,
-            x.LocalPrice == null));
+        var result = list.Select(x =>
+        {
+            var useGlobal = x.LocalPrice == null || x.LocalPrice == 0m;
+            return new PharmacyProductDto(
+                x.ProductId,
+                x.Product.Name,
+                x.StockQuantity,
+                useGlobal ? x.Product.Price : x.LocalPrice!.Value,
+                !x.Product.IsGloballyDisabled && x.IsAvailable,
+                useGlobal);
+        });
 
         return Result.Success(result);
     }
@@ -39,16 +43,18 @@ public class PharmacyProductService : IPharmacyProductService
     public async Task<PharmacyProductDto?> GetAsync(int pharmacyId, int productId)
     {
         var pharmacyProduct = await _repository.GetAsync(pharmacyId, productId);
-        return pharmacyProduct is null
-            ? null
-            : new PharmacyProductDto(
-                pharmacyProduct.ProductId,
-                pharmacyProduct.Product.Name,
-                pharmacyProduct.StockQuantity,
-                pharmacyProduct.LocalPrice ?? pharmacyProduct.Product.Price,
-                !pharmacyProduct.Product.IsGloballyDisabled && pharmacyProduct.IsAvailable,
-                pharmacyProduct.LocalPrice == null
-            );
+        if (pharmacyProduct == null)
+            return null;
+
+        var useGlobal = pharmacyProduct.LocalPrice == null || pharmacyProduct.LocalPrice == 0m;
+        return new PharmacyProductDto(
+            pharmacyProduct.ProductId,
+            pharmacyProduct.Product.Name,
+            pharmacyProduct.StockQuantity,
+            useGlobal ? pharmacyProduct.Product.Price : pharmacyProduct.LocalPrice!.Value,
+            !pharmacyProduct.Product.IsGloballyDisabled && pharmacyProduct.IsAvailable,
+            useGlobal
+        );
     }
     
     public async Task<Result<CreatedDto>> AddAsync(int pharmacyId, AddPharmacyProductRequest request)
@@ -70,7 +76,7 @@ public class PharmacyProductService : IPharmacyProductService
             PharmacyId = pharmacyId,
             ProductId = request.ProductId,
             StockQuantity = request.StockQuantity,
-            LocalPrice = request.Price,
+            LocalPrice = request.Price is null || request.Price == 0m ? null : request.Price,
             IsAvailable = request.IsAvailable,
             LastRestockedAt = _dateTimeProvider.UtcNow
         };
@@ -98,7 +104,7 @@ public class PharmacyProductService : IPharmacyProductService
             pharmacyProduct.LastRestockedAt = _dateTimeProvider.UtcNow;
         }
         pharmacyProduct.StockQuantity = request.StockQuantity;
-        pharmacyProduct.LocalPrice = request.Price;
+        pharmacyProduct.LocalPrice = request.Price is null || request.Price == 0m ? null : request.Price;
         pharmacyProduct.IsAvailable = request.IsAvailable;
 
         await _repository.UpdateAsync(pharmacyProduct);
@@ -139,13 +145,15 @@ public class PharmacyProductService : IPharmacyProductService
                 if (pharmacyProduct.StockQuantity < quantity)
                     return Result.Failure<List<PharmacyProductDto>>(Error.Failure($"Недостаточно товара {productId} на складе аптеки"));
 
+                var useGlobalExisting = pharmacyProduct.LocalPrice == null || pharmacyProduct.LocalPrice == 0m;
+                
                 result.Add(new PharmacyProductDto(
                     pharmacyProduct.ProductId,
                     pharmacyProduct.Product.Name,
                     pharmacyProduct.StockQuantity,
-                    pharmacyProduct.LocalPrice ?? pharmacyProduct.Product.Price,
+                    useGlobalExisting ? pharmacyProduct.Product.Price : pharmacyProduct.LocalPrice!.Value,
                     true,
-                    pharmacyProduct.LocalPrice == null));
+                    useGlobalExisting));
             }
             else
             {

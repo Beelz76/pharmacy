@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using FluentValidation;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 
@@ -43,3 +44,15 @@ public class AddRangeEndpoint : Endpoint<AddFavoritesRequest>
 }
 
 public record AddFavoritesRequest(List<int> ProductIds);
+
+public class AddFavoritesRequestValidator : Validator<AddFavoritesRequest>
+{
+    public AddFavoritesRequestValidator()
+    {
+        RuleFor(x => x.ProductIds)
+            .NotEmpty();
+
+        RuleForEach(x => x.ProductIds)
+            .GreaterThan(0);
+    }
+}
