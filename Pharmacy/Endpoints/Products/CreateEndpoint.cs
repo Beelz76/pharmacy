@@ -56,7 +56,8 @@ public class CreateProductRequestValidator : Validator<CreateProductRequest>
             .NotEmpty();
 
         RuleFor(x => x.Price)
-            .NotEmpty();
+            .NotEmpty()
+            .GreaterThanOrEqualTo(0);
         
         RuleFor(x => x.CategoryId)
             .NotEmpty();

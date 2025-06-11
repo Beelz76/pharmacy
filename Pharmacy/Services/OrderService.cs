@@ -32,6 +32,17 @@ public class OrderService : IOrderService
     private readonly IUserAddressRepository _userAddressRepository;
     private readonly TransactionRunner _transactionRunner;
 
+    private static readonly Dictionary<OrderStatusEnum, OrderStatusEnum[]> _allowedTransitions = new()
+    {
+        { OrderStatusEnum.WaitingForPayment, new[] { OrderStatusEnum.Pending, OrderStatusEnum.Cancelled } },
+        { OrderStatusEnum.Pending, new[] { OrderStatusEnum.Processing, OrderStatusEnum.Cancelled } },
+        { OrderStatusEnum.Processing, new[] { OrderStatusEnum.ReadyForReceive, OrderStatusEnum.OutForDelivery } },
+        { OrderStatusEnum.ReadyForReceive, new[] { OrderStatusEnum.Received, OrderStatusEnum.Cancelled } },
+        { OrderStatusEnum.OutForDelivery, new[] { OrderStatusEnum.Delivered, OrderStatusEnum.Cancelled } },
+        { OrderStatusEnum.Delivered, new[] { OrderStatusEnum.Refunded } },
+        { OrderStatusEnum.Received, new[] { OrderStatusEnum.Refunded } },
+    };
+    
     public OrderService(ICartRepository cartRepository,
         IOrderRepository orderRepository, IDateTimeProvider dateTimeProvider, IPaymentService paymentService,
         IUserRepository userRepository, IEmailSender emailSender, IStorageProvider storage,
@@ -100,37 +111,35 @@ public class OrderService : IOrderService
         {
             return Result.Failure<CreatedWithNumberDto>(Error.Failure("Аптека не указана"));
         }
-
-        // Проверка и добавление товаров
-        var pharmacyProductsResult =
-            await _pharmacyProductService.ValidateOrAddProductsAsync(pharmacyId, productTuples);
-        if (pharmacyProductsResult.IsFailure)
-        {
-            return Result.Failure<CreatedWithNumberDto>(pharmacyProductsResult.Error);
-        }
-
-        var pharmacyProducts = pharmacyProductsResult.Value;
-        var orderItems = new List<OrderItem>();
+        
         var orderItemDetails = new List<(string Name, int Quantity, decimal Price)>();
         decimal totalPrice = 0;
 
-        foreach (var cartItem in cartItems)
-        {
-            var pharmacyProduct = pharmacyProducts.First(x => x.ProductId == cartItem.ProductId);
-            orderItems.Add(new OrderItem
-            {
-                ProductId = cartItem.ProductId,
-                Quantity = cartItem.Quantity,
-                Price = pharmacyProduct.Price
-            });
-
-            orderItemDetails.Add((pharmacyProduct.ProductName, cartItem.Quantity, pharmacyProduct.Price));
-            totalPrice += cartItem.Quantity * pharmacyProduct.Price;
-        }
-
-        // Создание заказа
         var transactionResult = await _transactionRunner.ExecuteAsync(async () =>
         {
+            var pharmacyProductsResult =
+                await _pharmacyProductService.ValidateOrAddProductsAsync(pharmacyId, productTuples);
+            if (pharmacyProductsResult.IsFailure)
+                return Result.Failure<CreatedWithNumberDto>(pharmacyProductsResult.Error);
+
+            var pharmacyProducts = pharmacyProductsResult.Value;
+
+            var orderItems = new List<OrderItem>();
+
+            foreach (var cartItem in cartItems)
+            {
+                var pharmacyProduct = pharmacyProducts.First(x => x.ProductId == cartItem.ProductId);
+                orderItems.Add(new OrderItem
+                {
+                    ProductId = cartItem.ProductId,
+                    Quantity = cartItem.Quantity,
+                    Price = pharmacyProduct.Price
+                });
+
+                orderItemDetails.Add((pharmacyProduct.ProductName, cartItem.Quantity, pharmacyProduct.Price));
+                totalPrice += cartItem.Quantity * pharmacyProduct.Price;
+            }
+            
             var order = new Order
             {
                 UserId = userId,
@@ -438,10 +447,15 @@ public class OrderService : IOrderService
             return Result.Failure(Error.Failure("Статус уже установлен"));
         }
 
+        if (!_allowedTransitions.TryGetValue((OrderStatusEnum)order.StatusId, out var allowed) || !allowed.Contains(newStatus))
+        {
+            return Result.Failure(Error.Failure("Недопустимый переход статуса"));
+        }
+        
         order.StatusId = (int)newStatus;
         order.UpdatedAt = _dateTimeProvider.UtcNow;
 
-        if (newStatus == OrderStatusEnum.ReadyForReceive)
+        if (newStatus == OrderStatusEnum.ReadyForReceive && !order.IsDelivery)
         {
             order.PickupCode = new Random().Next(1000, 9999).ToString();
             var subject = $"Ваш заказ {order.Number} готов к получению";

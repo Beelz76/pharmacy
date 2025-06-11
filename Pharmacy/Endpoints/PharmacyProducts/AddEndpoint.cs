@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using FluentValidation;
 using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.PharmacyProducts;
@@ -43,3 +44,13 @@ public record AddPharmacyProductRequest(
     decimal? Price,
     bool IsAvailable
 );
+
+public class AddPharmacyProductRequestValidator : Validator<AddPharmacyProductRequest>
+{
+    public AddPharmacyProductRequestValidator()
+    {
+        RuleFor(x => x.ProductId).GreaterThan(0);
+        RuleFor(x => x.StockQuantity).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Price).GreaterThanOrEqualTo(0).When(x => x.Price.HasValue);
+    }
+}

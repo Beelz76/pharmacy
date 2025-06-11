@@ -43,7 +43,12 @@
               <td class="px-6 py-4">{{ p.productId }}</td>
               <td class="px-6 py-4">{{ p.productName }}</td>
               <td class="px-6 py-4">{{ p.stockQuantity }}</td>
-              <td class="px-6 py-4">{{ p.price }}</td>
+              <td class="px-6 py-4">
+                {{ p.price
+                }}<span v-if="p.isGlobalPrice" class="text-xs text-gray-500">
+                  (глобальная)</span
+                >
+              </td>
               <td class="px-6 py-4">{{ p.isAvailable ? "Да" : "Нет" }}</td>
               <td class="px-6 py-4">
                 <div class="flex justify-start gap-2">
@@ -82,21 +87,22 @@
             <el-input
               v-model.number="form.productId"
               type="number"
+              min="1"
               class="!w-28"
             />
             <el-autocomplete
               v-model="form.productName"
               :fetch-suggestions="fetchProductSuggestions"
               @select="onProductSelect"
-              class="!w-60"
+              class="flex-1"
             />
           </div>
         </el-form-item>
         <el-form-item label="Количество" prop="stockQuantity">
-          <el-input v-model.number="form.stockQuantity" type="number" />
+          <el-input v-model.number="form.stockQuantity" type="number" min="0" />
         </el-form-item>
         <el-form-item label="Цена" prop="price">
-          <el-input v-model.number="form.price" type="number" />
+          <el-input v-model.number="form.price" type="number" min="0" />
         </el-form-item>
         <el-form-item label="Доступен" :required="false">
           <el-switch v-model="form.isAvailable" />
@@ -137,7 +143,7 @@ const form = ref({
   productId: null,
   productName: "",
   stockQuantity: 0,
-  price: 0,
+  price: null,
   isAvailable: true,
 });
 const formRef = ref();
@@ -146,7 +152,9 @@ const rules = {
   stockQuantity: [
     { required: true, message: "Введите количество", trigger: "blur" },
   ],
-  price: [{ required: true, message: "Введите цену", trigger: "blur" }],
+  price: [
+    { min: 0, message: "Цена не может быть отрицательной", trigger: "blur" },
+  ],
 };
 
 onMounted(async () => {
@@ -211,7 +219,7 @@ function openAdd() {
     productId: null,
     productName: "",
     stockQuantity: 0,
-    price: 0,
+    price: null,
     isAvailable: true,
   };
   dialogVisible.value = true;

@@ -5,5 +5,6 @@ public record PharmacyProductDto(
     string ProductName,
     int StockQuantity,
     decimal Price,
-    bool IsAvailable
+    bool IsAvailable,
+    bool IsGlobalPrice
 );

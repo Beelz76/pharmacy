@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using FluentValidation;
 using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.PharmacyProducts;
@@ -39,3 +40,12 @@ public class UpdateEndpoint : Endpoint<UpdatePharmacyProductRequest>
 }
 
 public record UpdatePharmacyProductRequest(int StockQuantity, decimal? Price, bool IsAvailable);
+
+public class UpdatePharmacyProductRequestValidator : Validator<UpdatePharmacyProductRequest>
+{
+    public UpdatePharmacyProductRequestValidator()
+    {
+        RuleFor(x => x.StockQuantity).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Price).GreaterThanOrEqualTo(0).When(x => x.Price.HasValue);
+    }
+}

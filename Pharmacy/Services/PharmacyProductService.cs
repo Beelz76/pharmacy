@@ -30,7 +30,8 @@ public class PharmacyProductService : IPharmacyProductService
             x.Product.Name,
             x.StockQuantity,
             x.LocalPrice ?? x.Product.Price,
-            !x.Product.IsGloballyDisabled && x.IsAvailable));
+            !x.Product.IsGloballyDisabled && x.IsAvailable,
+            x.LocalPrice == null));
 
         return Result.Success(result);
     }
@@ -45,7 +46,8 @@ public class PharmacyProductService : IPharmacyProductService
                 pharmacyProduct.Product.Name,
                 pharmacyProduct.StockQuantity,
                 pharmacyProduct.LocalPrice ?? pharmacyProduct.Product.Price,
-                !pharmacyProduct.Product.IsGloballyDisabled && pharmacyProduct.IsAvailable
+                !pharmacyProduct.Product.IsGloballyDisabled && pharmacyProduct.IsAvailable,
+                pharmacyProduct.LocalPrice == null
             );
     }
     
@@ -68,7 +70,7 @@ public class PharmacyProductService : IPharmacyProductService
             PharmacyId = pharmacyId,
             ProductId = request.ProductId,
             StockQuantity = request.StockQuantity,
-            LocalPrice = request.Price ?? product.Price,
+            LocalPrice = request.Price,
             IsAvailable = request.IsAvailable,
             LastRestockedAt = _dateTimeProvider.UtcNow
         };
@@ -96,7 +98,7 @@ public class PharmacyProductService : IPharmacyProductService
             pharmacyProduct.LastRestockedAt = _dateTimeProvider.UtcNow;
         }
         pharmacyProduct.StockQuantity = request.StockQuantity;
-        pharmacyProduct.LocalPrice = request.Price ?? product.Price;
+        pharmacyProduct.LocalPrice = request.Price;
         pharmacyProduct.IsAvailable = request.IsAvailable;
 
         await _repository.UpdateAsync(pharmacyProduct);
@@ -142,7 +144,8 @@ public class PharmacyProductService : IPharmacyProductService
                     pharmacyProduct.Product.Name,
                     pharmacyProduct.StockQuantity,
                     pharmacyProduct.LocalPrice ?? pharmacyProduct.Product.Price,
-                    true));
+                    true,
+                    pharmacyProduct.LocalPrice == null));
             }
             else
             {
@@ -155,7 +158,7 @@ public class PharmacyProductService : IPharmacyProductService
                     PharmacyId = pharmacyId,
                     ProductId = productId,
                     StockQuantity = quantity,
-                    LocalPrice = product.Price,
+                    LocalPrice = null,
                     IsAvailable = true,
                     LastRestockedAt = now
                 };
@@ -166,7 +169,8 @@ public class PharmacyProductService : IPharmacyProductService
                     newPharmacyProduct.ProductId,
                     product.Name,
                     quantity,
-                    newPharmacyProduct.LocalPrice!.Value,
+                    product.Price,
+                    true,
                     true));
             }
         }

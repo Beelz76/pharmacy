@@ -75,7 +75,11 @@
             </el-select>
           </el-form-item>
           <el-form-item label="Цена" prop="price">
-            <el-input type="number" v-model.number="productForm.price" />
+            <el-input
+              type="number"
+              min="0"
+              v-model.number="productForm.price"
+            />
           </el-form-item>
           <el-form-item label="Доступен" prop="isAvailable" :required="false">
             <el-switch v-model="productForm.isAvailable" />
@@ -109,6 +113,11 @@
                   field.type === 'number' || field.type === 'integer'
                     ? 'number'
                     : 'text'
+                "
+                :min="
+                  field.type === 'number' || field.type === 'integer'
+                    ? 0
+                    : undefined
                 "
               />
             </el-form-item>
