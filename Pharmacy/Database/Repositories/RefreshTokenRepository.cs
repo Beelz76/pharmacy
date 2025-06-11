@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Pharmacy.Database.Entities;
+using Pharmacy.Database.Repositories.Interfaces;
 
 namespace Pharmacy.Database.Repositories;
 
@@ -27,6 +28,12 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     public async Task<RefreshToken?> GetByTokenAsync(string token)
     {
         return await _context.RefreshTokens.FirstOrDefaultAsync(t => t.Token == token);
+    }
+    
+    public async Task RemoveAsync(RefreshToken token)
+    {
+        _context.RefreshTokens.Remove(token);
+        await _context.SaveChangesAsync();
     }
 
     public async Task RemoveExpiredAsync(DateTime now)

@@ -1,6 +1,6 @@
 ﻿using Pharmacy.Database.Entities;
 
-namespace Pharmacy.Database.Repositories;
+namespace Pharmacy.Database.Repositories.Interfaces;
 
 public interface IRefreshTokenRepository
 {
@@ -8,4 +8,5 @@ public interface IRefreshTokenRepository
     Task UpdateAsync(RefreshToken token);
     Task<RefreshToken?> GetByTokenAsync(string token);
     Task RemoveExpiredAsync(DateTime now);
+    Task RemoveAsync(RefreshToken token);
 }

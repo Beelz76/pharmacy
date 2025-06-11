@@ -1,5 +1,6 @@
 ﻿using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories;
+using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Users.Authentication;
 using Pharmacy.Endpoints.Users.Authorization;
@@ -115,9 +116,7 @@ public class AuthorizationService : IAuthorizationService
             return Result.Failure<LoginResponse>(userResult.Error);
         }
 
-        existing.IsUsed = true;
-        existing.UsedAt = _dateTimeProvider.UtcNow;
-        await _refreshTokenRepository.UpdateAsync(existing);
+        await _refreshTokenRepository.RemoveAsync(existing);
 
         var jwtId = Guid.NewGuid().ToString();
         var newToken = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email, userResult.Value.Role, jwtId);

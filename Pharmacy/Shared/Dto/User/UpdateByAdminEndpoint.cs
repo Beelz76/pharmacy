@@ -1,10 +1,9 @@
 ﻿using FastEndpoints;
 using FluentValidation;
 using Pharmacy.Services.Interfaces;
-using Pharmacy.Shared.Dto.User;
 using Pharmacy.Shared.Enums;
 
-namespace Pharmacy.Endpoints.Users;
+namespace Pharmacy.Shared.Dto.User;
 
 public class UpdateByAdminEndpoint : Endpoint<UpdateUserRequest>
 {

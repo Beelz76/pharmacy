@@ -157,6 +157,8 @@ import { ElMessage } from "element-plus";
 import VerificationService from "/src/services/VerificationService.js";
 import api from "/src/utils/axios";
 import { useAccountStore } from "/src/stores/AccountStore";
+import useVerificationCodeInput from "/src/composables/useVerificationCodeInput.js";
+import useResendTimer from "/src/composables/useResendTimer.js";
 
 const accountStore = useAccountStore();
 const props = defineProps({ visible: Boolean });
@@ -165,14 +167,24 @@ const emit = defineEmits(["update:visible"]);
 const step = ref(1);
 const loading = ref(false);
 const resendLoading = ref(false);
-const resendTimer = ref(60);
-const canResend = ref(false);
-const resendInterval = ref(null);
 const errorMessage = ref("");
 
-const codeInputs = ref([]);
-const codeDigits = ref(["", "", "", "", "", ""]);
-const verificationCode = ref("");
+const {
+  codeInputs,
+  codeDigits,
+  verificationCode,
+  onCodeInput,
+  onBackspace,
+  onPaste,
+  reset: resetCode,
+} = useVerificationCodeInput();
+
+const {
+  resendTimer,
+  canResend,
+  start: startResendTimer,
+  clear: clearResendTimer,
+} = useResendTimer();
 
 const formRef = ref();
 const form = reactive({
@@ -215,19 +227,14 @@ function goBack() {
 
 watchEffect(() => {
   if (props.visible && step.value === 2) {
-    codeDigits.value = ["", "", "", "", "", ""];
-    verificationCode.value = "";
+    resetCode();
     errorMessage.value = "";
-    canResend.value = false;
-    resendTimer.value = 60;
     nextTick(() => codeInputs.value[0]?.focus());
-
     setTimeout(() => {
       startResendTimer();
     }, 50);
   } else {
-    clearInterval(resendInterval.value);
-    resendInterval.value = null;
+    clearResendTimer();
   }
 });
 
@@ -240,8 +247,7 @@ async function sendResetCode() {
     ElMessage.success("Код отправлен на почту");
     step.value = 2;
     startResendTimer();
-    codeDigits.value = ["", "", "", "", "", ""];
-    verificationCode.value = "";
+    resetCode();
     nextTick(() => codeInputs.value[0]?.focus());
   } finally {
     loading.value = false;
@@ -283,22 +289,6 @@ async function confirmCode() {
   }
 }
 
-function startResendTimer() {
-  clearInterval(resendInterval.value);
-  resendInterval.value = null;
-  resendTimer.value = 60;
-  canResend.value = false;
-
-  resendInterval.value = setInterval(() => {
-    resendTimer.value--;
-    if (resendTimer.value <= 0) {
-      clearInterval(resendInterval.value);
-      resendInterval.value = null;
-      canResend.value = true;
-    }
-  }, 1000);
-}
-
 async function resetPassword() {
   await formRef.value.validate();
   loading.value = true;
@@ -315,41 +305,11 @@ async function resetPassword() {
   }
 }
 
-function onCodeInput(index) {
-  const val = codeDigits.value[index];
-  if (!/\d/.test(val)) {
-    codeDigits.value[index] = "";
-    return;
-  }
-  if (index < 5) nextTick(() => codeInputs.value[index + 1]?.focus());
-  verificationCode.value = codeDigits.value.join("");
-  if (verificationCode.value.length === 6) confirmCode();
-}
-
-function onBackspace(index) {
-  if (!codeDigits.value[index] && index > 0) {
-    nextTick(() => codeInputs.value[index - 1]?.focus());
-  }
-}
-
-function onPaste(event) {
-  const pasted = event.clipboardData
-    .getData("text")
-    .replace(/\D/g, "")
-    .slice(0, 6);
-  for (let i = 0; i < 6; i++) {
-    codeDigits.value[i] = pasted[i] || "";
-  }
-  verificationCode.value = codeDigits.value.join("");
-  nextTick(() => codeInputs.value[Math.min(pasted.length, 5)]?.focus());
-  if (verificationCode.value.length === 6) confirmCode();
-}
-
 function onEnter() {
   if (verificationCode.value.length === 6) confirmCode();
 }
 
 onUnmounted(() => {
-  clearInterval(resendInterval.value);
+  clearResendTimer();
 });
 </script>

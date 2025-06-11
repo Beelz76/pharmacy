@@ -268,6 +268,8 @@ import PhoneInput from "/src/components/inputs/PhoneInput.vue";
 import VerificationService from "/src/services/VerificationService.js";
 import { useAuthStore } from "../stores/AuthStore";
 import { useRouter } from "vue-router";
+import useVerificationCodeInput from "/src/composables/useVerificationCodeInput.js";
+import useResendTimer from "/src/composables/useResendTimer.js";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -280,17 +282,27 @@ const showPassword = ref(false);
 const showVerification = ref(false);
 const showResetPasswordFields = ref(false);
 const loading = ref(false);
-const verificationCode = ref("");
-const resendTimer = ref(60);
-const resendInterval = ref(null);
-const canResend = ref(false);
 const errorMessage = ref("");
 
-const codeInputs = ref([]);
-const codeDigits = ref(["", "", "", "", "", ""]);
+const {
+  codeInputs,
+  codeDigits,
+  verificationCode,
+  onCodeInput,
+  onBackspace,
+  onPaste,
+  reset: resetCode,
+} = useVerificationCodeInput();
+
+const {
+  resendTimer,
+  canResend,
+  start: startResendTimer,
+  clear: clearResendTimer,
+} = useResendTimer();
 
 onUnmounted(() => {
-  clearInterval(resendInterval.value);
+  clearResendTimer();
 });
 
 const showResetStep1 = computed(
@@ -410,16 +422,13 @@ function startPasswordReset() {
 
 function resetFormFields() {
   Object.keys(form).forEach((k) => (form[k] = ""));
-  verificationCode.value = "";
   errorMessage.value = "";
-  codeDigits.value = ["", "", "", "", "", ""];
+  resetCode();
   nextTick(() => formRef.value?.clearValidate?.());
 }
 
 function resetAll() {
-  clearInterval(resendInterval.value);
-  resendTimer.value = 60;
-  canResend.value = false;
+  clearResendTimer();
   isLogin.value = true;
   isPasswordReset.value = false;
   showPassword.value = false;
@@ -478,8 +487,7 @@ async function submitRegister() {
     });
     showVerification.value = true;
     startResendTimer();
-    codeDigits.value = ["", "", "", "", "", ""];
-    nextTick(() => codeInputs.value[0]?.focus());
+    resetCode();
   } finally {
     loading.value = false;
   }
@@ -493,8 +501,7 @@ async function sendResetCode() {
     ElMessage.success("Код отправлен на почту");
     showVerification.value = true;
     startResendTimer();
-    codeDigits.value = ["", "", "", "", "", ""];
-    nextTick(() => codeInputs.value[0]?.focus());
+    resetCode();
   } finally {
     loading.value = false;
   }
@@ -507,24 +514,10 @@ async function sendCode(purpose) {
     await VerificationService.sendCode(form.email, purpose);
     ElMessage.success("Код отправлен на почту");
     startResendTimer();
-    codeDigits.value = ["", "", "", "", "", ""];
-    nextTick(() => codeInputs.value[0]?.focus());
+    resetCode();
   } finally {
     loading.value = false;
   }
-}
-
-function startResendTimer() {
-  resendTimer.value = 60;
-  canResend.value = false;
-  clearInterval(resendInterval.value);
-  resendInterval.value = setInterval(() => {
-    resendTimer.value--;
-    if (resendTimer.value <= 0) {
-      clearInterval(resendInterval.value);
-      canResend.value = true;
-    }
-  }, 1000);
 }
 
 async function resendCode() {
@@ -567,33 +560,7 @@ async function confirmCode() {
   }
 }
 
-function onCodeInput(index) {
-  const val = codeDigits.value[index];
-  if (!/^\d$/.test(val)) {
-    codeDigits.value[index] = "";
-    return;
-  }
-  if (index < 5) nextTick(() => codeInputs.value[index + 1]?.focus());
-  verificationCode.value = codeDigits.value.join("");
-  if (verificationCode.value.length === 6) confirmCode();
-}
-
-function onBackspace(index) {
-  if (!codeDigits.value[index] && index > 0) {
-    nextTick(() => codeInputs.value[index - 1]?.focus());
-  }
-}
-
-function onPaste(event) {
-  const pasted = event.clipboardData
-    .getData("text")
-    .replace(/\D/g, "")
-    .slice(0, 6);
-  for (let i = 0; i < 6; i++) {
-    codeDigits.value[i] = pasted[i] || "";
-  }
-  verificationCode.value = codeDigits.value.join("");
-  nextTick(() => codeInputs.value[Math.min(pasted.length, 5)]?.focus());
+function onEnterFromCode() {
   if (verificationCode.value.length === 6) confirmCode();
 }
 
@@ -623,7 +590,6 @@ function goBack() {
     isPasswordReset.value = false;
     isLogin.value = true;
   }
-  codeDigits.value = ["", "", "", "", "", ""];
-  verificationCode.value = "";
+  resetCode();
 }
 </script>
