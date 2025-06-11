@@ -1,5 +1,4 @@
-﻿using Pharmacy.Database.Entities;
-using Pharmacy.Endpoints.PharmacyProducts;
+﻿using Pharmacy.Endpoints.PharmacyProducts;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.PharmacyProduct;
 using Pharmacy.Shared.Result;

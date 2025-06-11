@@ -37,6 +37,13 @@
             :value="s.name"
           />
         </el-select>
+        <el-button
+          v-if="canCancel"
+          type="danger"
+          @click="cancelOrderWithComment"
+        >
+          Отменить заказ
+        </el-button>
       </div>
 
       <div
@@ -191,8 +198,9 @@ import {
   getOrderById,
   getOrderStatuses,
   updateOrderStatus,
+  cancelOrder,
 } from "/src/services/OrderService";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { statusClass } from "/src/utils/statusClass";
 
 const goDelivery = (orderId) => {
@@ -216,6 +224,14 @@ const route = useRoute();
 const order = ref(null);
 const loading = ref(false);
 const statuses = ref([]);
+
+const canCancel = computed(
+  () =>
+    order.value &&
+    !["Отменен", "Получен", "Возврат средств", "Доставлен"].includes(
+      order.value.status
+    )
+);
 
 const orderId = route.params.id;
 
@@ -249,6 +265,30 @@ const changeStatus = async () => {
   try {
     await updateOrderStatus(order.value.id, order.value.status);
     ElMessage.success("Статус обновлён");
+  } catch {}
+};
+
+const cancelOrderWithComment = async () => {
+  let comment = "";
+  try {
+    const { value } = await ElMessageBox.prompt(
+      "Укажите причину отмены",
+      "Отмена заказа",
+      {
+        confirmButtonText: "Отменить",
+        cancelButtonText: "Отмена",
+        inputType: "textarea",
+        inputPlaceholder: "Комментарий",
+      }
+    );
+    comment = value;
+  } catch {
+    return;
+  }
+  try {
+    await cancelOrder(order.value.id, comment);
+    order.value.status = "Отменен";
+    ElMessage.success("Заказ отменён");
   } catch {}
 };
 </script>

@@ -1,6 +1,5 @@
 ﻿using FastEndpoints;
 using Pharmacy.Services.Interfaces;
-using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Delivery;
 
 namespace Pharmacy.Endpoints.Deliveries;

@@ -2,7 +2,6 @@
 using FluentValidation;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto.Pharmacy;
-using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Endpoints.Pharmacies;
 

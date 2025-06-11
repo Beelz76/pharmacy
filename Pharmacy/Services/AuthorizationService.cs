@@ -1,9 +1,11 @@
-﻿using Pharmacy.Database;
+﻿using System.Security.Cryptography;
+using Pharmacy.Database;
 using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Users.Authentication;
 using Pharmacy.Endpoints.Users.Authorization;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto.Auth;
 using Pharmacy.Shared.Dto.User;
@@ -92,7 +94,7 @@ public class AuthorizationService : IAuthorizationService
         var refreshToken = new RefreshToken
         {
             UserId = userResult.Value.Id,
-            Token = Guid.NewGuid().ToString(),
+            Token = SecurityTokenGenerator.GenerateSecureToken(),
             JwtId = jwtId,
             ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
             CreatedAt = _dateTimeProvider.UtcNow,
@@ -127,7 +129,7 @@ public class AuthorizationService : IAuthorizationService
             var newRefresh = new RefreshToken
             {
                 UserId = userResult.Value.Id,
-                Token = Guid.NewGuid().ToString(),
+                Token = SecurityTokenGenerator.GenerateSecureToken(),
                 JwtId = jwtId,
                 ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
                 CreatedAt = _dateTimeProvider.UtcNow,

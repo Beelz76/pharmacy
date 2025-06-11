@@ -1,7 +1,6 @@
 ﻿using FastEndpoints;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
-using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.User;
 
 namespace Pharmacy.Endpoints.Users;

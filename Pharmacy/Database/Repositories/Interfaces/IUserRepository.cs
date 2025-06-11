@@ -1,5 +1,4 @@
 ﻿using Pharmacy.Database.Entities;
-using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Database.Repositories.Interfaces;
 

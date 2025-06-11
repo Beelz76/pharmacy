@@ -1,5 +1,4 @@
 ﻿using Pharmacy.Database.Entities;
-using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Cart;
 
 namespace Pharmacy.Database.Repositories.Interfaces;

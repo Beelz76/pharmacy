@@ -48,10 +48,7 @@
               <i class="fas fa-image text-5xl text-gray-300"></i>
             </template>
           </div>
-          <div
-            v-if="product.images?.length > 1"
-            class="flex gap-2 overflow-x-auto"
-          >
+          <div v-if="product.images?.length > 1" class="flex flex-wrap gap-2">
             <img
               v-for="img in product.images"
               :key="img.id"

@@ -1,5 +1,4 @@
 ﻿using FastEndpoints;
-using FluentValidation;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 

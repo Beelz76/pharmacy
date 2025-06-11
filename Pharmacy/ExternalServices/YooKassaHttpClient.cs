@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Headers;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Result;

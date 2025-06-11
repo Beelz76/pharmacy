@@ -1,5 +1,4 @@
 ﻿using Pharmacy.Endpoints.Users.Authorization;
-using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Auth;
 using Pharmacy.Shared.Result;
 

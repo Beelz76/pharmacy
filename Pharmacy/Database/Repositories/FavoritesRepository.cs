@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
-using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Favorites;
 
 namespace Pharmacy.Database.Repositories;

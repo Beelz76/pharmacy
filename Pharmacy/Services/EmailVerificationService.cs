@@ -1,6 +1,5 @@
 ﻿using Pharmacy.Database;
 using Pharmacy.Database.Entities;
-using Pharmacy.Database.Repositories;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Users.Authentication;
@@ -8,7 +7,6 @@ using Pharmacy.Endpoints.Users.Verification;
 using Pharmacy.Extensions;
 using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
-using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Auth;
 using Pharmacy.Shared.Enums;
 using Pharmacy.Shared.Result;
@@ -148,7 +146,7 @@ public class EmailVerificationService : IEmailVerificationService
                     var refresh = new RefreshToken
                     {
                         UserId = user.Id,
-                        Token = Guid.NewGuid().ToString(),
+                        Token = SecurityTokenGenerator.GenerateSecureToken(),
                         JwtId = jwtId,
                         ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
                         CreatedAt = _dateTimeProvider.UtcNow
@@ -182,7 +180,7 @@ public class EmailVerificationService : IEmailVerificationService
                     var refresh2 = new RefreshToken
                     {
                         UserId = user.Id,
-                        Token = Guid.NewGuid().ToString(),
+                        Token = SecurityTokenGenerator.GenerateSecureToken(),
                         JwtId = jwtId2,
                         ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
                         CreatedAt = _dateTimeProvider.UtcNow

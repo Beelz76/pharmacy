@@ -1,5 +1,4 @@
-﻿using Pharmacy.Shared.Dto;
-using Pharmacy.Shared.Dto.Favorites;
+﻿using Pharmacy.Shared.Dto.Favorites;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Services.Interfaces;

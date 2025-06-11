@@ -1,7 +1,6 @@
 ﻿using FastEndpoints;
 using FluentValidation;
 using Pharmacy.Services.Interfaces;
-using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Category;
 
 namespace Pharmacy.Endpoints.ProductCategories;
