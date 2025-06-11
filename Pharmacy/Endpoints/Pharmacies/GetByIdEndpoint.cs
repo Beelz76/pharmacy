@@ -15,7 +15,7 @@ public class GetByIdEndpoint : EndpointWithoutRequest
     public override void Configure()
     {
         Get("pharmacies/{id:int}");
-        Roles("Admin");
+        Roles("Admin", "Employee");
         Tags("Pharmacy");
         Summary(s => { s.Summary = "Получить аптеку по id"; });
     }

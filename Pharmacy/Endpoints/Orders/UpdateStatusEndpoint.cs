@@ -22,7 +22,7 @@ public class UpdateStatusEndpoint : Endpoint<UpdateOrderStatusRequest>
     public override void Configure()
     {
         Put("orders/{orderId:int}/status");
-        //Roles("Admin", "Employee");
+        Roles("Admin", "Employee");
         Tags("Orders");
         Summary(s => { s.Summary = "Обновить статус заказа"; });;
     }

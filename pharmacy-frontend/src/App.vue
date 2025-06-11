@@ -16,7 +16,9 @@ import { useAuthStore } from "./stores/AuthStore";
 const auth = useAuthStore();
 const showLoginModal = ref(false);
 const route = useRoute();
-const showHeader = computed(() => route.meta.layout !== "admin");
+const showHeader = computed(
+  () => route.meta.layout !== "admin" && route.meta.layout !== "employee"
+);
 
 function openLoginModal() {
   showLoginModal.value = true;

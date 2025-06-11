@@ -37,6 +37,7 @@ import AdminProductsPage from "../pages/admin/product/AdminProductsPage.vue";
 import AdminProductDetailsPage from "../pages/admin/product/AdminProductDetailsPage.vue";
 import EmployeeLayout from "../layouts/EmployeeLayout.vue";
 import EmployeeOrdersPage from "../pages/employee/order/EmployeeOrdersPage.vue";
+import EmployeeOrderDetailsPage from "../pages/employee/order/EmployeeOrderDetailsPage.vue";
 import EmployeeWarehousePage from "../pages/employee/warehouse/EmployeeWarehousePage.vue";
 import EmployeePharmacyPage from "../pages/employee/pharmacy/EmployeePharmacyPage.vue";
 import { useAuthStore } from "../stores/AuthStore";
@@ -110,6 +111,11 @@ const routes = [
     children: [
       { path: "", redirect: { name: "EmployeeOrders" } },
       { path: "orders", name: "EmployeeOrders", component: EmployeeOrdersPage },
+      {
+        path: "orders/:id",
+        name: "EmployeeOrderDetails",
+        component: EmployeeOrderDetailsPage,
+      },
       {
         path: "warehouse",
         name: "EmployeeWarehouse",

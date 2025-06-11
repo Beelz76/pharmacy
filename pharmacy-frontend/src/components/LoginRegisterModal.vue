@@ -472,7 +472,12 @@ async function submitLogin() {
       nextTick(() => {
         let target = auth.returnUrl;
         if (!target || target === "/") {
-          target = auth.role === "Admin" ? "/admin" : "/";
+          target =
+            auth.role === "Admin"
+              ? "/admin"
+              : auth.role === "Employee"
+              ? "/employee"
+              : "/";
         }
         router.push(target);
         auth.clearReturnUrl();
@@ -553,7 +558,12 @@ async function confirmCode() {
       nextTick(() => {
         let target = auth.returnUrl;
         if (!target || target === "/") {
-          target = auth.role === "Admin" ? "/admin" : "/";
+          target =
+            auth.role === "Admin"
+              ? "/admin"
+              : auth.role === "Employee"
+              ? "/employee"
+              : "/";
         }
         router.push(target);
         auth.clearReturnUrl();

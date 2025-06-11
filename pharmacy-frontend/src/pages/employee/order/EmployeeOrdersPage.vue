@@ -103,7 +103,8 @@
             <th class="px-6 py-5 font-semibold">Дата</th>
             <th class="px-6 py-5 font-semibold">Сумма</th>
             <th class="px-6 py-5 font-semibold">Статус</th>
-            <th class="px-6 py-5 font-semibold">Адрес</th>
+            <th class="px-6 py-5 font-semibold">Покупатель</th>
+            <th class="px-6 py-5 font-semibold">Код</th>
             <th class="px-6 py-5 font-semibold text-right">
               <span class="sr-only">Детали</span>
             </th>
@@ -138,18 +139,21 @@
                 />
               </el-select>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ o.pharmacyAddress }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ o.userFullName }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {{ o.pickupCode || "—" }}
+            </td>
             <td class="px-6 py-4 text-right text-gray-400">
               <i class="fas fa-chevron-right"></i>
             </td>
           </tr>
           <tr v-if="!loading && orders.length === 0">
-            <td colspan="7" class="text-center py-6 text-gray-500">
+            <td colspan="8" class="text-center py-6 text-gray-500">
               Заказы не найдены
             </td>
           </tr>
           <tr v-if="loading">
-            <td colspan="7" class="text-center py-6 text-gray-500">
+            <td colspan="8" class="text-center py-6 text-gray-500">
               Загрузка...
             </td>
           </tr>
@@ -181,7 +185,6 @@ import {
   updateOrderStatus,
 } from "/src/services/OrderService";
 import { ElMessage } from "element-plus";
-import formatAddress from "/src/utils/formatAddress";
 
 const route = useRoute();
 const router = useRouter();
@@ -232,7 +235,6 @@ const loadUser = async (id) => {
 loadUser(filters.userId);
 
 const statuses = ref([]);
-const loadingPharmacies = ref(false);
 
 const changeStatus = async (order) => {
   try {
@@ -316,7 +318,7 @@ const formatDate = (iso) => {
 
 const goDetails = (id) => {
   router.push({
-    name: "AdminOrderDetails",
+    name: "EmployeeOrderDetails",
     params: { id },
     query: { page: pageNumber.value },
   });
