@@ -10,9 +10,9 @@ export async function getOrderById(orderId) {
   }
 }
 
-export async function cancelOrder(orderId) {
+export async function cancelOrder(orderId, comment = null) {
   try {
-    await api.put(`/orders/${orderId}/cancel`);
+    await api.put(`/orders/${orderId}/cancel`, { comment });
   } catch (err) {
     console.error(`Ошибка при отмене заказа #${orderId}:`, err);
     throw err;

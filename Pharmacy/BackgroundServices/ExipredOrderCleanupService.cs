@@ -1,4 +1,6 @@
-﻿namespace Pharmacy.BackgroundServices;
+﻿using Pharmacy.ExternalServices;
+
+namespace Pharmacy.BackgroundServices;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -36,10 +38,12 @@ public class ExpiredOrderCleanupService : BackgroundService
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<PharmacyDbContext>();
+                var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
 
                 var now = _dateTimeProvider.UtcNow;
                 var expiredOrders = await db.Orders
                     .Include(o => o.Payment)
+                    .Include(o => o.User)
                     .Where(o => o.ExpiresAt != null &&
                                 o.ExpiresAt < now &&
                                 o.StatusId == (int)OrderStatusEnum.WaitingForPayment)
@@ -51,6 +55,7 @@ public class ExpiredOrderCleanupService : BackgroundService
                     {
                         order.StatusId = (int)OrderStatusEnum.Cancelled;
                         order.UpdatedAt = now;
+                        order.CancellationComment = "Истек срок оплаты";
 
                         if (order.Payment != null &&
                             ((PaymentStatusEnum)order.Payment.StatusId == PaymentStatusEnum.Pending ||
@@ -58,6 +63,16 @@ public class ExpiredOrderCleanupService : BackgroundService
                         {
                             order.Payment.StatusId = (int)PaymentStatusEnum.Cancelled;
                             order.Payment.UpdatedAt = now;
+                        }
+                        
+                        if (order.User != null)
+                        {
+                            var body = $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                                <h2 style='color: #2c3e50;'>Здравствуйте, {order.User.LastName} {order.User.FirstName}!</h2>
+                                <p style='font-size: 16px; color: #333;'>Ваш заказ <strong>{order.Number}</strong> был отменен.</p>
+                                <p>Причина: Истек срок оплаты</p>
+                            </div>";
+                            await emailSender.SendEmailAsync(order.User.Email, $"Заказ {order.Number} отменен", body);
                         }
                     }
 

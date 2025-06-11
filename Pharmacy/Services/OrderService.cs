@@ -491,7 +491,7 @@ public class OrderService : IOrderService
         return Result.Success();
     }
 
-    public async Task<Result> CancelAsync(int userId, int orderId)
+    public async Task<Result> CancelAsync(int userId, int orderId, string? comment = null)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true);
         if (order is null || order.UserId != userId)
@@ -528,6 +528,7 @@ public class OrderService : IOrderService
 
             order.StatusId = (int)OrderStatusEnum.Cancelled;
             order.UpdatedAt = _dateTimeProvider.UtcNow;
+            order.CancellationComment = comment;
             await _orderRepository.UpdateAsync(order);
             return Result.Success();
         });
@@ -541,7 +542,8 @@ public class OrderService : IOrderService
             var subject = $"Заказ {order.Number} отменен";
             var body = $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
                     <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
-                    <p style='font-size: 16px; color: #333;'>Ваш заказ <strong>{order.Number}</strong> был отменен.</p>
+                    <p style='font-size: 16px; color: #333;'>Ваш заказ <strong>{order.Number}</strong> был отменен.</p> 
+                    {(string.IsNullOrWhiteSpace(comment) ? "" : $"<p>Причина: {comment}</p>")}
                 </div>";
             await _emailSender.SendEmailAsync(user.Email, subject, body);
         }

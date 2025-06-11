@@ -15,6 +15,6 @@ public interface IOrderService
     Task<Result> UpdateStatusAsync(int orderId, OrderStatusEnum newStatus);
     Task<IEnumerable<OrderStatusDto>> GetAllStatusesAsync();
     Task<Result> RefundAsync(int orderId);
-    Task<Result> CancelAsync(int userId, int orderId);
+    Task<Result> CancelAsync(int userId, int orderId, string? comment = null);
     Task<Result> MarkAsDeliveredAsync(int orderId);
 }

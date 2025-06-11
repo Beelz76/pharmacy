@@ -1,4 +1,5 @@
 ﻿using Pharmacy.Database.Entities;
+using Pharmacy.Database.Repositories;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Endpoints.Users.Authentication;
@@ -23,10 +24,11 @@ public class EmailVerificationService : IEmailVerificationService
     private readonly IEmailSender _emailSender;
     private readonly CodeGenerator _codeGenerator;
     private readonly IConfiguration _configuration;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     
     private const int CodeLength = 6;
 
-    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserRepository userRepository, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator, IEmailSender emailSender, IConfiguration configuration)
+    public EmailVerificationService(TokenProvider tokenProvider, IDateTimeProvider dateTimeProvider, IUserRepository userRepository, PasswordProvider passwordProvider, IEmailVerificationCodeRepository repository, CodeGenerator codeGenerator, IEmailSender emailSender, IConfiguration configuration, IRefreshTokenRepository refreshTokenRepository)
     {
         _tokenProvider = tokenProvider;
         _dateTimeProvider = dateTimeProvider;
@@ -36,6 +38,7 @@ public class EmailVerificationService : IEmailVerificationService
         _codeGenerator = codeGenerator;
         _emailSender = emailSender;
         _configuration = configuration;
+        _refreshTokenRepository = refreshTokenRepository;
     }
 
     public async Task<EmailVerificationCode> GenerateVerificationCodeAsync(int userId, string email, VerificationPurposeEnum purpose)
@@ -135,12 +138,22 @@ public class EmailVerificationService : IEmailVerificationService
                         <p style='font-size: 16px; color: #333;'>Ваш аккаунт успешно подтвержден.</p>
                     </div>");
                 
-                var token = _tokenProvider.Create(user.Id, user.Email, user.Role);
-                
-                return Result.Success(new ConfirmCodeDto(true, token));
+                var jwtId = Guid.NewGuid().ToString();
+                var token = _tokenProvider.Create(user.Id, user.Email, user.Role, jwtId);
+                var refresh = new RefreshToken
+                {
+                    UserId = user.Id,
+                    Token = Guid.NewGuid().ToString(),
+                    JwtId = jwtId,
+                    ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
+                    CreatedAt = _dateTimeProvider.UtcNow
+                };
+                await _refreshTokenRepository.AddAsync(refresh);
+
+                return Result.Success(new ConfirmCodeDto(true, token, refresh.Token));
             }
             case VerificationPurposeEnum.PasswordReset:
-                return Result.Success(new ConfirmCodeDto(true, null));
+                return Result.Success(new ConfirmCodeDto(true, null, null));
             case VerificationPurposeEnum.EmailChange:
             {
                 var user = await _userRepository.GetByIdAsync(userId!.Value);
@@ -159,9 +172,19 @@ public class EmailVerificationService : IEmailVerificationService
                         <p style='font-size: 16px; color: #333;'>Адрес вашей электронной почты был успешно изменен.</p>
                     </div>");
                 
-                var token = _tokenProvider.Create(user.Id, user.Email, user.Role);
-                
-                return Result.Success(new ConfirmCodeDto(true, token));
+                var jwtId2 = Guid.NewGuid().ToString();
+                var token2 = _tokenProvider.Create(user.Id, user.Email, user.Role, jwtId2);
+                var refresh2 = new RefreshToken
+                {
+                    UserId = user.Id,
+                    Token = Guid.NewGuid().ToString(),
+                    JwtId = jwtId2,
+                    ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
+                    CreatedAt = _dateTimeProvider.UtcNow
+                };
+                await _refreshTokenRepository.AddAsync(refresh2);
+
+                return Result.Success(new ConfirmCodeDto(true, token2, refresh2.Token));
             }
             default:
                 return Result.Failure<ConfirmCodeDto>(Error.Failure("Неподдерживаемая цель кода"));

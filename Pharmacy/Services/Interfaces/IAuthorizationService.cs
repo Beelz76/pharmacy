@@ -9,4 +9,5 @@ public interface IAuthorizationService
 {
     Task<Result<string>> RegisterAsync(RegisterRequest request);
     Task<Result<LoginResponse>> LoginAsync(LoginRequest request);
+    Task<Result<LoginResponse>> RefreshAsync(string refreshToken);
 }

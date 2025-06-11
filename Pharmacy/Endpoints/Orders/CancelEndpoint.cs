@@ -1,10 +1,11 @@
 ﻿using FastEndpoints;
+using FluentValidation;
 using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.Endpoints.Orders;
 
-public class CancelEndpoint : EndpointWithoutRequest
+public class CancelEndpoint : Endpoint<CancelOrderRequest>
 {
     private readonly ILogger<CancelEndpoint> _logger;
     private readonly IOrderService _orderService;
@@ -22,7 +23,7 @@ public class CancelEndpoint : EndpointWithoutRequest
         Summary(s => { s.Summary = "Отменить заказ"; });
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(CancelOrderRequest request, CancellationToken ct)
     {
         var userId = User.GetUserId();
         if (userId == null)
@@ -32,7 +33,7 @@ public class CancelEndpoint : EndpointWithoutRequest
         }
         var orderId = Route<int>("orderId");
         
-        var result = await _orderService.CancelAsync(userId.Value, orderId);
+        var result = await _orderService.CancelAsync(userId.Value, orderId, request.Comment);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);
@@ -41,5 +42,15 @@ public class CancelEndpoint : EndpointWithoutRequest
         {
             await SendAsync(result.Error, (int)result.Error.StatusCode, ct);
         }
+    }
+}
+
+public record CancelOrderRequest(string? Comment);
+
+public class CancelOrderRequestValidator : Validator<CancelOrderRequest>
+{
+    public CancelOrderRequestValidator()
+    {
+        RuleFor(x => x.Comment).MaximumLength(500);
     }
 }

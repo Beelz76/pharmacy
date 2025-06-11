@@ -443,8 +443,10 @@ async function submitLogin() {
       password: form.password,
     });
     const token = res.data?.token;
-    if (token) {
+    const rToken = res.data?.refreshToken;
+    if (token && rToken) {
       auth.setToken(token);
+      auth.setRefreshToken(rToken);
       emit("update:visible", false);
       nextTick(() => {
         let target = auth.returnUrl;
@@ -539,8 +541,9 @@ async function confirmCode() {
       verificationCode.value,
       isPasswordReset.value ? "PasswordReset" : "Registration"
     );
-    if (result.data?.token) {
+    if (result.data?.token && result.data?.refreshToken) {
       auth.setToken(result.data.token);
+      auth.setRefreshToken(result.data.refreshToken);
       emit("update:visible", false);
       nextTick(() => {
         let target = auth.returnUrl;

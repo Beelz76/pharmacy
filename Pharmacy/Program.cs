@@ -123,16 +123,18 @@ try
             .WithSSL()
             .Build();
     });
-
+    
+    builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+    
     builder.Services.AddSingleton<IStorageProvider, StorageProvider>();
 
     builder.Services.AddHostedService<EmailVerificationCleanupService>();
     builder.Services.AddHostedService<ExpiredOrderCleanupService>();
+    builder.Services.AddHostedService<RefreshTokenCleanupService>();
     
     builder.Services.AddSingleton<PasswordProvider>();
     builder.Services.AddSingleton<TokenProvider>();
     builder.Services.AddSingleton<CodeGenerator>();
-    builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
     
     builder.Services.AddScoped<IProductImageService, ProductImageService>();
     builder.Services.AddScoped<IEmailSender, EmailSender>();
@@ -154,6 +156,7 @@ try
     builder.Services.AddScoped<IPaymentService, PaymentService>();
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
     builder.Services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
     builder.Services.AddScoped<IUserAddressRepository, UserAddressRepository>();
     builder.Services.AddScoped<IUserAddressService, UserAddressService>();

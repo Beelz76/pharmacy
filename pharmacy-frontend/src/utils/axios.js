@@ -23,7 +23,7 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     const status = error.response?.status;
     const data = error.response?.data;
     let message = "Произошла ошибка запроса";
@@ -41,9 +41,22 @@ api.interceptors.response.use(
     switch (status) {
       case 401: {
         try {
-          useAuthStore().softLogout();
+          const auth = useAuthStore();
+          if (auth.refreshToken) {
+            const res = await axios.post(
+              `${api.defaults.baseURL}/authorization/refresh`,
+              { refreshToken: auth.refreshToken }
+            );
+            if (res.data?.token && res.data?.refreshToken) {
+              auth.setToken(res.data.token, { fetchServer: false });
+              auth.setRefreshToken(res.data.refreshToken);
+              error.config.headers.Authorization = `Bearer ${res.data.token}`;
+              return api(error.config);
+            }
+          }
+          auth.softLogout();
         } catch {
-          localStorage.removeItem("token");
+          useAuthStore().softLogout();
         }
 
         ElMessage.error("Сессия истекла. Пожалуйста, войдите заново.");

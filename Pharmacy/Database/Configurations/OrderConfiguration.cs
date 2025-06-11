@@ -28,6 +28,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.Property(x => x.ExpiresAt);
         
+        builder.Property(x => x.CancellationComment)
+            .HasMaxLength(500);
+        
         builder.Property(x => x.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");

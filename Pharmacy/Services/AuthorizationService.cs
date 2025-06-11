@@ -1,4 +1,7 @@
-﻿using Pharmacy.Endpoints.Users.Authentication;
+﻿using Pharmacy.Database.Entities;
+using Pharmacy.Database.Repositories;
+using Pharmacy.DateTimeProvider;
+using Pharmacy.Endpoints.Users.Authentication;
 using Pharmacy.Endpoints.Users.Authorization;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
@@ -15,13 +18,17 @@ public class AuthorizationService : IAuthorizationService
     private readonly PasswordProvider _passwordProvider;
     private readonly TokenProvider _tokenProvider;
     private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public AuthorizationService(IUserService userService, PasswordProvider passwordProvider, TokenProvider tokenProvider, IEmailVerificationService emailVerificationService)
+    public AuthorizationService(IUserService userService, PasswordProvider passwordProvider, TokenProvider tokenProvider, IEmailVerificationService emailVerificationService, IRefreshTokenRepository refreshTokenRepository, IDateTimeProvider dateTimeProvider)
     {
         _userService = userService;
         _passwordProvider = passwordProvider;
         _tokenProvider = tokenProvider;
         _emailVerificationService = emailVerificationService;
+        _refreshTokenRepository = refreshTokenRepository;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<Result<string>> RegisterAsync(RegisterRequest request)
@@ -74,11 +81,58 @@ public class AuthorizationService : IAuthorizationService
             {
                 return Result.Failure<LoginResponse>(sendResult.Error);
             }
-            return Result.Success(new LoginResponse("На почту отправлен код подтверждения", null));
+            return Result.Success(new LoginResponse("На почту отправлен код подтверждения", null, null));
         }
         
-        var token = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email, userResult.Value.Role);
-        
-        return Result.Success(new LoginResponse(null, token));
+        var jwtId = Guid.NewGuid().ToString();
+        var token = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email, userResult.Value.Role, jwtId);
+
+        var refreshToken = new RefreshToken
+        {
+            UserId = userResult.Value.Id,
+            Token = Guid.NewGuid().ToString(),
+            JwtId = jwtId,
+            ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
+            CreatedAt = _dateTimeProvider.UtcNow,
+            IsUsed = false
+        };
+        await _refreshTokenRepository.AddAsync(refreshToken);
+
+        return Result.Success(new LoginResponse(null, token, refreshToken.Token));
+    }
+
+    public async Task<Result<LoginResponse>> RefreshAsync(string refreshToken)
+    {
+        var existing = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+        if (existing == null || existing.IsUsed || existing.ExpiresAt <= _dateTimeProvider.UtcNow)
+        {
+            return Result.Failure<LoginResponse>(Error.Unauthorized("Неверный токен"));
+        }
+
+        var userResult = await _userService.GetByIdAsync(existing.UserId);
+        if (userResult.IsFailure)
+        {
+            return Result.Failure<LoginResponse>(userResult.Error);
+        }
+
+        existing.IsUsed = true;
+        existing.UsedAt = _dateTimeProvider.UtcNow;
+        await _refreshTokenRepository.UpdateAsync(existing);
+
+        var jwtId = Guid.NewGuid().ToString();
+        var newToken = _tokenProvider.Create(userResult.Value.Id, userResult.Value.Email, userResult.Value.Role, jwtId);
+
+        var newRefresh = new RefreshToken
+        {
+            UserId = userResult.Value.Id,
+            Token = Guid.NewGuid().ToString(),
+            JwtId = jwtId,
+            ExpiresAt = _dateTimeProvider.UtcNow.AddDays(30),
+            CreatedAt = _dateTimeProvider.UtcNow,
+            IsUsed = false
+        };
+        await _refreshTokenRepository.AddAsync(newRefresh);
+
+        return Result.Success(new LoginResponse(null, newToken, newRefresh.Token));
     }
 }

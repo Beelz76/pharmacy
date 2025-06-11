@@ -6,6 +6,7 @@ import { useFavoritesStore } from "./FavoritesStore";
 
 export const useAuthStore = defineStore("auth", () => {
   const token = ref(localStorage.getItem("token"));
+  const refreshToken = ref(localStorage.getItem("refreshToken"));
   const email = ref(null);
   const role = ref(null);
   const userId = ref(null);
@@ -41,10 +42,19 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  function setRefreshToken(newToken) {
+    refreshToken.value = newToken;
+    localStorage.setItem("refreshToken", newToken);
+  }
+
   function initialize() {
     const savedToken = localStorage.getItem("token");
     if (savedToken) {
       setToken(savedToken, { sync: false, fetchServer: true });
+    }
+    const savedRefresh = localStorage.getItem("refreshToken");
+    if (savedRefresh) {
+      refreshToken.value = savedRefresh;
     }
     const savedReturnUrl = localStorage.getItem("returnUrl");
     if (savedReturnUrl) {
@@ -68,11 +78,13 @@ export const useAuthStore = defineStore("auth", () => {
 
   function logout() {
     token.value = null;
+    refreshToken.value = null;
     email.value = null;
     role.value = null;
     userId.value = null;
     returnUrl.value = null;
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
 
     useAccountStore().clear();
     useCartStore().$reset();
@@ -83,11 +95,13 @@ export const useAuthStore = defineStore("auth", () => {
 
   function softLogout() {
     token.value = null;
+    refreshToken.value = null;
     email.value = null;
     role.value = null;
     userId.value = null;
     returnUrl.value = null;
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
 
     useAccountStore().clear();
     useCartStore().$reset();
@@ -100,12 +114,14 @@ export const useAuthStore = defineStore("auth", () => {
 
   return {
     token,
+    refreshToken,
     email,
     role,
     userId,
     returnUrl,
     isAuthenticated,
     setToken,
+    setRefreshToken,
     setReturnUrl,
     clearReturnUrl,
     logout,
