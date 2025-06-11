@@ -1,5 +1,8 @@
 ﻿using FastEndpoints;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
+using Pharmacy.Shared.Enums;
+using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Endpoints.Orders;
 
@@ -7,10 +10,12 @@ public class MarkAsDeliveredEndpoint : EndpointWithoutRequest
 {
     private readonly ILogger<MarkAsDeliveredEndpoint> _logger;
     private readonly IOrderService _orderService;
-    public MarkAsDeliveredEndpoint(ILogger<MarkAsDeliveredEndpoint> logger, IOrderService orderService)
+    private readonly IUserService _userService;
+    public MarkAsDeliveredEndpoint(ILogger<MarkAsDeliveredEndpoint> logger, IOrderService orderService, IUserService userService)
     {
         _logger = logger;
         _orderService = orderService;
+        _userService = userService;
     }
 
     public override void Configure()
@@ -25,7 +30,25 @@ public class MarkAsDeliveredEndpoint : EndpointWithoutRequest
     {
         var orderId = Route<int>("orderId");
         
-        var result = await _orderService.MarkAsDeliveredAsync(orderId);
+        int? pharmacyId = null;
+        if (User.GetUserRole() == UserRoleEnum.Employee)
+        {
+            var userId = User.GetUserId();
+            if (userId == null)
+            {
+                await SendUnauthorizedAsync(ct);
+                return;
+            }
+            var user = await _userService.GetByIdAsync(userId.Value);
+            if (user.IsFailure || user.Value.Pharmacy == null)
+            {
+                await SendAsync(Error.Forbidden("Нет доступа"), 403, ct);
+                return;
+            }
+            pharmacyId = user.Value.Pharmacy.Id;
+        }
+
+        var result = await _orderService.MarkAsDeliveredAsync(orderId, pharmacyId);
         if (result.IsSuccess)
         {
             await SendOkAsync(ct);

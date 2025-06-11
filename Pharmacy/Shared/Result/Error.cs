@@ -27,4 +27,5 @@ public sealed record Error
     public static Error Conflict(string message) => new(HttpStatusCode.Conflict, ErrorTypeEnum.Conflict, message);
     public static Error Problem(string message) => new(HttpStatusCode.InternalServerError, ErrorTypeEnum.Problem, message);
     public static Error Unauthorized(string message) => new(HttpStatusCode.Unauthorized, ErrorTypeEnum.Unauthorized, message);
+    public static Error Forbidden(string message) => new(HttpStatusCode.Forbidden, ErrorTypeEnum.Forbidden, message);
 }

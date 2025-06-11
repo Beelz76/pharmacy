@@ -273,7 +273,7 @@ public class OrderService : IOrderService
         return Result.Success(createResult.Value.Confirmation.ConfirmationUrl);
     }
     
-    public async Task<Result<OrderDetailsDto>> GetByIdAsync(int orderId, int currentUserId, UserRoleEnum role)
+    public async Task<Result<OrderDetailsDto>> GetByIdAsync(int orderId, int currentUserId, UserRoleEnum role, int? pharmacyId = null)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(orderId,
             includeItems: true,
@@ -292,6 +292,11 @@ public class OrderService : IOrderService
         if (role == UserRoleEnum.User && order.UserId != currentUserId)
         {
             return Result.Failure<OrderDetailsDto>(Error.Failure("Нет доступа к заказу"));
+        }
+        
+        if (role == UserRoleEnum.Employee && pharmacyId.HasValue && order.PharmacyId != pharmacyId.Value)
+        {
+            return Result.Failure<OrderDetailsDto>(Error.Forbidden("Нет доступа к заказу"));
         }
 
         return Result.Success(new OrderDetailsDto(
@@ -428,7 +433,7 @@ public class OrderService : IOrderService
         return Result.Success(new PaginatedList<OrderDto>(pageItems, totalCount, pageNumber, pageSize));
     }
     
-    public async Task<Result> UpdateStatusAsync(int orderId, OrderStatusEnum newStatus)
+    public async Task<Result> UpdateStatusAsync(int orderId, OrderStatusEnum newStatus, int? pharmacyId = null)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true, includePharmacy: true);
         if (order is null)
@@ -436,6 +441,11 @@ public class OrderService : IOrderService
             return Result.Failure(Error.NotFound("Заказ не найден"));
         }
 
+        if (pharmacyId.HasValue && order.PharmacyId != pharmacyId.Value)
+        {
+            return Result.Failure(Error.Forbidden("Нет доступа к заказу"));
+        }
+        
         var user = await _userRepository.GetByIdAsync(order.UserId);
         if (user is null)
         {
@@ -551,7 +561,7 @@ public class OrderService : IOrderService
         return Result.Success();
     }
     
-    public async Task<Result> RefundAsync(int orderId)
+    public async Task<Result> RefundAsync(int orderId, int? pharmacyId = null)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true);
         if (order is null)
@@ -559,6 +569,11 @@ public class OrderService : IOrderService
             return Result.Failure(Error.NotFound("Заказ не найден"));
         }
 
+        if (pharmacyId.HasValue && order.PharmacyId != pharmacyId.Value)
+        {
+            return Result.Failure(Error.Forbidden("Нет доступа к заказу"));
+        }
+        
         var payment = order.Payment;
         if (payment is null || (PaymentStatusEnum)payment.StatusId != PaymentStatusEnum.Completed)
         {
@@ -610,7 +625,7 @@ public class OrderService : IOrderService
         return statuses.Select(s => new OrderStatusDto(s.Id, s.Name, s.Description));
     }
 
-    public async Task<Result> MarkAsDeliveredAsync(int orderId)
+    public async Task<Result> MarkAsDeliveredAsync(int orderId, int? pharmacyId = null)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true, includePharmacy: true);
         if (order is null)
@@ -618,6 +633,11 @@ public class OrderService : IOrderService
             return Result.Failure(Error.NotFound("Заказ не найден"));
         }
 
+        if (pharmacyId.HasValue && order.PharmacyId != pharmacyId.Value)
+        {
+            return Result.Failure(Error.Forbidden("Нет доступа к заказу"));
+        }
+        
         if (order.StatusId == (int)OrderStatusEnum.Delivered)
         {
             return Result.Failure(Error.Failure("Заказ уже отмечен как доставленный"));
@@ -660,4 +680,69 @@ public class OrderService : IOrderService
         return Result.Success();
     }
 
+    public async Task<Result> CancelByStaffAsync(int orderId, string? comment = null, int? pharmacyId = null)
+    {
+        var order = await _orderRepository.GetByIdWithDetailsAsync(orderId, includePayment: true);
+        if (order is null)
+        {
+            return Result.Failure(Error.NotFound("Заказ не найден"));
+        }
+
+        if (pharmacyId.HasValue && order.PharmacyId != pharmacyId.Value)
+        {
+            return Result.Failure(Error.Forbidden("Нет доступа к заказу"));
+        }
+
+        if (order.StatusId != (int)OrderStatusEnum.Pending && order.StatusId != (int)OrderStatusEnum.WaitingForPayment)
+        {
+            return Result.Failure(Error.Failure("Отменить можно только заказы в статусе 'Ожидает обработки' или 'Ожидает оплаты'"));
+        }
+
+        if (order.Payment.StatusId == (int)PaymentStatusEnum.Completed)
+        {
+            return Result.Failure(Error.Failure("Нельзя отменить уже оплаченный заказ"));
+        }
+
+        var transactionResult = await _transactionRunner.ExecuteAsync(async () =>
+        {
+            if (order.Payment.StatusId == (int)PaymentStatusEnum.Pending || order.Payment.StatusId == (int)PaymentStatusEnum.NotPaid)
+            {
+                order.Payment.StatusId = (int)PaymentStatusEnum.Cancelled;
+                order.Payment.UpdatedAt = _dateTimeProvider.UtcNow;
+            }
+
+            foreach (var item in order.OrderItems)
+            {
+                var pharmacyProduct = await _pharmacyProductService.GetAsync(order.PharmacyId, item.ProductId);
+                if (pharmacyProduct != null)
+                {
+                    await _pharmacyProductService.UpdateStockQuantityAsync(order.PharmacyId, item.ProductId, pharmacyProduct.StockQuantity + item.Quantity);
+                }
+            }
+
+            order.StatusId = (int)OrderStatusEnum.Cancelled;
+            order.UpdatedAt = _dateTimeProvider.UtcNow;
+            order.CancellationComment = comment;
+            await _orderRepository.UpdateAsync(order);
+            return Result.Success();
+        });
+
+        if (transactionResult.IsFailure)
+            return transactionResult;
+
+        var user = await _userRepository.GetByIdAsync(order.UserId);
+        if (user != null)
+        {
+            var subject = $"Заказ {order.Number} отменен";
+            var body = $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+                    <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
+                    <p style='font-size: 16px; color: #333;'>Ваш заказ <strong>{order.Number}</strong> был отменен.</p>
+                    {(string.IsNullOrWhiteSpace(comment) ? "" : $"<p>Причина: {comment}</p>")}
+                </div>";
+            await _emailSender.SendEmailAsync(user.Email, subject, body);
+        }
+
+        return Result.Success();
+    }
+    
 }

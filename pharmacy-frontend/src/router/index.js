@@ -35,6 +35,10 @@ import AdminPaymentsPage from "../pages/admin/payment/AdminPaymentsPage.vue";
 import AdminPaymentDetailsPage from "../pages/admin/payment/AdminPaymentDetailsPage.vue";
 import AdminProductsPage from "../pages/admin/product/AdminProductsPage.vue";
 import AdminProductDetailsPage from "../pages/admin/product/AdminProductDetailsPage.vue";
+import EmployeeLayout from "../layouts/EmployeeLayout.vue";
+import EmployeeOrdersPage from "../pages/employee/order/EmployeeOrdersPage.vue";
+import EmployeeWarehousePage from "../pages/employee/warehouse/EmployeeWarehousePage.vue";
+import EmployeePharmacyPage from "../pages/employee/pharmacy/EmployeePharmacyPage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -96,6 +100,25 @@ const routes = [
         path: "addresses",
         name: "SavedAddresses",
         component: SavedAddressesPage,
+      },
+    ],
+  },
+  {
+    path: "/employee",
+    component: EmployeeLayout,
+    meta: { requiresAuth: true, roles: ["Employee"], layout: "employee" },
+    children: [
+      { path: "", redirect: { name: "EmployeeOrders" } },
+      { path: "orders", name: "EmployeeOrders", component: EmployeeOrdersPage },
+      {
+        path: "warehouse",
+        name: "EmployeeWarehouse",
+        component: EmployeeWarehousePage,
+      },
+      {
+        path: "pharmacy",
+        name: "EmployeePharmacy",
+        component: EmployeePharmacyPage,
       },
     ],
   },

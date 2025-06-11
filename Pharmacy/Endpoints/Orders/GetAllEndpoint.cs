@@ -4,6 +4,7 @@ using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Order;
 using Pharmacy.Shared.Enums;
+using Pharmacy.Shared.Result;
 
 namespace Pharmacy.Endpoints.Orders;
 
@@ -11,10 +12,12 @@ public class GetAllEndpoint : Endpoint<OrderFilters>
 {
     private readonly ILogger<GetAllEndpoint> _logger;
     private readonly IOrderService _orderService;
-    public GetAllEndpoint(ILogger<GetAllEndpoint> logger, IOrderService orderService)
+    private readonly IUserService _userService;
+    public GetAllEndpoint(ILogger<GetAllEndpoint> logger, IOrderService orderService, IUserService userService)
     {
         _logger = logger;
         _orderService = orderService;
+        _userService = userService;
     }
 
     public override void Configure()
@@ -35,9 +38,21 @@ public class GetAllEndpoint : Endpoint<OrderFilters>
         }
         
         var userRole = User.GetUserRole();
+        int? pharmacyId = null;
         if (userRole != UserRoleEnum.User)
         {
             userId = null;
+            if (userRole == UserRoleEnum.Employee)
+            {
+                var user = await _userService.GetByIdAsync(User.GetUserId()!.Value);
+                if (user.IsFailure || user.Value.Pharmacy == null)
+                {
+                    await SendAsync(Error.Forbidden("Нет доступа"), 403, ct);
+                    return;
+                }
+                pharmacyId = user.Value.Pharmacy.Id;
+                filters = filters with { PharmacyId = pharmacyId };
+            }
         }
         
         int pageNumber = Query<int>("pageNumber", isRequired: false) == 0 ? 1 : Query<int>("pageNumber", isRequired: false);

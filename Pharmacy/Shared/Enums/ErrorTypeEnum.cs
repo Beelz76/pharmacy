@@ -13,5 +13,5 @@ public enum ErrorTypeEnum
     Problem = 5,
     InternalServerError = 6,
     Unauthorized = 7,
-    AccessForbidden = 8
+    Forbidden = 8
 }
