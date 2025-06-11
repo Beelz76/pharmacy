@@ -10,7 +10,7 @@
         />
       </button>
       <h2 class="text-2xl font-bold tracking-tight">
-        Склад аптеки #{{ pharmacy?.id }}
+        Склад аптеки {{ pharmacy?.name || "#" + pharmacy?.id }}
       </h2>
     </div>
 
@@ -41,7 +41,17 @@
           <tbody class="divide-y divide-gray-100">
             <tr v-for="p in products" :key="p.productId">
               <td class="px-6 py-4">{{ p.productId }}</td>
-              <td class="px-6 py-4">{{ p.productName }}</td>
+              <td class="px-6 py-4">
+                <RouterLink
+                  :to="{
+                    name: 'ProductDetails',
+                    params: { id: p.productId, slug: toSlug(p.productName) },
+                  }"
+                  class="text-primary-600 hover:underline"
+                >
+                  {{ p.productName }}
+                </RouterLink>
+              </td>
               <td class="px-6 py-4">{{ p.stockQuantity }}</td>
               <td class="px-6 py-4">
                 {{ p.price
@@ -52,6 +62,12 @@
               <td class="px-6 py-4">{{ p.isAvailable ? "Да" : "Нет" }}</td>
               <td class="px-6 py-4">
                 <div class="flex justify-start gap-2">
+                  <el-button
+                    size="small"
+                    @click="goProduct(p.productId, p.productName)"
+                  >
+                    <i class="fas fa-link" />
+                  </el-button>
                   <el-button size="small" @click="editProduct(p)">
                     <i class="fas fa-edit" />
                   </el-button>
@@ -130,6 +146,7 @@ import { useAccountStore } from "/src/stores/AccountStore";
 import { ElMessageBox, ElMessage } from "element-plus";
 import api from "/src/utils/axios";
 import ProductService from "/src/services/ProductService";
+import { toSlug } from "/src/utils/slugify";
 
 const router = useRouter();
 const accountStore = useAccountStore();
@@ -158,6 +175,10 @@ const rules = {
     { min: 0, message: "Цена не может быть отрицательной", trigger: "blur" },
   ],
 };
+
+function goProduct(id, name) {
+  router.push({ name: "ProductDetails", params: { id, slug: toSlug(name) } });
+}
 
 onMounted(async () => {
   loading.value = true;

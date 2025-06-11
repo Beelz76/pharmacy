@@ -9,6 +9,14 @@
     </div>
     <nav class="flex-1 space-y-1 px-4 py-4">
       <RouterLink
+        to="/employee/profile"
+        :class="navLinkClass('/employee/profile')"
+      >
+        <i class="fas fa-user text-base w-5 text-center mr-3"></i>
+        Профиль
+      </RouterLink>
+
+      <RouterLink
         to="/employee/orders"
         :class="navLinkClass('/employee/orders')"
       >

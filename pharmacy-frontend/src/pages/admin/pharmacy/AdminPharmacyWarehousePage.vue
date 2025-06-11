@@ -10,7 +10,7 @@
         />
       </button>
       <h2 class="text-2xl font-bold tracking-tight">
-        Склад аптеки #{{ pharmacy?.id }}
+        Склад аптеки {{ pharmacy?.name || "#" + pharmacy?.id }}
       </h2>
     </div>
 
@@ -41,7 +41,18 @@
           <tbody class="divide-y divide-gray-100">
             <tr v-for="p in products" :key="p.productId">
               <td class="px-6 py-4">{{ p.productId }}</td>
-              <td class="px-6 py-4">{{ p.productName }}</td>
+              <td class="px-6 py-4">
+                <RouterLink
+                  :to="{
+                    name: 'AdminProductDetails',
+                    params: { id: p.productId },
+                    query: route.query,
+                  }"
+                  class="text-primary-600 hover:underline"
+                >
+                  {{ p.productName }}
+                </RouterLink>
+              </td>
               <td class="px-6 py-4">{{ p.stockQuantity }}</td>
               <td class="px-6 py-4">
                 {{ p.price
@@ -52,6 +63,9 @@
               <td class="px-6 py-4">{{ p.isAvailable ? "Да" : "Нет" }}</td>
               <td class="px-6 py-4">
                 <div class="flex justify-start gap-2">
+                  <el-button size="small" @click="goProduct(p.productId)">
+                    <i class="fas fa-link" />
+                  </el-button>
                   <el-button size="small" @click="editProduct(p)">
                     <i class="fas fa-edit" />
                   </el-button>
@@ -250,6 +264,14 @@ async function saveProduct() {
     products.value = await getPharmacyProducts(pharmacyId);
     ElMessage.success("Сохранено");
   } catch {}
+}
+
+function goProduct(id) {
+  router.push({
+    name: "AdminProductDetails",
+    params: { id },
+    query: route.query,
+  });
 }
 
 async function removeProduct(id) {

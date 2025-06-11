@@ -203,17 +203,6 @@ const filters = reactive({
   maxPrice: null,
 });
 
-watch(
-  () => accountStore.account,
-  (val) => {
-    if (val?.pharmacy?.id) {
-      filters.pharmacyId = val.pharmacy.id;
-      fetch();
-    }
-  },
-  { immediate: true }
-);
-
 const { orders, totalCount, pageNumber, pageSize, loading, fetchOrders } =
   useOrders();
 
@@ -249,7 +238,7 @@ const loadStatuses = async () => {
   statuses.value = await getOrderStatuses();
 };
 
-const fetch = () => {
+function fetch() {
   const payload = {
     number: filters.number || null,
     userId: filters.userId || null,
@@ -267,7 +256,7 @@ const fetch = () => {
     size: pageSize.value,
     filters: payload,
   });
-};
+}
 
 const resetFilters = () => {
   filters.number = "";
@@ -282,6 +271,17 @@ const resetFilters = () => {
   pageNumber.value = 1;
   fetch();
 };
+
+watch(
+  () => accountStore.account,
+  (val) => {
+    if (val?.pharmacy?.id) {
+      filters.pharmacyId = val.pharmacy.id;
+      fetch();
+    }
+  },
+  { immediate: true }
+);
 
 watch(pageNumber, (val) => {
   router.replace({

@@ -10,7 +10,7 @@
         ></i>
       </button>
       <h2 class="text-2xl font-bold tracking-tight">
-        Аптека #{{ pharmacy?.id }}
+        Аптека {{ pharmacy?.name || "#" + pharmacy?.id }}
       </h2>
     </div>
 

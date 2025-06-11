@@ -40,6 +40,7 @@ import EmployeeOrdersPage from "../pages/employee/order/EmployeeOrdersPage.vue";
 import EmployeeOrderDetailsPage from "../pages/employee/order/EmployeeOrderDetailsPage.vue";
 import EmployeeWarehousePage from "../pages/employee/warehouse/EmployeeWarehousePage.vue";
 import EmployeePharmacyPage from "../pages/employee/pharmacy/EmployeePharmacyPage.vue";
+import EmployeeProfilePage from "../pages/employee/EmployeeProfilePage.vue";
 import { useAuthStore } from "../stores/AuthStore";
 import { useOrderStore } from "../stores/OrderStore";
 import { useCartStore } from "../stores/CartStore";
@@ -109,7 +110,12 @@ const routes = [
     component: EmployeeLayout,
     meta: { requiresAuth: true, roles: ["Employee"], layout: "employee" },
     children: [
-      { path: "", redirect: { name: "EmployeeOrders" } },
+      { path: "", redirect: { name: "EmployeeProfile" } },
+      {
+        path: "profile",
+        name: "EmployeeProfile",
+        component: EmployeeProfilePage,
+      },
       { path: "orders", name: "EmployeeOrders", component: EmployeeOrdersPage },
       {
         path: "orders/:id",
