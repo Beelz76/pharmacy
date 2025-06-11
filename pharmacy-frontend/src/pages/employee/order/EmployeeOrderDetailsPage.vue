@@ -207,6 +207,10 @@ onMounted(async () => {
     loading.value = true;
     order.value = await getOrderById(orderId);
     statuses.value = await getOrderStatuses();
+    const current = statuses.value.find(
+      (s) => s.description === order.value.status
+    );
+    if (current) order.value.status = current.name;
   } finally {
     loading.value = false;
   }
@@ -215,8 +219,29 @@ onMounted(async () => {
 const changeStatus = async () => {
   const prev = order.value.status;
   try {
-    await updateOrderStatus(order.value.id, order.value.status);
-    ElMessage.success("Статус обновлён");
+    if (order.value.status === "Cancelled") {
+      let comment = "";
+      try {
+        const { value } = await ElMessageBox.prompt(
+          "Укажите причину отмены (опционально)",
+          "Отмена заказа",
+          {
+            confirmButtonText: "Отменить",
+            cancelButtonText: "Закрыть",
+            draggable: true,
+          }
+        );
+        comment = value;
+      } catch {
+        return;
+      }
+      await cancelOrder(order.value.id, comment || null);
+      ElMessage.success("Заказ отменён");
+      order.value.status = "Cancelled";
+    } else {
+      await updateOrderStatus(order.value.id, order.value.status);
+      ElMessage.success("Статус обновлён");
+    }
   } catch {
     order.value.status = prev;
   }
