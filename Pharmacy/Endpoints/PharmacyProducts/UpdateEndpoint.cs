@@ -16,7 +16,7 @@ public class UpdateEndpoint : Endpoint<UpdatePharmacyProductRequest>
     public override void Configure()
     {
         Put("pharmacy/{pharmacyId:int}/products/{productId:int}");
-        Roles("Admin");
+        Roles("Admin", "Employee");
         Tags("Pharmacy");
         Summary(s => { s.Summary = "Обновить товар в аптеке"; });
     }

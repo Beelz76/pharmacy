@@ -15,7 +15,7 @@ public class DeleteEndpoint : EndpointWithoutRequest
     public override void Configure()
     {
         Delete("pharmacy/{pharmacyId:int}/products/{productId:int}");
-        Roles("Admin");
+        Roles("Admin", "Employee");
         Tags("Pharmacy");
         Summary(s => { s.Summary = "Удалить товар из аптеки"; });
     }

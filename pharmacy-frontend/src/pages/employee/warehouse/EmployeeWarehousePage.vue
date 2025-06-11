@@ -269,12 +269,12 @@ async function saveProduct() {
   };
   try {
     if (editingId.value) {
-      await updatePharmacyProduct(pharmacyId, editingId.value, payload);
+      await updatePharmacyProduct(pharmacyId.value, editingId.value, payload);
     } else {
-      await addPharmacyProduct(pharmacyId, payload);
+      await addPharmacyProduct(pharmacyId.value, payload);
     }
     dialogVisible.value = false;
-    products.value = await getPharmacyProducts(pharmacyId);
+    products.value = await getPharmacyProducts(pharmacyId.value);
     ElMessage.success("Сохранено");
   } catch {}
 }
@@ -290,8 +290,8 @@ async function removeProduct(id) {
     return;
   }
   try {
-    await deletePharmacyProduct(pharmacyId, id);
-    products.value = await getPharmacyProducts(pharmacyId);
+    await deletePharmacyProduct(pharmacyId.value, id);
+    products.value = await getPharmacyProducts(pharmacyId.value);
     ElMessage.success("Удалено");
   } catch {}
 }

@@ -24,7 +24,12 @@
         class="flex flex-wrap justify-between items-center text-sm text-gray-600 mb-4 gap-2"
       >
         <span> Дата оформления: {{ formatDate(order.createdAt) }} </span>
-        <el-select v-model="order.status" size="medium" @change="changeStatus">
+        <el-select
+          v-model="order.status"
+          size="medium"
+          @change="changeStatus"
+          class="status-select"
+        >
           <el-option
             v-for="s in statuses"
             :key="s.id"
@@ -258,5 +263,13 @@ const changeStatus = async () => {
 }
 .custom-scroll::-webkit-scrollbar-track {
   background-color: transparent;
+}
+.status-select {
+  width: 100%;
+}
+@media (min-width: 1024px) {
+  .status-select {
+    width: calc(33.333% - 2rem);
+  }
 }
 </style>

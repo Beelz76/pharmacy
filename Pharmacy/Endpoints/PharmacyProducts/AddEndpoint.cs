@@ -16,7 +16,7 @@ public class AddEndpoint : Endpoint<AddPharmacyProductRequest>
     public override void Configure()
     {
         Post("pharmacy/{pharmacyId:int}/products");
-        Roles("Admin");
+        Roles("Admin", "Employee");
         Tags("Pharmacy");
         Summary(s => { s.Summary = "Добавить товар в аптеку"; });
     }
