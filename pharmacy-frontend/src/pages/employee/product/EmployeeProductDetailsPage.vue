@@ -29,11 +29,11 @@
         <p><span class="font-medium">Название:</span> {{ product.name }}</p>
         <p>
           <span class="font-medium">Категория:</span>
-          {{ product.category.name }}
+          {{ fullCategoryName }}
         </p>
         <p>
           <span class="font-medium">Производитель:</span>
-          {{ product.manufacturer.name }}
+          {{ product.manufacturer.name }} ({{ product.manufacturer.country }})
         </p>
         <p><span class="font-medium">Цена:</span> {{ product.price }}</p>
         <p>
@@ -42,14 +42,13 @@
         </p>
       </div>
 
-      <div v-if="product.properties?.length" class="pt-4">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Свойства</h3>
-        <ul class="space-y-1 text-sm text-gray-700">
-          <li v-for="prop in product.properties" :key="prop.key">
-            <span class="font-medium">{{ prop.label || prop.key }}:</span>
-            {{ prop.value }}
-          </li>
-        </ul>
+      <div v-if="product.description" class="pt-4">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">
+          Краткое описание
+        </h3>
+        <p class="text-sm text-gray-700 whitespace-pre-line">
+          {{ product.description }}
+        </p>
       </div>
 
       <div v-if="product.extendedDescription" class="pt-4">
@@ -75,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ProductService from "/src/services/ProductService";
 
@@ -83,6 +82,14 @@ const router = useRouter();
 const route = useRoute();
 const product = ref(null);
 const loading = ref(false);
+
+const fullCategoryName = computed(() => {
+  if (!product.value) return "";
+  if (product.value.parentCategory?.name) {
+    return `${product.value.parentCategory.name} / ${product.value.category.name}`;
+  }
+  return product.value.category.name;
+});
 
 onMounted(async () => {
   loading.value = true;

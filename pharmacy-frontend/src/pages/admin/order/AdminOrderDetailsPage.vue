@@ -24,12 +24,14 @@
         class="flex flex-wrap justify-between items-center text-sm text-gray-600 mb-4 gap-2"
       >
         <span> Дата оформления: {{ formatDate(order.createdAt) }} </span>
-        <span
-          class="inline-block px-3 py-2 text-xs rounded-full font-semibold tracking-wide"
-          :class="statusClass(order.status)"
-        >
-          {{ order.status }}
-        </span>
+        <el-select v-model="order.status" size="medium" @change="changeStatus">
+          <el-option
+            v-for="s in statuses"
+            :key="s.id"
+            :label="s.description"
+            :value="s.name"
+          />
+        </el-select>
       </div>
 
       <div
@@ -180,7 +182,12 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getOrderById } from "/src/services/OrderService";
+import {
+  getOrderById,
+  getOrderStatuses,
+  updateOrderStatus,
+} from "/src/services/OrderService";
+import { ElMessage } from "element-plus";
 import { statusClass } from "/src/utils/statusClass";
 
 const goDelivery = (orderId) => {
@@ -203,6 +210,7 @@ const router = useRouter();
 const route = useRoute();
 const order = ref(null);
 const loading = ref(false);
+const statuses = ref([]);
 
 const orderId = route.params.id;
 
@@ -226,10 +234,18 @@ onMounted(async () => {
   try {
     loading.value = true;
     order.value = await getOrderById(orderId);
+    statuses.value = await getOrderStatuses();
   } finally {
     loading.value = false;
   }
 });
+
+const changeStatus = async () => {
+  try {
+    await updateOrderStatus(order.value.id, order.value.status);
+    ElMessage.success("Статус обновлён");
+  } catch {}
+};
 </script>
 
 <style scoped>

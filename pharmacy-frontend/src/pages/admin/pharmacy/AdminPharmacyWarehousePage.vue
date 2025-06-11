@@ -167,7 +167,13 @@ const rules = {
     { required: true, message: "Введите количество", trigger: "blur" },
   ],
   price: [
-    { min: 0, message: "Цена не может быть отрицательной", trigger: "blur" },
+    { required: false, message: "Введите цену", trigger: "blur" },
+    {
+      type: "number",
+      min: 0,
+      message: "Цена не может быть отрицательной",
+      trigger: "blur",
+    },
   ],
 };
 

@@ -24,12 +24,14 @@
         class="flex flex-wrap justify-between items-center text-sm text-gray-600 mb-4 gap-2"
       >
         <span> Дата оформления: {{ formatDate(order.createdAt) }} </span>
-        <span
-          class="inline-block px-3 py-2 text-xs rounded-full font-semibold tracking-wide"
-          :class="statusClass(order.status)"
-        >
-          {{ order.status }}
-        </span>
+        <el-select v-model="order.status" size="small" @change="changeStatus">
+          <el-option
+            v-for="s in statuses"
+            :key="s.id"
+            :label="s.description"
+            :value="s.name"
+          />
+        </el-select>
       </div>
 
       <div
@@ -153,7 +155,12 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getOrderById } from "/src/services/OrderService";
+import {
+  getOrderById,
+  getOrderStatuses,
+  updateOrderStatus,
+} from "/src/services/OrderService";
+import { ElMessage } from "element-plus";
 import { statusClass } from "/src/utils/statusClass";
 
 const router = useRouter();
@@ -181,6 +188,13 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+const changeStatus = async () => {
+  try {
+    await updateOrderStatus(order.value.id, order.value.status);
+    ElMessage.success("Статус обновлён");
+  } catch {}
+};
 
 const goProduct = (id) => {
   router.push({ name: "EmployeeProductDetails", params: { id } });
