@@ -262,10 +262,13 @@ onMounted(async () => {
 });
 
 const changeStatus = async () => {
+  const prev = order.value.status;
   try {
     await updateOrderStatus(order.value.id, order.value.status);
     ElMessage.success("Статус обновлён");
-  } catch {}
+  } catch {
+    order.value.status = prev;
+  }
 };
 
 const cancelOrderWithComment = async () => {

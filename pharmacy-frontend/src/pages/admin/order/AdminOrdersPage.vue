@@ -223,8 +223,9 @@ import { getUserById } from "/src/services/UserService";
 import {
   getOrderStatuses,
   updateOrderStatus,
+  cancelOrder,
 } from "/src/services/OrderService";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import formatAddress from "/src/utils/formatAddress";
 
 const route = useRoute();
@@ -281,11 +282,31 @@ const searchPharmacyNames = async (query = "") => {
 };
 
 const changeStatus = async (order) => {
+  const prev = order.status;
   try {
-    await updateOrderStatus(order.id, order.status);
+    if (order.status === "Cancelled") {
+      let result;
+      try {
+        result = await ElMessageBox.prompt(
+          "Укажите причину отмены заказа",
+          "Отмена заказа",
+          {
+            confirmButtonText: "Ок",
+            cancelButtonText: "Отмена",
+            inputPlaceholder: "Комментарий",
+          }
+        );
+      } catch {
+        order.status = prev;
+        return;
+      }
+      await cancelOrder(order.id, result.value);
+    } else {
+      await updateOrderStatus(order.id, order.status);
+    }
     ElMessage.success("Статус обновлен");
   } catch (e) {
-    ElMessage.error("Ошибка обновления статуса");
+    order.value.status = prev;
   }
 };
 
