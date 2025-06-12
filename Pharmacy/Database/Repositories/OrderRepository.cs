@@ -67,6 +67,11 @@ public class OrderRepository : IOrderRepository
         return await _context.OrderStatuses.ToListAsync();
     }
     
+    public IQueryable<Order> Query()
+    {
+        return _context.Orders.AsNoTracking();
+    }
+    
     public IQueryable<Order> QueryWithStatus()
     {
         return _context.Orders

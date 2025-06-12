@@ -8,5 +8,6 @@ public interface IOrderRepository
     Task UpdateAsync(Order order);
     Task<Order?> GetByIdWithDetailsAsync(int orderId, bool includeItems = true, bool includeStatus = true, bool includeProductImages = true, bool includePayment = false, bool includeUser = false, bool includePharmacy = false, bool includeDelivery = false);
     Task<IEnumerable<OrderStatus>> GetAllOrderStatuses();
+    IQueryable<Order> Query();
     IQueryable<Order> QueryWithStatus();
 }

@@ -359,76 +359,58 @@ public class OrderService : IOrderService
     
     public async Task<Result<PaginatedList<OrderDto>>> GetPaginatedAsync(OrderFilters filters, int pageNumber, int pageSize, string? sortBy, string? sortOrder, int? userId = null)
     {
-        var query = _orderRepository.QueryWithStatus();
+        IQueryable<Order> ApplyFilters(IQueryable<Order> q)
+        {
+            if (userId.HasValue)
+                q = q.Where(o => o.UserId == userId.Value);
 
-        if (userId.HasValue)
-        {
-            query = query.Where(o => o.UserId == userId.Value);
-        }
-        
-        if (filters.UserId.HasValue && userId == null)
-        {
-            query = query.Where(o => o.UserId == filters.UserId.Value);
-        }
+            if (filters.UserId.HasValue && userId == null)
+                q = q.Where(o => o.UserId == filters.UserId.Value);
 
-        if (!string.IsNullOrWhiteSpace(filters.UserEmail) && userId == null)
-        {
-            query = query.Where(o => o.User.Email.Contains(filters.UserEmail));
-        }
+            if (!string.IsNullOrWhiteSpace(filters.UserEmail) && userId == null)
+                q = q.Where(o => o.User.Email.Contains(filters.UserEmail));
 
-        if (!string.IsNullOrWhiteSpace(filters.UserFullName) && userId == null)
-        {
-            var name = filters.UserFullName.ToLower();
-            query = query.Where(o => ((o.User.LastName ?? "") + " " + (o.User.FirstName ?? "") + " " + (o.User.Patronymic ?? ""))
-                .Trim().ToLower().Contains(name));
-        }
-        
-        if (!string.IsNullOrWhiteSpace(filters.PharmacyCity) && userId == null)
-        {
-            query = query.Where(o => o.Pharmacy.Address.City.ToLower().Contains(filters.PharmacyCity.ToLower()));
-        }
-        
-        if (filters.PharmacyId.HasValue && userId == null)
-        {
-            query = query.Where(o => o.PharmacyId == filters.PharmacyId.Value);
-        }
-        
-        if (!string.IsNullOrWhiteSpace(filters.PharmacyName) && userId == null)
-        {
-            query = query.Where(o => o.Pharmacy.Name.ToLower().Contains(filters.PharmacyName.ToLower()));
-        }
-        
-        if (!string.IsNullOrWhiteSpace(filters.Number))
-        {
-            query = query.Where(o => o.Number.Contains(filters.Number));
-        }
+            if (!string.IsNullOrWhiteSpace(filters.UserFullName) && userId == null)
+            {
+                var name = filters.UserFullName.ToLower();
+                q = q.Where(o => ((o.User.LastName ?? "") + " " + (o.User.FirstName ?? "") + " " + (o.User.Patronymic ?? ""))
+                    .Trim().ToLower().Contains(name));
+            }
 
-        if (filters.Status.HasValue)
-        {
-            query = query.Where(o => o.StatusId == (int)filters.Status);
-        }
+            if (!string.IsNullOrWhiteSpace(filters.PharmacyCity) && userId == null)
+                q = q.Where(o => o.Pharmacy.Address.City.ToLower().Contains(filters.PharmacyCity.ToLower()));
 
-        if (filters.FromDate.HasValue)
-        {
-            query = query.Where(o => o.CreatedAt >= filters.FromDate);
+            if (filters.PharmacyId.HasValue && userId == null)
+                q = q.Where(o => o.PharmacyId == filters.PharmacyId.Value);
+
+            if (!string.IsNullOrWhiteSpace(filters.PharmacyName) && userId == null)
+                q = q.Where(o => o.Pharmacy.Name.ToLower().Contains(filters.PharmacyName.ToLower()));
+
+            if (!string.IsNullOrWhiteSpace(filters.Number))
+                q = q.Where(o => o.Number.Contains(filters.Number));
+
+            if (filters.Status.HasValue)
+                q = q.Where(o => o.StatusId == (int)filters.Status);
+
+            if (filters.FromDate.HasValue)
+                q = q.Where(o => o.CreatedAt >= filters.FromDate);
+
+            if (filters.ToDate.HasValue)
+                q = q.Where(o => o.CreatedAt <= filters.ToDate);
+
+            if (filters.FromPrice.HasValue)
+                q = q.Where(o => o.TotalPrice >= filters.FromPrice.Value);
+
+            if (filters.ToPrice.HasValue)
+                q = q.Where(o => o.TotalPrice <= filters.ToPrice.Value);
+
+            return q;
         }
 
-        if (filters.ToDate.HasValue)
-        {
-            query = query.Where(o => o.CreatedAt <= filters.ToDate);
-        }
-        
-        if (filters.FromPrice.HasValue)
-        {
-            query = query.Where(o => o.TotalPrice >= filters.FromPrice.Value);
-        }
+        var baseQuery = ApplyFilters(_orderRepository.Query());
+        var totalCount = await baseQuery.CountAsync();
 
-        if (filters.ToPrice.HasValue)
-        {
-            query = query.Where(o => o.TotalPrice <= filters.ToPrice.Value);
-        }
-
-        var totalCount = await query.CountAsync();
+        var query = ApplyFilters(_orderRepository.QueryWithStatus());
 
         query = sortBy switch
         {
