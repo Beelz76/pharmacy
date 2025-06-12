@@ -19,17 +19,17 @@
     </div>
 
     <div v-else class="bg-white border rounded-xl p-6 shadow-sm space-y-6">
-      <!-- Общая информация -->
-      <section>
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">
-          Основная информация
-        </h3>
-        <el-form
-          label-width="150px"
-          :model="formModel"
-          :rules="allRules"
-          ref="productFormRef"
-        >
+      <el-form
+        label-width="150px"
+        :model="formModel"
+        :rules="allRules"
+        ref="productFormRef"
+      >
+        <!-- Общая информация -->
+        <section>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            Основная информация
+          </h3>
           <el-form-item label="Название" prop="name">
             <el-input v-model="productForm.name" />
           </el-form-item>
@@ -84,19 +84,21 @@
           <el-form-item label="Доступен" prop="isAvailable" :required="false">
             <el-switch v-model="productForm.isAvailable" />
           </el-form-item>
-        </el-form>
-      </section>
+        </section>
 
-      <hr />
-
-      <!-- Доп. свойства -->
-      <section>
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">
-          Дополнительные свойства
-        </h3>
-        <el-form :model="propertyValues" label-width="150px">
+        <hr />
+        <!-- Доп. свойства -->
+        <section class="mt-4">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            Дополнительные свойства
+          </h3>
           <template v-for="field in categoryFields" :key="field.key">
-            <el-form-item :label="field.label" :prop="field.key">
+            <el-form-item
+              :label="field.label"
+              :prop="field.key"
+              :required="field.isRequired"
+              class="whitespace-nowrap"
+            >
               <el-date-picker
                 v-if="field.type === 'date'"
                 v-model="propertyValues[field.key]"
@@ -122,50 +124,50 @@
               />
             </el-form-item>
           </template>
-        </el-form>
-      </section>
+        </section>
 
-      <hr />
+        <hr />
 
-      <!-- Изображения -->
-      <section>
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Изображения</h3>
-        <div class="flex flex-wrap gap-3 mb-3">
-          <div
-            v-for="img in images"
-            :key="img.id"
-            class="relative w-24 h-24 border rounded overflow-hidden group"
-          >
-            <img :src="img.url" class="w-full h-full object-cover" />
-            <button
-              @click.prevent="removeImage(img)"
-              class="absolute top-0 right-0 bg-white text-red-600 p-1 rounded-bl-md opacity-0 group-hover:opacity-100 transition"
+        <!-- Изображения -->
+        <section class="mt-4">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Изображения</h3>
+          <div class="flex flex-wrap gap-3 mb-3">
+            <div
+              v-for="img in images"
+              :key="img.id"
+              class="relative w-24 h-24 border rounded overflow-hidden group"
             >
-              <i class="fas fa-times"></i>
-            </button>
+              <img :src="img.url" class="w-full h-full object-cover" />
+              <button
+                @click.prevent="removeImage(img)"
+                class="absolute top-0 right-0 bg-white text-red-600 p-1 rounded-bl-md opacity-0 group-hover:opacity-100 transition"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="flex items-center gap-3">
-          <input type="file" multiple @change="onFileChange" />
-        </div>
-        <div class="mt-2">
-          <span class="text-sm text-gray-500">или вставьте ссылку ниже</span>
-        </div>
-        <div class="mt-2 flex items-center gap-2">
-          <el-input
-            v-model="newImageUrl"
-            placeholder="Ссылка на изображение"
-            class="!w-72"
-          />
-          <el-button @click="addImageLink" :disabled="!newImageUrl"
-            >Добавить</el-button
-          >
-        </div>
-      </section>
+          <div class="flex items-center gap-3">
+            <input type="file" multiple @change="onFileChange" />
+          </div>
+          <div class="mt-2">
+            <span class="text-sm text-gray-500">или вставьте ссылку ниже</span>
+          </div>
+          <div class="mt-2 flex items-center gap-2">
+            <el-input
+              v-model="newImageUrl"
+              placeholder="Ссылка на изображение"
+              class="!w-72"
+            />
+            <el-button @click="addImageLink" :disabled="!newImageUrl"
+              >Добавить</el-button
+            >
+          </div>
+        </section>
 
-      <div class="text-right pt-4">
-        <el-button type="primary" @click="save">Сохранить</el-button>
-      </div>
+        <div class="text-right pt-4">
+          <el-button type="primary" @click="save">Сохранить</el-button>
+        </div>
+      </el-form>
     </div>
   </div>
 </template>

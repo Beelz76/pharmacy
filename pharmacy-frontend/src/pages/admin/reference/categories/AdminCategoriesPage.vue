@@ -223,7 +223,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import {
   getAllCategories,
   getCategoryById,
@@ -402,6 +402,23 @@ async function removeCategory(row) {
     ElMessage.success("Категория удалена");
   } catch {}
 }
+
+watch(
+  () => form.parentCategoryId,
+  async (val) => {
+    if (val) {
+      const parentFields = await getCategoryFields(val);
+      fields.value = parentFields.map((f) => ({
+        localId: f.id ?? `p_${f.key}`,
+        ...f,
+      }));
+    } else {
+      fields.value = [];
+    }
+    removedFieldIds = [];
+    fieldsForm.value?.clearValidate();
+  }
+);
 
 onMounted(load);
 </script>
