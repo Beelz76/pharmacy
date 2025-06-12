@@ -33,12 +33,26 @@ export const useAuthStore = defineStore("auth", () => {
     }
 
     const isUser = role.value === "User";
-    if (sync && isUser) {
-      useCartStore().syncToServer();
-      useFavoritesStore().syncToServer();
-    } else if (fetchServer && isUser) {
-      useCartStore().fetchCart();
-      useFavoritesStore().fetchFavorites();
+    if (isUser) {
+      const cartStore = useCartStore();
+      const favoritesStore = useFavoritesStore();
+
+      if (sync) {
+        if (cartStore.items.length > 0) {
+          cartStore.syncToServer();
+        } else {
+          cartStore.fetchCart();
+        }
+
+        if (favoritesStore.ids.length > 0) {
+          favoritesStore.syncToServer();
+        } else {
+          favoritesStore.fetchFavorites();
+        }
+      } else if (fetchServer) {
+        cartStore.fetchCart();
+        favoritesStore.fetchFavorites();
+      }
     }
   }
 

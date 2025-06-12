@@ -1,8 +1,11 @@
 <template>
   <h2 class="text-2xl font-bold mb-6">Избранное</h2>
 
-  <div v-if="favorites.length === 0" class="text-gray-500 text-center text-lg">
-    У вас пока нет избранных товаров.
+  <div
+    v-if="favorites.length === 0"
+    class="text-gray-500 text-center text-lg py-10"
+  >
+    У вас пока нет избранных товаров
   </div>
 
   <div v-else>

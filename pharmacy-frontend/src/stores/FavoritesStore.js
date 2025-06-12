@@ -11,7 +11,7 @@ export const useFavoritesStore = defineStore("favorites", {
   }),
 
   persist: {
-    paths: ["ids"],
+    paths: ["ids", "favoritesCount"],
   },
 
   actions: {

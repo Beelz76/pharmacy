@@ -6,7 +6,7 @@
     <!-- Изображение -->
     <router-link
       :to="productLink"
-      class="relative w-40 aspect-[4/3] flex-shrink-0 bg-gray-100 flex items-center justify-center overflow-hidden"
+      class="relative w-40 aspect-[4/3] flex-shrink-0 flex items-center justify-center overflow-hidden"
     >
       <img
         v-if="product.imageUrl"

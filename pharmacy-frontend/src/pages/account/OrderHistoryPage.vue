@@ -6,11 +6,18 @@
       Необходимо авторизоваться
     </div>
 
-    <div v-if="auth.isAuthenticated && loading" class="text-center py-10">
+    <div v-else-if="auth.isAuthenticated && loading" class="text-center py-10">
       <LoadingSpinner size="lg" />
     </div>
 
-    <div v-else-if="auth.isAuthenticated">
+    <div
+      v-else-if="auth.isAuthenticated && orders.length === 0"
+      class="text-center text-lg text-gray-500 py-10"
+    >
+      У вас пока нет заказов
+    </div>
+
+    <div v-else-if="auth.isAuthenticated && orders.length > 0">
       <div class="overflow-x-auto rounded-xl shadow border">
         <table
           class="min-w-full table-auto divide-y divide-gray-200 bg-white text-sm"
@@ -100,6 +107,7 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import { useAuthStore } from "/src/stores/AuthStore";

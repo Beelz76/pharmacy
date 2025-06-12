@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Hybrid;
 using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
@@ -24,9 +23,8 @@ public class ProductService : IProductService
     private readonly IManufacturerService _manufacturerService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IStorageProvider _storage;
-    private readonly HybridCache _cache;
     
-    public ProductService(IDateTimeProvider dateTimeProvider, IProductRepository repository, IProductCategoryService productCategoryService, IManufacturerService manufacturerService, ICartRepository cartRepository, IFavoritesRepository favoritesRepository, IStorageProvider storage, HybridCache cache)
+    public ProductService(IDateTimeProvider dateTimeProvider, IProductRepository repository, IProductCategoryService productCategoryService, IManufacturerService manufacturerService, ICartRepository cartRepository, IFavoritesRepository favoritesRepository, IStorageProvider storage)
     {
         _dateTimeProvider = dateTimeProvider;
         _repository = repository;
@@ -35,7 +33,6 @@ public class ProductService : IProductService
         _cartRepository = cartRepository;
         _favoritesRepository = favoritesRepository;
         _storage = storage;
-        _cache = cache;
     }
     
     public async Task<Result<CreatedDto>> CreateProductAsync(CreateProductRequest request)
@@ -86,7 +83,6 @@ public class ProductService : IProductService
         };
 
         await _repository.AddAsync(product);
-        await _cache.RemoveByTagAsync(new[] { "products", $"filter-values-{product.CategoryId}" });
         return Result.Success(new CreatedDto(product.Id));
     }
     
@@ -164,146 +160,138 @@ public class ProductService : IProductService
         }
 
         await _repository.UpdateAsync(product);
-        await _cache.RemoveByTagAsync(new[] { "products", $"filter-values-{product.CategoryId}" });
-        await _cache.RemoveAsync($"product-{id}");
         return Result.Success();
     }
     
     public async Task<Result<ProductDto>> GetByIdAsync(int id)
     {
-        var dto = await _cache.GetOrCreateAsync(
-            $"product-{id}",
-            async ct =>
-            {
-                var product = await _repository.GetByIdWithRelationsAsync(id, includeCategory: true, includeImages: true, includeManufacturer: true, includeProperties: true);
-                return product is null ? null : MapToDto(product);
-            },
-            tags: new[] { "products" });
+        var product = await _repository.GetByIdWithRelationsAsync(
+            id,
+            includeCategory: true,
+            includeImages: true,
+            includeManufacturer: true,
+            includeProperties: true);
 
-        if (dto is null)
+        if (product is null)
         {
             return Result.Failure<ProductDto>(Error.NotFound("Товар не найден"));
         }
 
+        var dto = MapToDto(product);
         return Result.Success(dto);
     }
-    
+
     public async Task<Result<PaginatedList<ProductCardDto>>> GetPaginatedProductsAsync(ProductParameters query, int? userId = null)
     {
-        var cacheKey = BuildProductsCacheKey(userId, query);
-        
-        var data = await _cache.GetOrCreateAsync(
-            cacheKey,
-            async ct =>
+        var productsQuery = _repository.Query();
+
+        if (query.Id is not null)
+        {
+            productsQuery = productsQuery.Where(p => p.Id == query.Id);
+        }
+
+        if (query.CategoryIds is not null && query.CategoryIds.Any())
+        {
+            var categoryIds = new List<int>(query.CategoryIds);
+            foreach (var categoryId in query.CategoryIds)
             {
-                var productsQuery = _repository.Query();
+                var childIds = await _productCategoryService.GetAllSubcategoryIdsAsync(categoryId);
+                categoryIds.AddRange(childIds);
+            }
 
-                if (query.Id is not null)
+            productsQuery = productsQuery.Where(p => categoryIds.Contains(p.CategoryId));
+        }
+
+        if (query.ManufacturerIds is not null && query.ManufacturerIds.Any())
+        {
+            productsQuery = productsQuery.Where(p => query.ManufacturerIds.Contains(p.ManufacturerId));
+        }
+
+        if (query.Countries is not null && query.Countries.Any())
+        {
+            productsQuery = productsQuery.Where(p => query.Countries.Contains(p.Manufacturer.Country));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            productsQuery = productsQuery.Where(p =>
+                p.Name.ToLower().Contains(query.Search.ToLower()));
+        }
+
+        if (query.IsAvailable is not null)
+        {
+            productsQuery = productsQuery.Where(x => x.IsGloballyDisabled != query.IsAvailable);
+        }
+
+        if (query.PropertyFilters is not null && query.PropertyFilters.Any())
+        {
+            foreach (var filter in query.PropertyFilters)
+            {
+                var key = filter.Key;
+                var values = filter.Value;
+
+                if (values is not null && values.Any())
                 {
-                    productsQuery = productsQuery.Where(p => p.Id == query.Id);
+                    productsQuery = productsQuery.Where(p =>
+                        p.Properties.Any(prop => prop.Key == key && values.Contains(prop.Value)));
                 }
-                
-                if (query.CategoryIds is not null && query.CategoryIds.Any())
-                {
-                    var categoryIds = new List<int>(query.CategoryIds);
-                    foreach (var categoryId in query.CategoryIds)
-                    {
-                        var childIds = await _productCategoryService.GetAllSubcategoryIdsAsync(categoryId);
-                        categoryIds.AddRange(childIds);
-                    }
+            }
+        }
 
-                    productsQuery = productsQuery.Where(p => categoryIds.Contains(p.CategoryId));
-                }
+        productsQuery = query.SortBy switch
+        {
+            "price" => query.SortOrder == "desc"
+                ? productsQuery.OrderByDescending(p => p.Price)
+                : productsQuery.OrderBy(p => p.Price),
+            "datetime" => query.SortOrder == "desc"
+                ? productsQuery.OrderByDescending(p => p.CreatedAt)
+                : productsQuery.OrderBy(p => p.CreatedAt),
+            _ => productsQuery.OrderByDescending(p => p.CreatedAt)
+        };
 
-                if (query.ManufacturerIds is not null && query.ManufacturerIds.Any())
-                {
-                    productsQuery = productsQuery.Where(p => query.ManufacturerIds.Contains(p.ManufacturerId));
-                }
+        var totalCount = await productsQuery.CountAsync();
 
-                if (query.Countries is not null && query.Countries.Any())
-                {
-                    productsQuery = productsQuery.Where(p => query.Countries.Contains(p.Manufacturer.Country));
-                }
-                
-                if (!string.IsNullOrWhiteSpace(query.Search))
-                {
-                    productsQuery =
-                        productsQuery.Where(p =>
-                            p.Name.ToLower()
-                                .Contains(query.Search.ToLower())); //EF.Functions.ILike(p.Name, $"%{query.Search}%")
-                }
+        var pageItems = await productsQuery
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.Description,
+                p.Price,
+                p.CategoryId,
+                CategoryName = p.ProductCategory.Name,
+                ImageUrl = p.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
+                IsAvailable = !p.IsGloballyDisabled,
+            })
+            .AsNoTracking()
+            .ToListAsync();
 
-                if (query.IsAvailable is not null)
-                {
-                    productsQuery = productsQuery.Where(x => x.IsGloballyDisabled != query.IsAvailable);
-                }
+        var favoriteIds = userId is null
+            ? new HashSet<int>()
+            : (await _favoritesRepository.GetFavoriteProductIdsAsync(userId.Value)).ToHashSet();
 
-                if (query.PropertyFilters is not null && query.PropertyFilters.Any())
-                {
-                    foreach (var filter in query.PropertyFilters)
-                    {
-                        var key = filter.Key;
-                        var values = filter.Value;
+        var cartItems = userId is null
+            ? new Dictionary<int, int>()
+            : (await _cartRepository.GetRawUserCartAsync(userId.Value)).ToDictionary(x => x.ProductId, x => x.Quantity);
 
-                        if (values is not null && values.Any())
-                        {
-                            productsQuery = productsQuery.Where(p =>
-                                p.Properties.Any(prop => prop.Key == key && values.Contains(prop.Value)));
-                        }
-                    }
-                }
+        var items = pageItems.Select(p => new ProductCardDto(
+            p.Id,
+            p.Name,
+            p.Description,
+            p.Price,
+            !string.IsNullOrWhiteSpace(p.ImageUrl) && p.ImageUrl.StartsWith("http")
+                ? p.ImageUrl
+                : _storage.GetPublicUrl(p.ImageUrl),
+            p.IsAvailable,
+            favoriteIds.Contains(p.Id),
+            cartItems.TryGetValue(p.Id, out var qty) ? qty : 0,
+            p.CategoryId,
+            p.CategoryName)
+        ).ToList();
 
-                productsQuery = query.SortBy switch
-                {
-                    "price" => query.SortOrder == "desc"
-                        ? productsQuery.OrderByDescending(p => p.Price)
-                        : productsQuery.OrderBy(p => p.Price),
-                    "datetime" => query.SortOrder == "desc"
-                        ? productsQuery.OrderByDescending(p => p.CreatedAt)
-                        : productsQuery.OrderBy(p => p.CreatedAt),
-                    _ => productsQuery.OrderByDescending(p => p.CreatedAt)
-                };
-
-                var totalCount = await productsQuery.CountAsync();
-
-                var pageItems = await productsQuery
-                    .Skip((query.PageNumber - 1) * query.PageSize)
-                    .Take(query.PageSize)
-                    .Select(p => new
-                    {
-                        p.Id,
-                        p.Name,
-                        p.Description,
-                        p.Price,
-                        p.CategoryId,
-                        CategoryName = p.ProductCategory.Name,
-                        ImageUrl = p.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault(),
-                        IsAvailable = !p.IsGloballyDisabled,
-                    })
-                    .AsNoTracking()
-                    .ToListAsync(cancellationToken: ct);
-
-                var favoriteIds = userId is null ? new HashSet<int>() : (await _favoritesRepository.GetFavoriteProductIdsAsync(userId.Value)).ToHashSet();
-                var cartItems = userId is null ? new Dictionary<int, int>() : (await _cartRepository.GetRawUserCartAsync(userId.Value)).ToDictionary(x => x.ProductId, x => x.Quantity);
-
-                var items = pageItems.Select(p => new ProductCardDto(
-                    p.Id,
-                    p.Name,
-                    p.Description,
-                    p.Price,
-                    !string.IsNullOrWhiteSpace(p.ImageUrl) && p.ImageUrl.StartsWith("http") ? p.ImageUrl : _storage.GetPublicUrl(p.ImageUrl),
-                    p.IsAvailable,
-                    favoriteIds.Contains(p.Id),
-                    cartItems.TryGetValue(p.Id, out var qty) ? qty : 0,
-                    p.CategoryId,
-                    p.CategoryName)
-                ).ToList();
-                
-                return new PaginatedList<ProductCardDto>(items, totalCount, query.PageNumber, query.PageSize);
-            },
-            tags: new[] { "products" });
-        
-        return Result.Success(data);
+        return Result.Success(new PaginatedList<ProductCardDto>(items, totalCount, query.PageNumber, query.PageSize));
     }
 
     public async Task<Result> DeleteAsync(int productId)
@@ -315,8 +303,6 @@ public class ProductService : IProductService
         }
         
         await _repository.DeleteAsync(product);
-        await _cache.RemoveByTagAsync(new[] { "products", $"filter-values-{product.CategoryId}" });
-        await _cache.RemoveAsync($"product-{productId}");
         return Result.Success();
     }
     
@@ -327,70 +313,55 @@ public class ProductService : IProductService
 
     public async Task<Result<List<FilterOptionDto>>> GetFilterValuesAsync(int categoryId)
     {
-        var cacheKey = $"filter-values-{categoryId}";
-
-        var data = await _cache.GetOrCreateAsync(
-            cacheKey,
-            async ct =>
-            {
-                var categoryResult = await _productCategoryService.GetByIdAsync(categoryId);
-                if (categoryResult.IsFailure)
-                    return null;
-
-                var category = categoryResult.Value;
-
-                List<int> relevantCategoryIds;
-                if (category.ParentCategoryId is null)
-                {
-                    relevantCategoryIds = new List<int> { category.Id };
-                }
-                else
-                {
-                    relevantCategoryIds = new List<int> { category.Id, category.ParentCategoryId.Value };
-                }
-
-                var products = await _repository.Query()
-                    .Where(p => relevantCategoryIds.Contains(p.CategoryId))
-                    .Select(p => p.Properties)
-                    .ToListAsync(cancellationToken: ct);
-
-                var result = new Dictionary<string, HashSet<string>>();
-
-                foreach (var propertyList in products)
-                {
-                    foreach (var prop in propertyList)
-                    {
-                        if (!result.ContainsKey(prop.Key))
-                            result[prop.Key] = new HashSet<string>();
-                        result[prop.Key].Add(prop.Value);
-                    }
-                }
-
-                var fields = await _productCategoryService.GetAllFieldsIncludingParentAsync(categoryId);
-
-                var finalResult = result.Select(r =>
-                {
-                    var field = fields.Value.FirstOrDefault(x => x.Key == r.Key);
-                    var label = field?.Label ?? r.Key;
-                    return new FilterOptionDto(
-                        r.Key,
-                        label,
-                        r.Value.OrderBy(v => v).ToList()
-                    );
-                }).ToList();
-
-                return finalResult;
-            },
-            tags: new[] { $"filter-values-{categoryId}" });
-
-
-        if (data is null)
-        {
+        var categoryResult = await _productCategoryService.GetByIdAsync(categoryId);
+        if (categoryResult.IsFailure)
             return Result.Failure<List<FilterOptionDto>>(Error.NotFound("Категория не найдена"));
+
+        var category = categoryResult.Value;
+
+        List<int> relevantCategoryIds;
+        if (category.ParentCategoryId is null)
+        {
+            relevantCategoryIds = new List<int> { category.Id };
+        }
+        else
+        {
+            relevantCategoryIds = new List<int> { category.Id, category.ParentCategoryId.Value };
         }
 
-        return Result.Success(data);
+        var products = await _repository.Query()
+            .Where(p => relevantCategoryIds.Contains(p.CategoryId))
+            .Select(p => p.Properties)
+            .ToListAsync();
+
+        var result = new Dictionary<string, HashSet<string>>();
+
+        foreach (var propertyList in products)
+        {
+            foreach (var prop in propertyList)
+            {
+                if (!result.ContainsKey(prop.Key))
+                    result[prop.Key] = new HashSet<string>();
+                result[prop.Key].Add(prop.Value);
+            }
+        }
+
+        var fields = await _productCategoryService.GetAllFieldsIncludingParentAsync(categoryId);
+
+        var finalResult = result.Select(r =>
+        {
+            var field = fields.Value.FirstOrDefault(x => x.Key == r.Key);
+            var label = field?.Label ?? r.Key;
+            return new FilterOptionDto(
+                r.Key,
+                label,
+                r.Value.OrderBy(v => v).ToList()
+            );
+        }).ToList();
+
+        return Result.Success(finalResult);
     }
+
     
     public async Task<Result<ProductDto>> GetBySkuAsync(string sku)
     {
@@ -449,36 +420,6 @@ public class ProductService : IProductService
             return $"PRD-{(lastNumber + 1):D6}";
         }
         return "PRD-000001";
-    }
-    
-    private static string BuildProductsCacheKey(int? userId, ProductParameters q)
-    {
-        var parts = new List<string>
-        {
-            "products",
-            userId?.ToString() ?? "none",
-            q.PageNumber.ToString(),
-            q.PageSize.ToString()
-        };
-
-        if (!string.IsNullOrWhiteSpace(q.Search))
-            parts.Add(q.Search);
-        if (q.CategoryIds is { Count: > 0 })
-            parts.Add(string.Join(',', q.CategoryIds));
-        if (q.ManufacturerIds is { Count: > 0 })
-            parts.Add(string.Join(',', q.ManufacturerIds));
-        if (q.Countries is { Count: > 0 })
-            parts.Add(string.Join(',', q.Countries));
-        if (!string.IsNullOrWhiteSpace(q.SortBy))
-            parts.Add(q.SortBy);
-        if (!string.IsNullOrWhiteSpace(q.SortOrder))
-            parts.Add(q.SortOrder);
-        if (q.IsAvailable is not null)
-            parts.Add(q.IsAvailable.ToString());
-        if (q.Id is not null)
-            parts.Add($"id-{q.Id}");
-
-        return string.Join('-', parts);
     }
     
     private ProductDto MapToDto(Product product)
