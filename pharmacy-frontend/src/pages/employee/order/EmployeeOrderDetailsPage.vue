@@ -232,6 +232,11 @@ const changePaymentStatus = async () => {
   try {
     await updatePaymentStatus(order.value.id, order.value.paymentStatus);
     ElMessage.success("Статус оплаты обновлён");
+    order.value = await getOrderById(orderId);
+    const ps = paymentStatuses.value.find(
+      (s) => s.description === order.value.payment.status
+    );
+    if (ps) order.value.paymentStatus = ps.name;
   } catch {
     order.value.paymentStatus = prev;
   }
@@ -258,10 +263,27 @@ const changeStatus = async () => {
       }
       await cancelOrder(order.value.id, comment || null);
       ElMessage.success("Заказ отменён");
-      order.value.status = "Cancelled";
+      order.value = await getOrderById(orderId);
+      const current = statuses.value.find(
+        (s) => s.description === order.value.status
+      );
+      if (current) order.value.status = current.name;
+      const ps = paymentStatuses.value.find(
+        (s) => s.description === order.value.payment.status
+      );
+      if (ps) order.value.paymentStatus = ps.name;
     } else {
       await updateOrderStatus(order.value.id, order.value.status);
       ElMessage.success("Статус обновлён");
+      order.value = await getOrderById(orderId);
+      const current = statuses.value.find(
+        (s) => s.description === order.value.status
+      );
+      if (current) order.value.status = current.name;
+      const ps = paymentStatuses.value.find(
+        (s) => s.description === order.value.payment.status
+      );
+      if (ps) order.value.paymentStatus = ps.name;
     }
   } catch {
     order.value.status = prev;

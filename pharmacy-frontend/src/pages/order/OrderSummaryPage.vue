@@ -32,7 +32,7 @@
           <p v-if="selectedAddress?.comment" class="text-sm text-gray-600 mt-1">
             {{ selectedAddress.comment }}
           </p>
-          <div v-if="!accountPhone" class="mt-2">
+          <div v-if="!hasAccountPhone" class="mt-2">
             <PhoneInput v-model="phone" digits-only />
           </div>
         </template>
@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../../stores/CartStore";
 import { useOrderStore } from "../../stores/OrderStore";
@@ -119,9 +119,23 @@ const router = useRouter();
 const cartStore = useCartStore();
 const orderStore = useOrderStore();
 const accountStore = useAccountStore();
-accountStore.fetchProfile();
 
-const phone = ref(accountStore.account?.phone || "");
+onMounted(() => {
+  accountStore.fetchProfile().then(() => {
+    if (accountStore.account?.phone) {
+      phone.value = accountStore.account.phone;
+    }
+  });
+});
+
+watch(
+  () => accountStore.account?.phone,
+  (val) => {
+    if (val) phone.value = val;
+  }
+);
+
+const phone = ref("");
 
 const loading = ref(false);
 
@@ -133,7 +147,7 @@ const paymentMethod = orderStore.paymentMethod;
 const deliveryComment = orderStore.deliveryComment;
 const cartItems = cartStore.items;
 const totalPrice = cartStore.totalPrice;
-const accountPhone = computed(() => accountStore.account?.phone || "");
+const hasAccountPhone = computed(() => !!accountStore.account?.phone);
 
 const fullPharmacyAddress = computed(() =>
   selectedPharmacy ? selectedPharmacy.address : ""
@@ -150,12 +164,15 @@ const submitOrder = async () => {
     };
     if (isDelivery) {
       payload.userAddressId = selectedAddressId;
-      if (!accountPhone.value && !phone.value) {
+      const contactPhone = hasAccountPhone.value
+        ? accountStore.account.phone
+        : phone.value;
+      if (!contactPhone) {
         ElMessage({ message: "Укажите номер телефона", type: "warning" });
         loading.value = false;
         return;
       }
-      if (!accountPhone.value) {
+      if (!hasAccountPhone.value) {
         payload.phone = phone.value;
       }
     } else {

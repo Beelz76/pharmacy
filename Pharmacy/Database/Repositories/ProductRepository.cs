@@ -26,9 +26,10 @@ public class ProductRepository : IProductRepository
         if (includeCategory)
             query = query
                 .Include(x => x.ProductCategory)
-                    .ThenInclude(c => c.ParentCategory)
+                    .ThenInclude(c => c.Fields)
                 .Include(x => x.ProductCategory)
-                    .ThenInclude(c => c.Fields);
+                    .ThenInclude(c => c.ParentCategory)
+                        .ThenInclude(pc => pc.Fields);
         
         if (includeManufacturer)
             query = query.Include(x => x.Manufacturer);

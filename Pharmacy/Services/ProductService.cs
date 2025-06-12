@@ -176,37 +176,7 @@ public class ProductService : IProductService
             async ct =>
             {
                 var product = await _repository.GetByIdWithRelationsAsync(id, includeCategory: true, includeImages: true, includeManufacturer: true, includeProperties: true);
-                if (product is null)
-                {
-                    return null;
-                }
-
-                var category = product.ProductCategory;
-                var parentCategory = category.ParentCategory;
-
-                var fieldLabels = category.Fields
-                    .ToDictionary(x => x.FieldKey, x => x.FieldLabel);
-
-                var propertyDtos = product.Properties.Select(prop =>
-                {
-                    var label = fieldLabels.TryGetValue(prop.Key, out var l) ? l : prop.Key;
-                    return new ProductPropertyDto(prop.Key, label, prop.Value);
-                }).ToList();
-
-                return new ProductDto(
-                    product.Id,
-                    product.Sku,
-                    product.Name,
-                    product.Price,
-                    new ProductCategoryDto(product.CategoryId, product.ProductCategory.Name, product.ProductCategory.Description),
-                    new ProductCategoryNullableDto(parentCategory?.Id, parentCategory?.Name, parentCategory?.Description),
-                    new ManufacturerDto(product.ManufacturerId, product.Manufacturer.Name, product.Manufacturer.Country),
-                    product.Description,
-                    product.ExtendedDescription,
-                    !product.IsGloballyDisabled,
-                    product.Images.Select(x => new ProductImageDto(x.Id, x.Url.StartsWith("http") ? x.Url : _storage.GetPublicUrl(x.Url))).ToList(),
-                    propertyDtos
-                );
+                return product is null ? null : MapToDto(product);
             },
             tags: new[] { "products" });
 
@@ -428,33 +398,7 @@ public class ProductService : IProductService
         if (product is null)
             return Result.Failure<ProductDto>(Error.NotFound("Товар не найден"));
 
-        var fieldLabels = product.ProductCategory.Fields
-            .ToDictionary(x => x.FieldKey, x => x.FieldLabel);
-
-        var propertyDtos = product.Properties.Select(prop =>
-        {
-            var label = fieldLabels.TryGetValue(prop.Key, out var l) ? l : prop.Key;
-            return new ProductPropertyDto(prop.Key, label, prop.Value);
-        }).ToList();
-
-        var parentCategory = product.ProductCategory.ParentCategory;
-
-        var dto = new ProductDto(
-            product.Id,
-            product.Sku,
-            product.Name,
-            product.Price,
-            new ProductCategoryDto(product.CategoryId, product.ProductCategory.Name, product.ProductCategory.Description),
-            new ProductCategoryNullableDto(parentCategory?.Id, parentCategory?.Name, parentCategory?.Description),
-            new ManufacturerDto(product.ManufacturerId, product.Manufacturer.Name, product.Manufacturer.Country),
-            product.Description,
-            product.ExtendedDescription,
-            !product.IsGloballyDisabled,
-            product.Images.Select(x => new ProductImageDto(x.Id, x.Url.StartsWith("http") ? x.Url :_storage.GetPublicUrl(x.Url))).ToList(),
-            propertyDtos
-        );
-
-        return Result.Success(dto);
+        return Result.Success(MapToDto(product));
     }
     
     private List<string> ValidateProductProperties(List<ProductPropertyDto> properties, List<CategoryFieldDto> categoryFields)
@@ -536,4 +480,45 @@ public class ProductService : IProductService
 
         return string.Join('-', parts);
     }
+    
+    private ProductDto MapToDto(Product product)
+    {
+        var category = product.ProductCategory;
+        var parentCategory = category.ParentCategory;
+
+        var fieldLabels = category.Fields.ToDictionary(x => x.FieldKey, x => x.FieldLabel);
+
+        if (parentCategory != null)
+        {
+            foreach (var field in parentCategory.Fields)
+            {
+                if (!fieldLabels.ContainsKey(field.FieldKey))
+                    fieldLabels[field.FieldKey] = field.FieldLabel;
+            }
+        }
+
+        var propertyDtos = product.Properties.Select(prop =>
+        {
+            var label = fieldLabels.TryGetValue(prop.Key, out var l) ? l : prop.Key;
+            return new ProductPropertyDto(prop.Key, label, prop.Value);
+        }).ToList();
+
+        return new ProductDto(
+            product.Id,
+            product.Sku,
+            product.Name,
+            product.Price,
+            new ProductCategoryDto(product.CategoryId, category.Name, category.Description),
+            new ProductCategoryNullableDto(parentCategory?.Id, parentCategory?.Name, parentCategory?.Description),
+            new ManufacturerDto(product.ManufacturerId, product.Manufacturer.Name, product.Manufacturer.Country),
+            product.Description,
+            product.ExtendedDescription,
+            !product.IsGloballyDisabled,
+            product.Images.Select(x =>
+                new ProductImageDto(x.Id, x.Url?.StartsWith("http") == true ? x.Url : _storage.GetPublicUrl(x.Url ?? ""))
+            ).ToList(),
+            propertyDtos
+        );
+    }
+
 }

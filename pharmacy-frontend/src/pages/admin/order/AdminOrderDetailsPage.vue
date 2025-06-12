@@ -173,9 +173,20 @@
                 <span class="font-medium">Сумма:</span>
                 {{ order.payment.amount.toFixed(2) }} ₽
               </p>
-              <p>
+              <p class="flex items-center gap-2">
                 <span class="font-medium">Статус:</span>
-                {{ order.payment.status }}
+                <el-select
+                  v-model="order.paymentStatus"
+                  size="small"
+                  @change="changePaymentStatus"
+                >
+                  <el-option
+                    v-for="s in paymentStatuses"
+                    :key="s.id"
+                    :label="s.description"
+                    :value="s.name"
+                  />
+                </el-select>
               </p>
               <button
                 class="mt-2 text-primary-600 hover:text-primary-700 text-sm"
@@ -200,6 +211,8 @@ import {
   updateOrderStatus,
   cancelOrder,
 } from "/src/services/OrderService";
+import { getPaymentStatuses } from "/src/services/PaymentReferenceService";
+import { updatePaymentStatus } from "/src/services/PaymentService";
 import { ElMessage, ElMessageBox } from "element-plus";
 
 const goDelivery = (orderId) => {
@@ -223,6 +236,7 @@ const route = useRoute();
 const order = ref(null);
 const loading = ref(false);
 const statuses = ref([]);
+const paymentStatuses = ref([]);
 
 const orderId = route.params.id;
 
@@ -247,10 +261,15 @@ onMounted(async () => {
     loading.value = true;
     order.value = await getOrderById(orderId);
     statuses.value = await getOrderStatuses();
+    paymentStatuses.value = await getPaymentStatuses();
     const current = statuses.value.find(
       (s) => s.description === order.value.status
     );
     if (current) order.value.status = current.name;
+    const ps = paymentStatuses.value.find(
+      (s) => s.description === order.value.payment.status
+    );
+    if (ps) order.value.paymentStatus = ps.name;
   } finally {
     loading.value = false;
   }
@@ -280,8 +299,32 @@ const changeStatus = async () => {
       await updateOrderStatus(order.value.id, order.value.status);
     }
     ElMessage.success("Статус обновлён");
+    order.value = await getOrderById(orderId);
+    const current = statuses.value.find(
+      (s) => s.description === order.value.status
+    );
+    if (current) order.value.status = current.name;
+    const ps = paymentStatuses.value.find(
+      (s) => s.description === order.value.payment.status
+    );
+    if (ps) order.value.paymentStatus = ps.name;
   } catch {
     order.value.status = prev;
+  }
+};
+
+const changePaymentStatus = async () => {
+  const prev = order.value.paymentStatus;
+  try {
+    await updatePaymentStatus(order.value.id, order.value.paymentStatus);
+    ElMessage.success("Статус оплаты обновлён");
+    order.value = await getOrderById(orderId);
+    const ps = paymentStatuses.value.find(
+      (s) => s.description === order.value.payment.status
+    );
+    if (ps) order.value.paymentStatus = ps.name;
+  } catch {
+    order.value.paymentStatus = prev;
   }
 };
 </script>
