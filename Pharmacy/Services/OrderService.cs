@@ -328,7 +328,8 @@ public class OrderService : IOrderService
                 ((PaymentStatusEnum)order.Payment.StatusId).GetDescription(),
                 order.Payment.TransactionDate,
                 order.Payment.ExternalPaymentId
-            )
+            ),
+            order.CancellationComment
         ));
     }
     

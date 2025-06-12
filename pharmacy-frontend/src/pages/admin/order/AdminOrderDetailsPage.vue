@@ -37,13 +37,6 @@
             :value="s.name"
           />
         </el-select>
-        <el-button
-          v-if="canCancel"
-          type="danger"
-          @click="cancelOrderWithComment"
-        >
-          Отменить заказ
-        </el-button>
       </div>
 
       <div
@@ -137,6 +130,13 @@
             >
               Итого: {{ order.totalPrice.toFixed(2) }} ₽
             </div>
+            <div
+              v-if="order?.status === 'Отменен' && order.cancellationComment"
+              class="px-6 py-4 text-sm text-red-600 border-t bg-red-50"
+            >
+              <span class="font-semibold">Причина отмены:</span>
+              {{ order.cancellationComment }}
+            </div>
           </div>
         </div>
 
@@ -201,7 +201,6 @@ import {
   cancelOrder,
 } from "/src/services/OrderService";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { statusClass } from "/src/utils/statusClass";
 
 const goDelivery = (orderId) => {
   router.push({ name: "AdminDeliveryDetails", params: { orderId } });
@@ -224,14 +223,6 @@ const route = useRoute();
 const order = ref(null);
 const loading = ref(false);
 const statuses = ref([]);
-
-const canCancel = computed(
-  () =>
-    order.value &&
-    !["Отменен", "Получен", "Возврат средств", "Доставлен"].includes(
-      order.value.status
-    )
-);
 
 const orderId = route.params.id;
 
@@ -268,47 +259,30 @@ onMounted(async () => {
 const changeStatus = async () => {
   const prev = order.value.status;
   try {
-    await updateOrderStatus(order.value.id, order.value.status);
+    if (order.value.status === "Cancelled") {
+      let result;
+      try {
+        result = await ElMessageBox.prompt(
+          "Укажите причину отмены заказа",
+          "Отмена заказа",
+          {
+            confirmButtonText: "Ок",
+            cancelButtonText: "Отмена",
+            inputPlaceholder: "Комментарий",
+          }
+        );
+      } catch {
+        order.value.status = prev;
+        return;
+      }
+      await cancelOrder(order.value.id, result.value || null);
+    } else {
+      await updateOrderStatus(order.value.id, order.value.status);
+    }
     ElMessage.success("Статус обновлён");
   } catch {
     order.value.status = prev;
   }
-};
-
-const cancelOrderWithComment = async () => {
-  let comment = "";
-  try {
-    if (order.value.status === "Cancelled") {
-      let comment = "";
-      try {
-        const { value } = await ElMessageBox.prompt(
-          "Укажите причину отмены (опционально)",
-          "Отмена заказа",
-          {
-            confirmButtonText: "Отменить",
-            cancelButtonText: "Закрыть",
-            draggable: true,
-          }
-        );
-        comment = value;
-      } catch {
-        return;
-      }
-      await cancelOrder(order.value.id, comment || null);
-      ElMessage.success("Заказ отменён");
-      order.value.status = "Cancelled";
-    } else {
-      await updateOrderStatus(order.value.id, order.value.status);
-      ElMessage.success("Статус обновлён");
-    }
-  } catch {
-    return;
-  }
-  try {
-    await cancelOrder(order.value.id, comment);
-    order.value.status = "Отменен";
-    ElMessage.success("Заказ отменён");
-  } catch {}
 };
 </script>
 

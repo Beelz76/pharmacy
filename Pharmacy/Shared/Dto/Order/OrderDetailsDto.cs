@@ -18,5 +18,6 @@ public record OrderDetailsDto(
     string UserFullName,
     string UserEmail,
     List<OrderItemDto> Items,
-    PaymentDto Payment
+    PaymentDto Payment,
+    string? CancellationComment
 );
