@@ -248,7 +248,11 @@ const repeat = async () => {
   try {
     repeatLoading.value = true;
     const data = await repeatOrder(order.value.id);
-    router.push({ name: "OrderDetails", params: { id: data.id } });
+    router.push({
+      name: "OrderDetails",
+      params: { id: data.id },
+      query: route.query,
+    });
   } catch (e) {
     console.error("Ошибка повторного заказа", e);
   } finally {
