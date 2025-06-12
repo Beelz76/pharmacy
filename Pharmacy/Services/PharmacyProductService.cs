@@ -150,7 +150,7 @@ public class PharmacyProductService : IPharmacyProductService
                 result.Add(new PharmacyProductDto(
                     pharmacyProduct.ProductId,
                     pharmacyProduct.Product.Name,
-                    pharmacyProduct.StockQuantity,
+                    100,//pharmacyProduct.StockQuantity,
                     useGlobalExisting ? pharmacyProduct.Product.Price : pharmacyProduct.LocalPrice!.Value,
                     true,
                     useGlobalExisting));

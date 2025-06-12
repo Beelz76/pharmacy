@@ -23,7 +23,7 @@
       <!-- Изображение -->
       <router-link
         :to="productLink"
-        class="relative h-52 bg-gray-100 flex items-center justify-center overflow-hidden"
+        class="relative h-52 flex items-center justify-center overflow-hidden"
       >
         <img
           v-if="product.imageUrl"

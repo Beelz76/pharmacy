@@ -13,11 +13,18 @@
       <h2 class="text-2xl font-bold">Оформление заказа</h2>
     </div>
 
-    <!-- Переключатель: доставка или самовывоз -->
-    <div class="mb-6">
+    <!-- Переключатели: способ получения и способ оплаты -->
+    <div
+      class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+    >
       <el-radio-group v-model="isDelivery" class="flex gap-4">
         <el-radio-button :label="false">Самовывоз</el-radio-button>
         <el-radio-button :label="true">Доставка</el-radio-button>
+      </el-radio-group>
+
+      <el-radio-group v-model="paymentMethod" class="flex gap-4">
+        <el-radio-button label="Online">Онлайн картой</el-radio-button>
+        <el-radio-button label="OnDelivery">При получении</el-radio-button>
       </el-radio-group>
     </div>
 
@@ -52,27 +59,6 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <div class="bg-white border rounded-xl shadow-sm p-4">
-          <h3 class="text-base font-semibold text-gray-800 mb-3">
-            Способ оплаты
-          </h3>
-          <el-radio-group
-            v-model="paymentMethod"
-            class="flex flex-col gap-3 w-full"
-          >
-            <el-radio-button
-              label="Online"
-              class="!w-full !h-12 text-base text-center"
-              >💳 Онлайн картой</el-radio-button
-            >
-            <el-radio-button
-              label="OnDelivery"
-              class="!w-full !h-12 text-base text-center"
-              >📦 При получении</el-radio-button
-            >
-          </el-radio-group>
         </div>
       </div>
 
@@ -147,8 +133,13 @@
           </div>
         </div>
 
-        <div class="bg-white border rounded-xl shadow-sm p-4" v-if="newAddress">
-          <p class="text-sm mb-3">{{ newAddress.display_name }}</p>
+        <div
+          class="text-right bg-white border rounded-xl shadow-sm p-4"
+          v-if="newAddress"
+        >
+          <p class="text-sm text-left mb-3">
+            {{ getShortAddressFromRaw(newAddress) }}
+          </p>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
             <el-input v-model="entrance" placeholder="Подъезд" />
             <el-input v-model="floor" placeholder="Этаж" />
@@ -168,23 +159,6 @@
           <p class="text-sm text-gray-500">
             Кликните на карту, чтобы выбрать новый адрес.
           </p>
-        </div>
-
-        <div class="bg-white border rounded-xl shadow-sm p-4">
-          <h3 class="text-base font-semibold text-gray-800 mb-3">
-            Способ оплаты
-          </h3>
-          <el-radio-group
-            v-model="paymentMethod"
-            class="flex flex-col gap-3 w-full"
-          >
-            <el-radio-button label="Online" class="!w-full !h-12 text-base"
-              >💳 Онлайн картой</el-radio-button
-            >
-            <el-radio-button label="OnDelivery" class="!w-full !h-12 text-base"
-              >📦 При получении</el-radio-button
-            >
-          </el-radio-group>
         </div>
       </div>
 
@@ -479,6 +453,18 @@ async function getCityNameByCoords(lat, lon) {
   } catch {
     return null;
   }
+}
+
+function getShortAddressFromRaw(addr) {
+  if (!addr?.address) return "";
+  const a = addr.address;
+  const parts = [
+    a.city || a.town || a.village,
+    a.road,
+    a.house_number,
+    a.postcode,
+  ].filter(Boolean);
+  return parts.join(", ");
 }
 
 const searchCities = async (query) => {

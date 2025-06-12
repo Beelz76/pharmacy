@@ -360,8 +360,21 @@ async function onAddressClick(e) {
       { headers: { "User-Agent": "MediCare-App/1.0 (support@medicare.ru)" } }
     );
     const data = await res.json();
+    marker;
+    const addr = data.address || {};
+    const short = [
+      addr.city || addr.town || addr.village,
+      addr.road,
+      addr.house_number,
+      addr.postcode,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
     marker
-      .setPopup(new maplibregl.Popup({ offset: 25 }).setText(data.display_name))
+      .setPopup(
+        new maplibregl.Popup({ offset: 25 }).setText(short || "Адрес не найден")
+      )
       .togglePopup();
     emit("select", {
       display_name: data.display_name,
