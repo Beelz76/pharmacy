@@ -59,10 +59,10 @@ public class UpdateUserRequestValidator : Validator<UpdateUserRequest>
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Patronymic).MaximumLength(50);
         RuleFor(x => x.Phone)
-            .MaximumLength(12)
-            .Matches(@"^\+7\d{10}$")
+            .MaximumLength(11)
+            .Matches(@"^7\d{10}$")
             .When(x => !string.IsNullOrWhiteSpace(x.Phone))
-            .WithMessage("Введите номер в формате +7XXXXXXXXXX");
+            .WithMessage("Введите номер в формате 7XXXXXXXXXX");
         RuleFor(x => x.Role)
             .Must(r => r == UserRoleEnum.Employee || r == UserRoleEnum.Admin)
             .WithMessage("Роль должна быть Employee или Admin");

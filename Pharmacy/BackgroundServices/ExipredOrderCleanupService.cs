@@ -1,4 +1,5 @@
 ﻿using Pharmacy.ExternalServices;
+using Pharmacy.Services.Interfaces;
 
 namespace Pharmacy.BackgroundServices;
 
@@ -39,11 +40,13 @@ public class ExpiredOrderCleanupService : BackgroundService
                 using var scope = _serviceScopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<PharmacyDbContext>();
                 var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
+                var pharmacyProductService = scope.ServiceProvider.GetRequiredService<IPharmacyProductService>();
 
                 var now = _dateTimeProvider.UtcNow;
                 var expiredOrders = await db.Orders
                     .Include(o => o.Payment)
                     .Include(o => o.User)
+                    .Include(o => o.OrderItems)
                     .Where(o => o.ExpiresAt != null &&
                                 o.ExpiresAt < now &&
                                 o.StatusId == (int)OrderStatusEnum.WaitingForPayment)
@@ -57,6 +60,17 @@ public class ExpiredOrderCleanupService : BackgroundService
                         order.UpdatedAt = now;
                         order.CancellationComment = "Истек срок оплаты";
 
+                        foreach (var item in order.OrderItems)
+                        {
+                            var pharmacyProduct = await db.PharmacyProducts.FirstOrDefaultAsync(
+                                pp => pp.PharmacyId == order.PharmacyId && pp.ProductId == item.ProductId,
+                                cancellationToken: stoppingToken);
+                            if (pharmacyProduct != null)
+                            {
+                                pharmacyProduct.StockQuantity += item.Quantity;
+                            }
+                        }
+                        
                         if (order.Payment != null &&
                             ((PaymentStatusEnum)order.Payment.StatusId == PaymentStatusEnum.Pending ||
                              (PaymentStatusEnum)order.Payment.StatusId == PaymentStatusEnum.NotPaid))

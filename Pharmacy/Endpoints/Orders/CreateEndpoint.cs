@@ -69,8 +69,9 @@ public class CreateOrderRequestValidator : Validator<CreateOrderRequest>
             .WithMessage("Адрес доставки не указан");
         
         RuleFor(x => x.Phone)
-            .NotEmpty()
-            .When(x => x.IsDelivery)
-            .WithMessage("Телефон обязателен при доставке");
+            .MaximumLength(11)
+            .Matches(@"^7\d{10}$")
+            .When(x => !string.IsNullOrWhiteSpace(x.Phone))
+            .WithMessage("Введите номер в формате 7XXXXXXXXXX");
     }
 }

@@ -198,8 +198,7 @@ public class OrderService : IOrderService
         var created = transactionResult.Value;
         string pharmacyName = (await _pharmacyService.GetByIdAsync(pharmacyId)).Value?.Name ?? "неизвестно";
         var addressString = request.IsDelivery && request.UserAddressId.HasValue
-            ? AddressExtensions.FormatAddress(
-                await _userAddressRepository.GetByIdAsync(userId, request.UserAddressId.Value))
+            ? AddressExtensions.FormatAddress(await _userAddressRepository.GetByIdAsync(userId, request.UserAddressId.Value))
             : $"Аптека: {pharmacyName}";
 
         var itemsTable = string.Join("", orderItemDetails.Select(item =>
@@ -497,7 +496,7 @@ public class OrderService : IOrderService
         if (newStatus == OrderStatusEnum.ReadyForReceive && !order.IsDelivery)
         {
             order.PickupCode = new Random().Next(1000, 9999).ToString();
-            var subject = $"Ваш заказ {order.Number} готов к получению";
+            var subject = $"Заказ {order.Number} готов к получению";
             var body = $@"
                 <div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;"">
                     <h2 style=""color: #2c3e50;"">Здравствуйте, {user.LastName} {user.FirstName}!</h2>

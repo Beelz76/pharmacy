@@ -95,10 +95,10 @@ public class CreateUserRequestValidator : Validator<CreateUserRequest>
             .MaximumLength(50);
         
         RuleFor(x => x.Phone)
-            .MaximumLength(12)
-            .Matches(@"^\+7\d{10}$")
+            .MaximumLength(11)
+            .Matches(@"^7\d{10}$")
             .When(x => !string.IsNullOrWhiteSpace(x.Phone))
-            .WithMessage("Введите номер в формате +7XXXXXXXXXX");
+            .WithMessage("Введите номер в формате 7XXXXXXXXXX");
         
         RuleFor(x => x.Role)
             .Must(role => role == UserRoleEnum.Employee || role == UserRoleEnum.Admin)
