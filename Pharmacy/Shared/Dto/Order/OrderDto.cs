@@ -12,5 +12,6 @@ public record OrderDto(
     string PharmacyAddress,
     int UserId,
     string UserFullName,
-    string UserEmail
+    string UserEmail,
+    string? CancellationComment
 );

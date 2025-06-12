@@ -145,6 +145,17 @@
             Перейти к оплате
           </el-button>
         </div>
+        <div class="pt-2">
+          <el-button
+            type="primary"
+            plain
+            size="large"
+            class="w-full"
+            @click="repeat"
+          >
+            Повторить заказ
+          </el-button>
+        </div>
       </div>
     </div>
   </div>
@@ -154,7 +165,11 @@
 import { ref, onMounted, computed } from "vue";
 import { useAuthStore } from "/src/stores/AuthStore";
 import { useRoute, useRouter } from "vue-router";
-import { getOrderById, payOrder } from "/src/services/OrderService";
+import {
+  getOrderById,
+  payOrder,
+  repeatOrder,
+} from "/src/services/OrderService";
 import { useOrderStore } from "../../stores/OrderStore";
 import { statusClass } from "../../utils/statusClass";
 import { toSlug } from "../../utils/slugify";
@@ -174,16 +189,10 @@ const goBack = () => {
 
 const isDelivery = computed(() => order.value?.isDelivery);
 
-const pharmacyName = computed(() => {
-  if (!order.value?.pharmacyAddress) return "";
-  const parts = order.value.pharmacyAddress.split(",");
-  return parts[parts.length - 1].trim();
-});
+const pharmacyName = computed(() => order.value?.pharmacyName || "");
 
 const pharmacyAddress = computed(() => {
-  if (!order.value?.pharmacyAddress) return "";
-  const parts = order.value.pharmacyAddress.split(",");
-  return parts.slice(0, -1).join(",").trim();
+  return order.value?.pharmacyAddress || "";
 });
 
 const formatDate = (isoString) => {
@@ -208,6 +217,15 @@ onMounted(async () => {
 
 const goProduct = (id, name) => {
   router.push({ name: "ProductDetails", params: { id, slug: toSlug(name) } });
+};
+
+const repeat = async () => {
+  try {
+    const data = await repeatOrder(order.value.id);
+    router.push({ name: "OrderDetails", params: { id: data.id } });
+  } catch (e) {
+    console.error("Ошибка повторного заказа", e);
+  }
 };
 
 const pay = async () => {

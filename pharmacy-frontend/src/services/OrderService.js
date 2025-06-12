@@ -19,6 +19,16 @@ export async function cancelOrder(orderId, comment = null) {
   }
 }
 
+export async function repeatOrder(orderId) {
+  try {
+    const res = await api.post(`/orders/${orderId}/repeat`);
+    return res.data;
+  } catch (err) {
+    console.error(`Ошибка при повторе заказа #${orderId}:`, err);
+    throw err;
+  }
+}
+
 export async function payOrder(orderId) {
   try {
     const res = await api.post(`/orders/${orderId}/pay`);

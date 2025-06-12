@@ -18,4 +18,5 @@ public interface IOrderService
     Task<Result> CancelAsync(int userId, int orderId, string? comment = null);
     Task<Result> CancelByStaffAsync(int orderId, string? comment = null, int? pharmacyId = null);
     Task<Result> MarkAsDeliveredAsync(int orderId, int? pharmacyId = null);
+    Task<Result<CreatedWithNumberDto>> RepeatAsync(int orderId, int userId);
 }
