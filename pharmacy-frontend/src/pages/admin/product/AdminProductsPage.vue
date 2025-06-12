@@ -119,7 +119,7 @@
             <td class="px-6 py-4">{{ p.id }}</td>
             <td class="px-6 py-4">{{ p.name }}</td>
             <td class="px-6 py-4">{{ p.categoryName }}</td>
-            <td class="px-6 py-4">{{ p.price }}</td>
+            <td class="px-6 py-4">{{ p.price.toFixed(2) }}</td>
             <td class="px-6 py-4">{{ p.isAvailable ? "Да" : "Нет" }}</td>
             <td class="px-6 py-4">
               <div class="flex gap-2">

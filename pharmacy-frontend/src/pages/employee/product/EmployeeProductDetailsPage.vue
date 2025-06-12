@@ -35,7 +35,10 @@
           <span class="font-medium">Производитель:</span>
           {{ product.manufacturer.name }} ({{ product.manufacturer.country }})
         </p>
-        <p><span class="font-medium">Цена:</span> {{ product.price }}</p>
+        <p>
+          <span class="font-medium">Цена:</span>
+          {{ product.price.toFixed(2) }} ₽
+        </p>
         <p>
           <span class="font-medium">Доступен:</span>
           {{ product.isAvailable ? "Да" : "Нет" }}
@@ -56,6 +59,18 @@
         <p class="text-sm text-gray-700 whitespace-pre-line">
           {{ product.extendedDescription }}
         </p>
+      </div>
+
+      <div v-if="normalizedProperties.length" class="pt-4">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Характеристики</h3>
+        <ul class="space-y-1 text-sm text-gray-700">
+          <li v-for="prop in normalizedProperties" :key="prop.key">
+            <span class="font-medium"
+              >{{ prop.label || formatKey(prop.key) }}:</span
+            >
+            {{ prop.value }}
+          </li>
+        </ul>
       </div>
 
       <div v-if="product.images?.length" class="pt-4">
@@ -90,6 +105,24 @@ const fullCategoryName = computed(() => {
   }
   return product.value.category.name;
 });
+
+const normalizedProperties = computed(() =>
+  (product.value?.properties || []).map((p) => ({
+    key: p.key ?? p.Key,
+    label: p.label ?? p.Label,
+    value: p.value ?? p.Value,
+  }))
+);
+
+const formatKey = (key) => {
+  const map = {
+    form: "Форма",
+    dosage: "Дозировка",
+    composition: "Состав",
+    instruction: "Инструкция",
+  };
+  return map[key] || key;
+};
 
 onMounted(async () => {
   loading.value = true;

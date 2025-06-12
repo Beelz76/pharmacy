@@ -102,70 +102,111 @@
 
       <!-- Поля категории -->
       <div>
-        <el-table
-          :data="fields"
-          size="small"
-          row-key="localId"
-          class="mb-4 border rounded"
-        >
-          <el-table-column prop="label" label="Метка">
-            <template #default="scope">
-              <el-input
-                v-model="scope.row.label"
-                placeholder="Напр. 'Форма выпуска'"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column prop="key" label="Ключ" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.key" placeholder="Напр. 'form'" />
-            </template>
-          </el-table-column>
-          <el-table-column prop="type" label="Тип" width="140">
-            <template #default="scope">
-              <el-select v-model="scope.row.type" placeholder="Тип данных">
-                <el-option
-                  v-for="t in fieldTypes"
-                  :key="t"
-                  :label="t"
-                  :value="t"
-                />
-              </el-select>
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="isRequired"
-            label="Обяз."
-            width="80"
-            align="center"
+        <el-form :model="fields" ref="fieldsForm" class="mb-4">
+          <el-table
+            :data="fields"
+            size="small"
+            row-key="localId"
+            class="mb-4 border rounded"
           >
-            <template #default="scope">
-              <el-checkbox v-model="scope.row.isRequired" />
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="isFilterable"
-            label="Фильтр"
-            width="80"
-            align="center"
-          >
-            <template #default="scope">
-              <el-checkbox v-model="scope.row.isFilterable" />
-            </template>
-          </el-table-column>
-          <el-table-column width="70">
-            <template #default="scope">
-              <el-button
-                size="small"
-                type="danger"
-                @click="deleteField(scope.$index)"
-                :title="'Удалить поле ' + (scope.row.label || '')"
-              >
-                <i class="fas fa-trash" />
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+            <el-table-column prop="label" label="Метка">
+              <template #default="scope">
+                <el-form-item
+                  :prop="`${scope.$index}.label`"
+                  :rules="[
+                    {
+                      required: true,
+                      message: 'Введите метку',
+                      trigger: 'blur',
+                    },
+                  ]"
+                  label-width="0"
+                >
+                  <el-input
+                    v-model="scope.row.label"
+                    placeholder="Напр. 'Форма выпуска'"
+                  />
+                </el-form-item>
+              </template>
+            </el-table-column>
+            <el-table-column prop="key" label="Ключ" width="150">
+              <template #default="scope">
+                <el-form-item
+                  :prop="`${scope.$index}.key`"
+                  :rules="[
+                    {
+                      required: true,
+                      message: 'Введите ключ',
+                      trigger: 'blur',
+                    },
+                  ]"
+                  label-width="0"
+                >
+                  <el-input
+                    v-model="scope.row.key"
+                    placeholder="Напр. 'form'"
+                  />
+                </el-form-item>
+              </template>
+            </el-table-column>
+            <el-table-column prop="type" label="Тип" width="140">
+              <template #default="scope">
+                <el-form-item
+                  :prop="`${scope.$index}.type`"
+                  :rules="[
+                    {
+                      required: true,
+                      message: 'Выберите тип',
+                      trigger: 'change',
+                    },
+                  ]"
+                  label-width="0"
+                >
+                  <el-select v-model="scope.row.type" placeholder="Тип данных">
+                    <el-option
+                      v-for="t in fieldTypes"
+                      :key="t"
+                      :label="t"
+                      :value="t"
+                    />
+                  </el-select>
+                </el-form-item>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="isRequired"
+              label="Обяз."
+              width="80"
+              align="center"
+            >
+              <template #default="scope">
+                <el-checkbox v-model="scope.row.isRequired" />
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="isFilterable"
+              label="Фильтр"
+              width="80"
+              align="center"
+            >
+              <template #default="scope">
+                <el-checkbox v-model="scope.row.isFilterable" />
+              </template>
+            </el-table-column>
+            <el-table-column width="70">
+              <template #default="scope">
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="deleteField(scope.$index)"
+                  :title="'Удалить поле ' + (scope.row.label || '')"
+                >
+                  <i class="fas fa-trash" />
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-form>
 
         <el-button size="small" @click="addField">
           <i class="fas fa-plus mr-1" /> Добавить поле
@@ -203,6 +244,7 @@ const loaded = ref(false);
 const dialogVisible = ref(false);
 
 const formRef = ref();
+const fieldsForm = ref();
 const rules = {
   name: [{ required: true, message: "Введите название", trigger: "blur" }],
   description: [
@@ -276,6 +318,7 @@ async function openCreate() {
   form.parentCategoryId = null;
   fields.value = [];
   removedFieldIds = [];
+  fieldsForm.value?.clearValidate();
   dialogVisible.value = true;
 }
 
@@ -291,12 +334,14 @@ async function editCategory(row) {
     ...f,
   }));
   removedFieldIds = [];
+  fieldsForm.value?.clearValidate();
   dialogVisible.value = true;
 }
 
 async function save() {
   const valid = await formRef.value.validate().catch(() => false);
-  if (!valid) return;
+  const fieldsValid = await fieldsForm.value.validate().catch(() => false);
+  if (!valid || !fieldsValid) return;
   try {
     if (form.id) {
       await updateCategory(form.id, {

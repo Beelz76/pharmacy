@@ -55,7 +55,7 @@
               </td>
               <td class="px-6 py-4">{{ p.stockQuantity }}</td>
               <td class="px-6 py-4">
-                {{ p.price
+                {{ p.price.toFixed(2)
                 }}<span v-if="p.isGlobalPrice" class="text-xs text-gray-500">
                   (глобальная)</span
                 >
