@@ -15,7 +15,7 @@ public class GetAllEndpoint : EndpointWithoutRequest
     public override void Configure()
     {
         Get("payments/statuses");
-        Roles("Admin");
+        Roles("Admin", "Employee");
         Tags("Payments");
         Summary(s => s.Summary = "Получить все статусы оплаты");
     }

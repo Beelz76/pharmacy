@@ -19,5 +19,7 @@ public record OrderDetailsDto(
     string UserEmail,
     List<OrderItemDto> Items,
     PaymentDto Payment,
-    string? CancellationComment
+    string? CancellationComment,
+    DateTime? ExpiresAt,
+    bool RepeatAvailable
 );

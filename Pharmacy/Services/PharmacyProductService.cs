@@ -165,7 +165,7 @@ public class PharmacyProductService : IPharmacyProductService
                 {
                     PharmacyId = pharmacyId,
                     ProductId = productId,
-                    StockQuantity = quantity,
+                    StockQuantity = 100, //quantity,
                     LocalPrice = null,
                     IsAvailable = true,
                     LastRestockedAt = now

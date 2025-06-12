@@ -52,7 +52,8 @@ public record CreateOrderRequest(
     int? UserAddressId,
     PaymentMethodEnum PaymentMethod,
     bool IsDelivery,
-    string? DeliveryComment
+    string? DeliveryComment,
+    string? Phone
 );
 
 public class CreateOrderRequestValidator : Validator<CreateOrderRequest>
@@ -66,5 +67,10 @@ public class CreateOrderRequestValidator : Validator<CreateOrderRequest>
             .NotNull()
             .When(x => x.IsDelivery)
             .WithMessage("Адрес доставки не указан");
+        
+        RuleFor(x => x.Phone)
+            .NotEmpty()
+            .When(x => x.IsDelivery)
+            .WithMessage("Телефон обязателен при доставке");
     }
 }

@@ -13,3 +13,7 @@ export async function getPaymentById(id) {
   const res = await api.get(`/payments/${id}`);
   return res.data;
 }
+
+export async function updatePaymentStatus(orderId, newStatus) {
+  await api.put("/payments/status", { orderId, newStatus });
+}

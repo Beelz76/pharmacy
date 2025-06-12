@@ -18,7 +18,7 @@ public class UpdateEndpoint : Endpoint<UpdatePaymentRequest>
     public override void Configure()
     {
         Put("payments/status");
-        //Roles("User", "Admin", "Employee");
+        Roles("Admin", "Employee");
         AllowAnonymous();
         Tags("Payments");
         Summary(s => { s.Summary = "Обновить статус платежа по заказу"; }); 

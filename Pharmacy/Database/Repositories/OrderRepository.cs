@@ -71,6 +71,7 @@ public class OrderRepository : IOrderRepository
     {
         return _context.Orders
             .Include(o => o.Status)
+            .Include(o => o.Payment)
             .Include(o => o.User)
             .Include(o => o.Pharmacy).ThenInclude(o => o.Address)
             .AsNoTracking();

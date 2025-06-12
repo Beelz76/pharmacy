@@ -131,7 +131,7 @@
               Итого: {{ order.totalPrice.toFixed(2) }} ₽
             </div>
             <div
-              v-if="order?.status === 'Отменен' && order.cancellationComment"
+              v-if="order?.status === 'Cancelled' && order.cancellationComment"
               class="px-6 py-4 text-sm text-red-600 border-t bg-red-50"
             >
               <span class="font-semibold">Причина отмены:</span>

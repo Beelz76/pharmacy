@@ -103,6 +103,7 @@
             <th class="px-6 py-5 font-semibold">Дата</th>
             <th class="px-6 py-5 font-semibold">Сумма</th>
             <th class="px-6 py-5 font-semibold">Статус</th>
+            <th class="px-6 py-5 font-semibold">Оплата</th>
             <th class="px-6 py-5 font-semibold">Покупатель</th>
             <th class="px-6 py-5 font-semibold">Код</th>
             <th class="px-6 py-5 font-semibold text-right">
@@ -139,6 +140,20 @@
                 />
               </el-select>
             </td>
+            <td class="px-6 py-4 whitespace-nowrap" @click.stop>
+              <el-select
+                v-model="o.paymentStatus"
+                size="small"
+                @change="changePaymentStatus(o)"
+              >
+                <el-option
+                  v-for="s in paymentStatuses"
+                  :key="s.id"
+                  :label="s.description"
+                  :value="s.name"
+                />
+              </el-select>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">{{ o.userFullName }}</td>
             <td class="px-6 py-4 whitespace-nowrap">
               {{ o.pickupCode || "—" }}
@@ -148,12 +163,12 @@
             </td>
           </tr>
           <tr v-if="!loading && orders.length === 0">
-            <td colspan="8" class="text-center py-6 text-gray-500">
+            <td colspan="9" class="text-center py-6 text-gray-500">
               Заказы не найдены
             </td>
           </tr>
           <tr v-if="loading">
-            <td colspan="8" class="text-center py-6 text-gray-500">
+            <td colspan="9" class="text-center py-6 text-gray-500">
               Загрузка...
             </td>
           </tr>
@@ -185,6 +200,8 @@ import {
   updateOrderStatus,
   cancelOrder,
 } from "/src/services/OrderService";
+import { getPaymentStatuses } from "/src/services/PaymentReferenceService";
+import { updatePaymentStatus } from "/src/services/PaymentService";
 import { ElMessage, ElMessageBox } from "element-plus";
 
 const route = useRoute();
@@ -225,6 +242,7 @@ const loadUser = async (id) => {
 loadUser(filters.userId);
 
 const statuses = ref([]);
+const paymentStatuses = ref([]);
 
 const changeStatus = async (order) => {
   const prev = order.status;
@@ -255,8 +273,22 @@ const changeStatus = async (order) => {
   }
 };
 
+const changePaymentStatus = async (order) => {
+  const prev = order.paymentStatus;
+  try {
+    await updatePaymentStatus(order.id, order.paymentStatus);
+    ElMessage.success("Статус оплаты обновлен");
+  } catch (e) {
+    order.paymentStatus = prev;
+  }
+};
+
 const loadStatuses = async () => {
   statuses.value = await getOrderStatuses();
+};
+
+const loadPaymentStatuses = async () => {
+  paymentStatuses.value = await getPaymentStatuses();
 };
 
 function fetch() {
@@ -346,5 +378,6 @@ const goDetails = (id) => {
 };
 
 loadStatuses();
+loadPaymentStatuses();
 fetch();
 </script>

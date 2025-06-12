@@ -7,11 +7,13 @@ public record OrderDto(
     decimal TotalPrice,
     string Status,
     string? PickupCode,
+    bool IsDelivery,
     int PharmacyId,
     string? PharmacyName,
     string PharmacyAddress,
     int UserId,
     string UserFullName,
     string UserEmail,
-    string? CancellationComment
+    string? CancellationComment,
+    string PaymentStatus
 );

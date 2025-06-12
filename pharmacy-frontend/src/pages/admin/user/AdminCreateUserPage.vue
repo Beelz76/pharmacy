@@ -213,6 +213,7 @@ watch(
       form.value.pharmacyId = null;
       selectedPharmacyName.value = null;
       pharmacyAddresses.value = [];
+      formRef.value?.clearValidate("pharmacyId");
     }
   }
 );
@@ -220,5 +221,6 @@ watch(
 watch(selectedPharmacyName, () => {
   form.value.pharmacyId = null;
   searchPharmacyAddresses();
+  formRef.value?.clearValidate("pharmacyId");
 });
 </script>

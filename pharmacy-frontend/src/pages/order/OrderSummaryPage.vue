@@ -32,6 +32,9 @@
           <p v-if="selectedAddress?.comment" class="text-sm text-gray-600 mt-1">
             {{ selectedAddress.comment }}
           </p>
+          <div v-if="!accountPhone" class="mt-2">
+            <PhoneInput v-model="phone" digits-only />
+          </div>
         </template>
         <template v-else>
           <p class="text-sm text-gray-500 uppercase tracking-wide">Аптека</p>
@@ -108,10 +111,17 @@ import { useRouter } from "vue-router";
 import { useCartStore } from "../../stores/CartStore";
 import { useOrderStore } from "../../stores/OrderStore";
 import api from "../../utils/axios";
+import { useAccountStore } from "../../stores/AccountStore";
+import PhoneInput from "../../components/inputs/PhoneInput.vue";
+import { ElMessage } from "element-plus";
 
 const router = useRouter();
 const cartStore = useCartStore();
 const orderStore = useOrderStore();
+const accountStore = useAccountStore();
+accountStore.fetchProfile();
+
+const phone = ref(accountStore.account?.phone || "");
 
 const loading = ref(false);
 
@@ -123,6 +133,7 @@ const paymentMethod = orderStore.paymentMethod;
 const deliveryComment = orderStore.deliveryComment;
 const cartItems = cartStore.items;
 const totalPrice = cartStore.totalPrice;
+const accountPhone = computed(() => accountStore.account?.phone || "");
 
 const fullPharmacyAddress = computed(() =>
   selectedPharmacy ? selectedPharmacy.address : ""
@@ -139,6 +150,14 @@ const submitOrder = async () => {
     };
     if (isDelivery) {
       payload.userAddressId = selectedAddressId;
+      if (!accountPhone.value && !phone.value) {
+        ElMessage({ message: "Укажите номер телефона", type: "warning" });
+        loading.value = false;
+        return;
+      }
+      if (!accountPhone.value) {
+        payload.phone = phone.value;
+      }
     } else {
       const existRes = await api.post("/pharmacy/existing", {
         name: selectedPharmacy.name,

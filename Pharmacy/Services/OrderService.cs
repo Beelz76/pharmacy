@@ -78,6 +78,21 @@ public class OrderService : IOrderService
             return Result.Failure<CreatedWithNumberDto>(Error.Failure("Адрес не указан"));
         }
 
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (request.IsDelivery)
+        {
+            var phone = string.IsNullOrWhiteSpace(request.Phone) ? user.Phone : request.Phone;
+            if (string.IsNullOrWhiteSpace(phone))
+                return Result.Failure<CreatedWithNumberDto>(Error.Failure("Телефон обязателен при доставке"));
+
+            if (string.IsNullOrWhiteSpace(user.Phone) || user.Phone != phone)
+            {
+                user.Phone = phone;
+                user.UpdatedAt = _dateTimeProvider.UtcNow;
+                await _userRepository.UpdateAsync(user);
+            }
+        }
+        
         var now = _dateTimeProvider.UtcNow;
         var productTuples = cartItems.Select(c => (c.ProductId, c.Quantity)).ToList();
 
@@ -117,9 +132,8 @@ public class OrderService : IOrderService
 
         var transactionResult = await _transactionRunner.ExecuteAsync(async () =>
         {
-            var pharmacyProductsResult =
-                await _pharmacyProductService.ValidateOrAddProductsAsync(pharmacyId, productTuples);
-            if (pharmacyProductsResult.IsFailure)
+            var pharmacyProductsResult = await _pharmacyProductService.ValidateOrAddProductsAsync(pharmacyId, productTuples);
+            if (pharmacyProductsResult.IsFailure) 
                 return Result.Failure<CreatedWithNumberDto>(pharmacyProductsResult.Error);
 
             var pharmacyProducts = pharmacyProductsResult.Value;
@@ -182,18 +196,17 @@ public class OrderService : IOrderService
             return transactionResult;
 
         var created = transactionResult.Value;
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user is not null)
-        {
-            string pharmacyName = (await _pharmacyService.GetByIdAsync(pharmacyId)).Value?.Name ?? "неизвестно";
-            var addressString = request.IsDelivery && request.UserAddressId.HasValue
-                ? AddressExtensions.FormatAddress(await _userAddressRepository.GetByIdAsync(userId, request.UserAddressId.Value))
-                : $"Аптека: {pharmacyName}";
+        string pharmacyName = (await _pharmacyService.GetByIdAsync(pharmacyId)).Value?.Name ?? "неизвестно";
+        var addressString = request.IsDelivery && request.UserAddressId.HasValue
+            ? AddressExtensions.FormatAddress(
+                await _userAddressRepository.GetByIdAsync(userId, request.UserAddressId.Value))
+            : $"Аптека: {pharmacyName}";
 
-            var itemsTable = string.Join("", orderItemDetails.Select(item =>
-                $"<tr><td>{item.Name}</td><td>{item.Quantity}</td><td>{item.Price:C}</td><td>{item.Quantity * item.Price:C}</td></tr>"));
+        var itemsTable = string.Join("", orderItemDetails.Select(item =>
+            $"<tr><td>{item.Name}</td><td>{item.Quantity}</td><td>{item.Price:C}</td><td>{item.Quantity * item.Price:C}</td></tr>"));
 
-            var body = $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
+        var body =
+            $@"<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;'>
                     <h2 style='color: #2c3e50;'>Здравствуйте, {user.LastName} {user.FirstName}!</h2>
                     <p style='font-size: 16px; color: #333;'>Ваш заказ <strong>{created.Number}</strong> оформлен.</p>
                     <p style='font-size: 16px; color: #333;'>Состав заказа:</p>
@@ -206,8 +219,7 @@ public class OrderService : IOrderService
                     <strong>Оплата:</strong> {(request.PaymentMethod == PaymentMethodEnum.Online ? "Онлайн" : "При получении")}</p>
                 </div>";
 
-            await _emailSender.SendEmailAsync(user.Email, $"Заказ {created.Number}", body);
-        }
+        await _emailSender.SendEmailAsync(user.Email, $"Заказ {created.Number}", body);
 
         return Result.Success(created);
     }
@@ -299,6 +311,17 @@ public class OrderService : IOrderService
             return Result.Failure<OrderDetailsDto>(Error.Forbidden("Нет доступа к заказу"));
         }
 
+        bool repeatAvailable = true;
+        foreach (var item in order.OrderItems)
+        {
+            var pp = await _pharmacyProductService.GetAsync(order.PharmacyId, item.ProductId);
+            if (pp == null || !pp.IsAvailable || pp.StockQuantity < item.Quantity)
+            {
+                repeatAvailable = false;
+                break;
+            }
+        }
+        
         return Result.Success(new OrderDetailsDto(
             order.Id,
             order.Number,
@@ -329,7 +352,9 @@ public class OrderService : IOrderService
                 order.Payment.TransactionDate,
                 order.Payment.ExternalPaymentId
             ),
-            order.CancellationComment
+            order.CancellationComment,
+            order.ExpiresAt,
+            repeatAvailable
         ));
     }
     
@@ -423,13 +448,15 @@ public class OrderService : IOrderService
                 o.TotalPrice,
                 o.Status.Description,
                 o.PickupCode,
+                o.IsDelivery,
                 o.PharmacyId,
                 o.Pharmacy.Name,
                 AddressExtensions.FormatAddress(o.Pharmacy.Address)!,
                 o.UserId,
                 $"{o.User.LastName} {o.User.FirstName} {o.User.Patronymic}".Trim(),
                 o.User.Email,
-                o.CancellationComment))
+                o.CancellationComment,
+                ((PaymentStatusEnum)o.Payment.StatusId).GetDescription()))
             .ToListAsync();
 
         return Result.Success(new PaginatedList<OrderDto>(pageItems, totalCount, pageNumber, pageSize));

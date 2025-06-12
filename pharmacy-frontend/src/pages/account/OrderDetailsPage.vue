@@ -135,7 +135,7 @@
           </p>
         </div>
 
-        <div v-if="order?.status === 'Ожидает оплаты'" class="pt-2">
+        <div v-if="order?.status === 'Ожидает оплаты'" class="pt-2 space-y-1">
           <el-button
             type="primary"
             size="large"
@@ -144,13 +144,37 @@
           >
             Перейти к оплате
           </el-button>
+          <div class="text-xs text-gray-500" v-if="order?.expiresAt">
+            Оплатить до {{ formatDate(order.expiresAt) }}
+          </div>
         </div>
         <div class="pt-2">
+          <el-tooltip
+            v-if="!order?.repeatAvailable"
+            content="Некоторых товаров нет в наличии"
+            placement="top"
+          >
+            <div>
+              <el-button
+                type="primary"
+                plain
+                size="large"
+                class="w-full"
+                :disabled="!order?.repeatAvailable"
+                :loading="repeatLoading"
+                @click="repeat"
+              >
+                Повторить заказ
+              </el-button>
+            </div>
+          </el-tooltip>
           <el-button
+            v-else
             type="primary"
             plain
             size="large"
             class="w-full"
+            :loading="repeatLoading"
             @click="repeat"
           >
             Повторить заказ
@@ -180,6 +204,7 @@ const route = useRoute();
 const order = ref(null);
 const loading = ref(false);
 const auth = useAuthStore();
+const repeatLoading = ref(false);
 
 const orderId = route.params.id;
 
@@ -221,10 +246,13 @@ const goProduct = (id, name) => {
 
 const repeat = async () => {
   try {
+    repeatLoading.value = true;
     const data = await repeatOrder(order.value.id);
     router.push({ name: "OrderDetails", params: { id: data.id } });
   } catch (e) {
     console.error("Ошибка повторного заказа", e);
+  } finally {
+    repeatLoading.value = false;
   }
 };
 
