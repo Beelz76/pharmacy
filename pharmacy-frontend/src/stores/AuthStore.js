@@ -12,7 +12,7 @@ export const useAuthStore = defineStore("auth", () => {
   const userId = ref(null);
   const returnUrl = ref(null);
 
-  const isAuthenticated = computed(() => !!token.value);
+  const isAuthenticated = computed(() => token.value);
 
   function setToken(newToken, { sync = true, fetchServer = false } = {}) {
     token.value = newToken;
