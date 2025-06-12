@@ -1,6 +1,7 @@
 <template>
   <div class="max-w-7xl mx-auto py-8 px-2">
-    <div class="flex items-center gap-3 mb-4">
+    <!-- Заголовок -->
+    <div class="flex items-center gap-3 mb-6">
       <router-link
         to="/cart"
         class="flex items-center text-primary-600 hover:text-primary-700 text-lg group"
@@ -12,6 +13,7 @@
       <h2 class="text-2xl font-bold">Оформление заказа</h2>
     </div>
 
+    <!-- Переключатель: доставка или самовывоз -->
     <div class="mb-6">
       <el-radio-group v-model="isDelivery" class="flex gap-4">
         <el-radio-button :label="false">Самовывоз</el-radio-button>
@@ -19,17 +21,17 @@
       </el-radio-group>
     </div>
 
-    <!-- Карта и список аптек -->
+    <!-- Самовывоз -->
     <div
       v-if="selectedCity && !isDelivery"
       class="mb-8 grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6"
     >
-      <!-- Левая колонка -->
+      <!-- Список аптек и способ оплаты -->
       <div class="flex flex-col gap-6">
-        <!-- Список аптек -->
         <div
           class="space-y-3 h-[500px] overflow-y-auto rounded-xl border border-gray-200 p-4 bg-white shadow-sm"
         >
+          <p class="text-base font-semibold mb-2">Выберите аптеку</p>
           <div
             v-for="pharmacy in pharmacyList"
             :key="pharmacy.id"
@@ -52,7 +54,6 @@
           </div>
         </div>
 
-        <!-- Способ оплаты -->
         <div class="bg-white border rounded-xl shadow-sm p-4">
           <h3 class="text-base font-semibold text-gray-800 mb-3">
             Способ оплаты
@@ -63,23 +64,20 @@
           >
             <el-radio-button
               label="Online"
-              class="!w-full !h-12 !text-base !rounded-lg !shadow-sm text-center justify-center"
+              class="!w-full !h-12 text-base text-center"
+              >💳 Онлайн картой</el-radio-button
             >
-              💳 Онлайн картой
-            </el-radio-button>
             <el-radio-button
               label="OnDelivery"
-              class="!w-full !h-12 !text-base !rounded-lg !shadow-sm text-center justify-center"
+              class="!w-full !h-12 text-base text-center"
+              >📦 При получении</el-radio-button
             >
-              📦 При получении
-            </el-radio-button>
           </el-radio-group>
         </div>
       </div>
 
-      <!-- Правая колонка -->
+      <!-- Карта и подтверждение -->
       <div class="flex flex-col gap-6">
-        <!-- Карта -->
         <div
           class="h-[500px] rounded-xl overflow-hidden border border-gray-300 shadow-md relative bg-gray-50"
         >
@@ -93,57 +91,48 @@
           />
         </div>
 
-        <!-- Выбранная аптека + кнопка подтверждения -->
-        <div
-          class="min-h-[178px] p-4 bg-white border rounded-xl shadow-sm flex flex-col justify-between"
-        >
-          <div>
-            <h3 class="text-base font-semibold text-gray-800 mb-2">
-              Выбранная аптека
-            </h3>
-
-            <div class="space-y-1 min-h-[48px]">
-              <template v-if="selectedPharmacy">
-                <p class="text-base font-medium text-gray-900">
-                  «{{ selectedPharmacy.name }}»
-                </p>
-                <p class="text-sm text-gray-600">
-                  {{ selectedPharmacy.address || "Адрес не найден" }}
-                </p>
-              </template>
-              <template v-else>
-                <p class="text-sm text-gray-400">
-                  Выберите аптеку из списка или на карте, чтобы продолжить
-                  оформление заказа.
-                </p>
-              </template>
-            </div>
+        <div class="p-4 bg-white border rounded-xl shadow-sm">
+          <h3 class="text-base font-semibold text-gray-800 mb-2">
+            Выбранная аптека
+          </h3>
+          <div class="min-h-[48px] mb-2">
+            <template v-if="selectedPharmacy">
+              <p class="text-base font-medium text-gray-900">
+                {{ selectedPharmacy.name }}
+              </p>
+              <p class="text-sm text-gray-600">
+                {{ selectedPharmacy.address || "Адрес не найден" }}
+              </p>
+            </template>
+            <template v-else>
+              <p class="text-sm text-gray-400">
+                Выберите аптеку из списка или на карте.
+              </p>
+            </template>
           </div>
-
-          <div class="text-right pt-2">
-            <el-button
-              type="primary"
-              size="large"
-              class="!bg-primary-600 hover:!bg-primary-700 w-full sm:w-auto"
-              :disabled="!selectedPharmacy || !paymentMethod"
-              @click="submitOrder"
-            >
-              Подтвердить заказ
-            </el-button>
-          </div>
+          <el-button
+            type="primary"
+            size="large"
+            class="w-full sm:w-auto"
+            :disabled="!selectedPharmacy || !paymentMethod"
+            @click="submitOrder"
+            >Подтвердить заказ</el-button
+          >
         </div>
       </div>
     </div>
 
-    <!-- Адрес доставки -->
+    <!-- Доставка -->
     <div
       v-if="selectedCity && isDelivery"
       class="mb-8 grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6"
     >
+      <!-- Список адресов и оплата -->
       <div class="flex flex-col gap-6">
         <div
           class="space-y-3 h-[500px] overflow-y-auto rounded-xl border border-gray-200 p-4 bg-white shadow-sm"
         >
+          <p class="text-base font-semibold mb-2">Выберите сохранённый адрес</p>
           <div
             v-for="addr in addresses"
             :key="addr.id"
@@ -174,6 +163,7 @@
             >Сохранить адрес</el-button
           >
         </div>
+
         <div class="bg-white border rounded-xl shadow-sm p-4" v-else>
           <p class="text-sm text-gray-500">
             Кликните на карту, чтобы выбрать новый адрес.
@@ -188,20 +178,17 @@
             v-model="paymentMethod"
             class="flex flex-col gap-3 w-full"
           >
-            <el-radio-button
-              label="Online"
-              class="!w-full !h-12 !text-base !rounded-lg !shadow-sm text-center justify-center"
+            <el-radio-button label="Online" class="!w-full !h-12 text-base"
               >💳 Онлайн картой</el-radio-button
             >
-            <el-radio-button
-              label="OnDelivery"
-              class="!w-full !h-12 !text-base !rounded-lg !shadow-sm text-center justify-center"
+            <el-radio-button label="OnDelivery" class="!w-full !h-12 text-base"
               >📦 При получении</el-radio-button
             >
           </el-radio-group>
         </div>
       </div>
 
+      <!-- Карта и подтверждение -->
       <div class="flex flex-col gap-6">
         <div
           class="h-[500px] rounded-xl overflow-hidden border border-gray-300 shadow-md relative bg-gray-50"
@@ -215,43 +202,37 @@
           />
         </div>
 
-        <div
-          class="min-h-[178px] p-4 bg-white border rounded-xl shadow-sm flex flex-col justify-between"
-        >
-          <div>
-            <h3 class="text-base font-semibold text-gray-800 mb-2">
-              Выбранный адрес
-            </h3>
-            <div class="min-h-[48px]" v-if="selectedAddressId">
+        <div class="p-4 bg-white border rounded-xl shadow-sm">
+          <h3 class="text-base font-semibold text-gray-800 mb-2">
+            Выбранный адрес
+          </h3>
+          <div class="min-h-[48px]">
+            <template v-if="selectedAddressId">
               <p class="text-sm text-gray-600">
                 {{ selectedAddress?.fullAddress }}
               </p>
-            </div>
+            </template>
             <template v-else>
               <p class="text-sm text-gray-400">
                 Выберите адрес из списка или на карте.
               </p>
             </template>
-            <el-input
-              v-model="deliveryComment"
-              type="textarea"
-              rows="2"
-              placeholder="Комментарий к доставке"
-              class="mt-3"
-            />
           </div>
-
-          <div class="text-right pt-2">
-            <el-button
-              type="primary"
-              size="large"
-              class="!bg-primary-600 hover:!bg-primary-700 w-full sm:w-auto"
-              :disabled="(!selectedAddressId && !newAddress) || !paymentMethod"
-              @click="submitOrder"
-            >
-              Подтвердить заказ
-            </el-button>
-          </div>
+          <el-input
+            v-model="deliveryComment"
+            type="textarea"
+            rows="2"
+            placeholder="Комментарий к доставке"
+            class="mt-3"
+          />
+          <el-button
+            type="primary"
+            size="large"
+            class="mt-4 w-full sm:w-auto"
+            :disabled="(!selectedAddressId && !newAddress) || !paymentMethod"
+            @click="submitOrder"
+            >Подтвердить заказ</el-button
+          >
         </div>
       </div>
     </div>

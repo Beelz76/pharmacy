@@ -186,7 +186,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useAuthStore } from "/src/stores/AuthStore";
 import { useRoute, useRouter } from "vue-router";
 import {
@@ -206,7 +206,15 @@ const loading = ref(false);
 const auth = useAuthStore();
 const repeatLoading = ref(false);
 
-const orderId = route.params.id;
+const loadOrder = async (id) => {
+  if (!auth.isAuthenticated) return;
+  try {
+    loading.value = true;
+    order.value = await getOrderById(id);
+  } finally {
+    loading.value = false;
+  }
+};
 
 const goBack = () => {
   router.back();
@@ -231,14 +239,15 @@ const formatDate = (isoString) => {
 };
 
 onMounted(async () => {
-  if (!auth.isAuthenticated) return;
-  try {
-    loading.value = true;
-    order.value = await getOrderById(orderId);
-  } finally {
-    loading.value = false;
-  }
+  await loadOrder(route.params.id);
 });
+
+watch(
+  () => route.params.id,
+  async (newId) => {
+    await loadOrder(newId);
+  }
+);
 
 const goProduct = (id, name) => {
   router.push({ name: "ProductDetails", params: { id, slug: toSlug(name) } });
