@@ -1,0 +1,935 @@
+{
+  "manufacturers": [
+    {
+      "name": "Фармстандарт",
+      "country": "Россия"
+    },
+    {
+      "name": "Биосинтез",
+      "country": "Россия"
+    },
+    {
+      "name": "Акрихин",
+      "country": "Россия"
+    },
+    {
+      "name": "Гедеон Рихтер",
+      "country": "Венгрия"
+    },
+    {
+      "name": "Берлин-Хеми",
+      "country": "Германия"
+    },
+    {
+      "name": "Сандоз",
+      "country": "Швейцария"
+    },
+    {
+      "name": "Тева",
+      "country": "Израиль"
+    },
+    {
+      "name": "KRKA",
+      "country": "Словения"
+    },
+    {
+      "name": "Пфайзер",
+      "country": "США"
+    },
+    {
+      "name": "ГлаксоСмитКляйн",
+      "country": "Великобритания"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Обезболивающие",
+      "description": "Препараты для облегчения боли",
+      "fields": [
+        {
+          "key": "dosage",
+          "label": "Дозировка",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        },
+        {
+          "key": "form",
+          "label": "Форма выпуска",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        }
+      ],
+      "subcategories": [
+        {
+          "name": "Ненаркотические анальгетики",
+          "description": "Анальгетики без наркотических веществ"
+        },
+        {
+          "name": "Наркотические анальгетики",
+          "description": "Сильнодействующие обезболивающие"
+        }
+      ]
+    },
+    {
+      "name": "Антибиотики",
+      "description": "Препараты для лечения бактериальных инфекций",
+      "fields": [
+        {
+          "key": "dosage",
+          "label": "Дозировка",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        },
+        {
+          "key": "form",
+          "label": "Форма выпуска",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        },
+        {
+          "key": "active",
+          "label": "Активное вещество",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        }
+      ],
+      "subcategories": [
+        {
+          "name": "Пенициллины",
+          "description": "Препараты группы пенициллинов"
+        },
+        {
+          "name": "Цефалоспорины",
+          "description": "Препараты группы цефалоспоринов"
+        },
+        {
+          "name": "Макролиды",
+          "description": "Препараты группы макролидов"
+        }
+      ]
+    },
+    {
+      "name": "Противовирусные препараты",
+      "description": "Средства для лечения вирусных инфекций",
+      "fields": [
+        {
+          "key": "dosage",
+          "label": "Дозировка",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        },
+        {
+          "key": "form",
+          "label": "Форма выпуска",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        },
+        {
+          "key": "active",
+          "label": "Активное вещество",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        }
+      ],
+      "subcategories": [
+        {
+          "name": "Прямого действия",
+          "description": "Противовирусные прямого действия"
+        },
+        {
+          "name": "Иммуномодуляторы",
+          "description": "Препараты, стимулирующие иммунитет"
+        }
+      ]
+    },
+    {
+      "name": "Витамины",
+      "description": "Витаминные препараты",
+      "fields": [
+        {
+          "key": "dosage",
+          "label": "Дозировка",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        },
+        {
+          "key": "form",
+          "label": "Форма выпуска",
+          "type": "string",
+          "required": true,
+          "filterable": true
+        },
+        {
+          "key": "composition",
+          "label": "Состав",
+          "type": "string",
+          "required": true,
+          "filterable": false
+        }
+      ],
+      "subcategories": [
+        {
+          "name": "Витамины группы B",
+          "description": "Препараты витаминов группы B"
+        },
+        {
+          "name": "Витамин C",
+          "description": "Препараты витамина C"
+        },
+        {
+          "name": "Комплексные витамины",
+          "description": "Поливитаминные комплексы"
+        }
+      ]
+    }
+  ],
+  "products": [
+    {
+      "sku": "PRD-000001",
+      "name": "Ненаркотические анальгетики 1",
+      "price": 261.03,
+      "category": "Обезболивающие",
+      "subcategory": "Ненаркотические анальгетики",
+      "manufacturer": "Тева",
+      "description": "Описание препарата 1",
+      "extendedDescription": "Подробное описание препарата 1",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "капсулы"
+      }
+    },
+    {
+      "sku": "PRD-000002",
+      "name": "Витамины группы B 2",
+      "price": 165.31,
+      "category": "Витамины",
+      "subcategory": "Витамины группы B",
+      "manufacturer": "Берлин-Хеми",
+      "description": "Описание препарата 2",
+      "extendedDescription": "Подробное описание препарата 2",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "порошок",
+        "composition": "витамины B1,B6,B12"
+      }
+    },
+    {
+      "sku": "PRD-000003",
+      "name": "Ненаркотические анальгетики 3",
+      "price": 117.0,
+      "category": "Обезболивающие",
+      "subcategory": "Ненаркотические анальгетики",
+      "manufacturer": "KRKA",
+      "description": "Описание препарата 3",
+      "extendedDescription": "Подробное описание препарата 3",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "суспензия"
+      }
+    },
+    {
+      "sku": "PRD-000004",
+      "name": "Ненаркотические анальгетики 4",
+      "price": 475.43,
+      "category": "Обезболивающие",
+      "subcategory": "Ненаркотические анальгетики",
+      "manufacturer": "Сандоз",
+      "description": "Описание препарата 4",
+      "extendedDescription": "Подробное описание препарата 4",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "таблетки"
+      }
+    },
+    {
+      "sku": "PRD-000005",
+      "name": "Макролиды 5",
+      "price": 325.27,
+      "category": "Антибиотики",
+      "subcategory": "Макролиды",
+      "manufacturer": "KRKA",
+      "description": "Описание препарата 5",
+      "extendedDescription": "Подробное описание препарата 5",
+      "properties": {
+        "dosage": "200 мг",
+        "form": "порошок",
+        "active": "амоксициллин"
+      }
+    },
+    {
+      "sku": "PRD-000006",
+      "name": "Пенициллины 6",
+      "price": 165.62,
+      "category": "Антибиотики",
+      "subcategory": "Пенициллины",
+      "manufacturer": "Акрихин",
+      "description": "Описание препарата 6",
+      "extendedDescription": "Подробное описание препарата 6",
+      "properties": {
+        "dosage": "200 мг",
+        "form": "суспензия",
+        "active": "интерферон"
+      }
+    },
+    {
+      "sku": "PRD-000007",
+      "name": "Ненаркотические анальгетики 7",
+      "price": 429.98,
+      "category": "Обезболивающие",
+      "subcategory": "Ненаркотические анальгетики",
+      "manufacturer": "Фармстандарт",
+      "description": "Описание препарата 7",
+      "extendedDescription": "Подробное описание препарата 7",
+      "properties": {
+        "dosage": "200 мг",
+        "form": "порошок"
+      }
+    },
+    {
+      "sku": "PRD-000008",
+      "name": "Прямого действия 8",
+      "price": 99.78,
+      "category": "Противовирусные препараты",
+      "subcategory": "Прямого действия",
+      "manufacturer": "Фармстандарт",
+      "description": "Описание препарата 8",
+      "extendedDescription": "Подробное описание препарата 8",
+      "properties": {
+        "dosage": "200 мг",
+        "form": "порошок",
+        "active": "ибупрофен"
+      }
+    },
+    {
+      "sku": "PRD-000009",
+      "name": "Витамин C 9",
+      "price": 398.89,
+      "category": "Витамины",
+      "subcategory": "Витамин C",
+      "manufacturer": "Гедеон Рихтер",
+      "description": "Описание препарата 9",
+      "extendedDescription": "Подробное описание препарата 9",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "таблетки",
+        "composition": "витамины B1,B6,B12"
+      }
+    },
+    {
+      "sku": "PRD-000010",
+      "name": "Макролиды 10",
+      "price": 335.32,
+      "category": "Антибиотики",
+      "subcategory": "Макролиды",
+      "manufacturer": "Акрихин",
+      "description": "Описание препарата 10",
+      "extendedDescription": "Подробное описание препарата 10",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "таблетки",
+        "active": "парацетамол"
+      }
+    },
+    {
+      "sku": "PRD-000011",
+      "name": "Цефалоспорины 11",
+      "price": 344.52,
+      "category": "Антибиотики",
+      "subcategory": "Цефалоспорины",
+      "manufacturer": "Сандоз",
+      "description": "Описание препарата 11",
+      "extendedDescription": "Подробное описание препарата 11",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "таблетки",
+        "active": "азитромицин"
+      }
+    },
+    {
+      "sku": "PRD-000012",
+      "name": "Макролиды 12",
+      "price": 337.46,
+      "category": "Антибиотики",
+      "subcategory": "Макролиды",
+      "manufacturer": "Акрихин",
+      "description": "Описание препарата 12",
+      "extendedDescription": "Подробное описание препарата 12",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "суспензия",
+        "active": "парацетамол"
+      }
+    },
+    {
+      "sku": "PRD-000013",
+      "name": "Иммуномодуляторы 13",
+      "price": 459.05,
+      "category": "Противовирусные препараты",
+      "subcategory": "Иммуномодуляторы",
+      "manufacturer": "ГлаксоСмитКляйн",
+      "description": "Описание препарата 13",
+      "extendedDescription": "Подробное описание препарата 13",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "суспензия",
+        "active": "парацетамол"
+      }
+    },
+    {
+      "sku": "PRD-000014",
+      "name": "Прямого действия 14",
+      "price": 122.05,
+      "category": "Противовирусные препараты",
+      "subcategory": "Прямого действия",
+      "manufacturer": "ГлаксоСмитКляйн",
+      "description": "Описание препарата 14",
+      "extendedDescription": "Подробное описание препарата 14",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "капсулы",
+        "active": "ибупрофен"
+      }
+    },
+    {
+      "sku": "PRD-000015",
+      "name": "Иммуномодуляторы 15",
+      "price": 409.76,
+      "category": "Противовирусные препараты",
+      "subcategory": "Иммуномодуляторы",
+      "manufacturer": "Гедеон Рихтер",
+      "description": "Описание препарата 15",
+      "extendedDescription": "Подробное описание препарата 15",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "таблетки",
+        "active": "интерферон"
+      }
+    },
+    {
+      "sku": "PRD-000016",
+      "name": "Прямого действия 16",
+      "price": 316.71,
+      "category": "Противовирусные препараты",
+      "subcategory": "Прямого действия",
+      "manufacturer": "Берлин-Хеми",
+      "description": "Описание препарата 16",
+      "extendedDescription": "Подробное описание препарата 16",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "таблетки",
+        "active": "ибупрофен"
+      }
+    },
+    {
+      "sku": "PRD-000017",
+      "name": "Наркотические анальгетики 17",
+      "price": 107.22,
+      "category": "Обезболивающие",
+      "subcategory": "Наркотические анальгетики",
+      "manufacturer": "Гедеон Рихтер",
+      "description": "Описание препарата 17",
+      "extendedDescription": "Подробное описание препарата 17",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "таблетки"
+      }
+    },
+    {
+      "sku": "PRD-000018",
+      "name": "Цефалоспорины 18",
+      "price": 234.86,
+      "category": "Антибиотики",
+      "subcategory": "Цефалоспорины",
+      "manufacturer": "Сандоз",
+      "description": "Описание препарата 18",
+      "extendedDescription": "Подробное описание препарата 18",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "капсулы",
+        "active": "амоксициллин"
+      }
+    },
+    {
+      "sku": "PRD-000019",
+      "name": "Макролиды 19",
+      "price": 165.88,
+      "category": "Антибиотики",
+      "subcategory": "Макролиды",
+      "manufacturer": "Фармстандарт",
+      "description": "Описание препарата 19",
+      "extendedDescription": "Подробное описание препарата 19",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "таблетки",
+        "active": "интерферон"
+      }
+    },
+    {
+      "sku": "PRD-000020",
+      "name": "Иммуномодуляторы 20",
+      "price": 251.9,
+      "category": "Противовирусные препараты",
+      "subcategory": "Иммуномодуляторы",
+      "manufacturer": "Берлин-Хеми",
+      "description": "Описание препарата 20",
+      "extendedDescription": "Подробное описание препарата 20",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "капсулы",
+        "active": "ибупрофен"
+      }
+    },
+    {
+      "sku": "PRD-000021",
+      "name": "Прямого действия 21",
+      "price": 302.08,
+      "category": "Противовирусные препараты",
+      "subcategory": "Прямого действия",
+      "manufacturer": "Берлин-Хеми",
+      "description": "Описание препарата 21",
+      "extendedDescription": "Подробное описание препарата 21",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "таблетки",
+        "active": "ибупрофен"
+      }
+    },
+    {
+      "sku": "PRD-000022",
+      "name": "Комплексные витамины 22",
+      "price": 219.06,
+      "category": "Витамины",
+      "subcategory": "Комплексные витамины",
+      "manufacturer": "Гедеон Рихтер",
+      "description": "Описание препарата 22",
+      "extendedDescription": "Подробное описание препарата 22",
+      "properties": {
+        "dosage": "200 мг",
+        "form": "порошок",
+        "composition": "витамины B1,B6,B12"
+      }
+    },
+    {
+      "sku": "PRD-000023",
+      "name": "Иммуномодуляторы 23",
+      "price": 458.42,
+      "category": "Противовирусные препараты",
+      "subcategory": "Иммуномодуляторы",
+      "manufacturer": "KRKA",
+      "description": "Описание препарата 23",
+      "extendedDescription": "Подробное описание препарата 23",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "капсулы",
+        "active": "амоксициллин"
+      }
+    },
+    {
+      "sku": "PRD-000024",
+      "name": "Цефалоспорины 24",
+      "price": 102.61,
+      "category": "Антибиотики",
+      "subcategory": "Цефалоспорины",
+      "manufacturer": "ГлаксоСмитКляйн",
+      "description": "Описание препарата 24",
+      "extendedDescription": "Подробное описание препарата 24",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "суспензия",
+        "active": "интерферон"
+      }
+    },
+    {
+      "sku": "PRD-000025",
+      "name": "Цефалоспорины 25",
+      "price": 192.28,
+      "category": "Антибиотики",
+      "subcategory": "Цефалоспорины",
+      "manufacturer": "Гедеон Рихтер",
+      "description": "Описание препарата 25",
+      "extendedDescription": "Подробное описание препарата 25",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "капсулы",
+        "active": "парацетамол"
+      }
+    },
+    {
+      "sku": "PRD-000026",
+      "name": "Цефалоспорины 26",
+      "price": 236.49,
+      "category": "Антибиотики",
+      "subcategory": "Цефалоспорины",
+      "manufacturer": "ГлаксоСмитКляйн",
+      "description": "Описание препарата 26",
+      "extendedDescription": "Подробное описание препарата 26",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "капсулы",
+        "active": "парацетамол"
+      }
+    },
+    {
+      "sku": "PRD-000027",
+      "name": "Комплексные витамины 27",
+      "price": 138.64,
+      "category": "Витамины",
+      "subcategory": "Комплексные витамины",
+      "manufacturer": "Сандоз",
+      "description": "Описание препарата 27",
+      "extendedDescription": "Подробное описание препарата 27",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "таблетки",
+        "composition": "аскорбиновая кислота"
+      }
+    },
+    {
+      "sku": "PRD-000028",
+      "name": "Иммуномодуляторы 28",
+      "price": 270.06,
+      "category": "Противовирусные препараты",
+      "subcategory": "Иммуномодуляторы",
+      "manufacturer": "Биосинтез",
+      "description": "Описание препарата 28",
+      "extendedDescription": "Подробное описание препарата 28",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "суспензия",
+        "active": "интерферон"
+      }
+    },
+    {
+      "sku": "PRD-000029",
+      "name": "Прямого действия 29",
+      "price": 271.37,
+      "category": "Противовирусные препараты",
+      "subcategory": "Прямого действия",
+      "manufacturer": "Биосинтез",
+      "description": "Описание препарата 29",
+      "extendedDescription": "Подробное описание препарата 29",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "суспензия",
+        "active": "парацетамол"
+      }
+    },
+    {
+      "sku": "PRD-000030",
+      "name": "Ненаркотические анальгетики 30",
+      "price": 328.44,
+      "category": "Обезболивающие",
+      "subcategory": "Ненаркотические анальгетики",
+      "manufacturer": "Гедеон Рихтер",
+      "description": "Описание препарата 30",
+      "extendedDescription": "Подробное описание препарата 30",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "таблетки"
+      }
+    },
+    {
+      "sku": "PRD-000031",
+      "name": "Прямого действия 31",
+      "price": 325.37,
+      "category": "Противовирусные препараты",
+      "subcategory": "Прямого действия",
+      "manufacturer": "Пфайзер",
+      "description": "Описание препарата 31",
+      "extendedDescription": "Подробное описание препарата 31",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "таблетки",
+        "active": "парацетамол"
+      }
+    },
+    {
+      "sku": "PRD-000032",
+      "name": "Цефалоспорины 32",
+      "price": 286.38,
+      "category": "Антибиотики",
+      "subcategory": "Цефалоспорины",
+      "manufacturer": "KRKA",
+      "description": "Описание препарата 32",
+      "extendedDescription": "Подробное описание препарата 32",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "таблетки",
+        "active": "азитромицин"
+      }
+    },
+    {
+      "sku": "PRD-000033",
+      "name": "Пенициллины 33",
+      "price": 180.05,
+      "category": "Антибиотики",
+      "subcategory": "Пенициллины",
+      "manufacturer": "Биосинтез",
+      "description": "Описание препарата 33",
+      "extendedDescription": "Подробное описание препарата 33",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "порошок",
+        "active": "амоксициллин"
+      }
+    },
+    {
+      "sku": "PRD-000034",
+      "name": "Наркотические анальгетики 34",
+      "price": 343.18,
+      "category": "Обезболивающие",
+      "subcategory": "Наркотические анальгетики",
+      "manufacturer": "Сандоз",
+      "description": "Описание препарата 34",
+      "extendedDescription": "Подробное описание препарата 34",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "суспензия"
+      }
+    },
+    {
+      "sku": "PRD-000035",
+      "name": "Наркотические анальгетики 35",
+      "price": 479.99,
+      "category": "Обезболивающие",
+      "subcategory": "Наркотические анальгетики",
+      "manufacturer": "Акрихин",
+      "description": "Описание препарата 35",
+      "extendedDescription": "Подробное описание препарата 35",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "порошок"
+      }
+    },
+    {
+      "sku": "PRD-000036",
+      "name": "Витамин C 36",
+      "price": 442.41,
+      "category": "Витамины",
+      "subcategory": "Витамин C",
+      "manufacturer": "Акрихин",
+      "description": "Описание препарата 36",
+      "extendedDescription": "Подробное описание препарата 36",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "порошок",
+        "composition": "поливитамины"
+      }
+    },
+    {
+      "sku": "PRD-000037",
+      "name": "Комплексные витамины 37",
+      "price": 319.45,
+      "category": "Витамины",
+      "subcategory": "Комплексные витамины",
+      "manufacturer": "ГлаксоСмитКляйн",
+      "description": "Описание препарата 37",
+      "extendedDescription": "Подробное описание препарата 37",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "порошок",
+        "composition": "аскорбиновая кислота"
+      }
+    },
+    {
+      "sku": "PRD-000038",
+      "name": "Ненаркотические анальгетики 38",
+      "price": 215.98,
+      "category": "Обезболивающие",
+      "subcategory": "Ненаркотические анальгетики",
+      "manufacturer": "KRKA",
+      "description": "Описание препарата 38",
+      "extendedDescription": "Подробное описание препарата 38",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "таблетки"
+      }
+    },
+    {
+      "sku": "PRD-000039",
+      "name": "Иммуномодуляторы 39",
+      "price": 375.85,
+      "category": "Противовирусные препараты",
+      "subcategory": "Иммуномодуляторы",
+      "manufacturer": "Гедеон Рихтер",
+      "description": "Описание препарата 39",
+      "extendedDescription": "Подробное описание препарата 39",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "суспензия",
+        "active": "ибупрофен"
+      }
+    },
+    {
+      "sku": "PRD-000040",
+      "name": "Пенициллины 40",
+      "price": 263.06,
+      "category": "Антибиотики",
+      "subcategory": "Пенициллины",
+      "manufacturer": "Тева",
+      "description": "Описание препарата 40",
+      "extendedDescription": "Подробное описание препарата 40",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "порошок",
+        "active": "амоксициллин"
+      }
+    },
+    {
+      "sku": "PRD-000041",
+      "name": "Пенициллины 41",
+      "price": 277.14,
+      "category": "Антибиотики",
+      "subcategory": "Пенициллины",
+      "manufacturer": "Фармстандарт",
+      "description": "Описание препарата 41",
+      "extendedDescription": "Подробное описание препарата 41",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "суспензия",
+        "active": "азитромицин"
+      }
+    },
+    {
+      "sku": "PRD-000042",
+      "name": "Ненаркотические анальгетики 42",
+      "price": 485.23,
+      "category": "Обезболивающие",
+      "subcategory": "Ненаркотические анальгетики",
+      "manufacturer": "Берлин-Хеми",
+      "description": "Описание препарата 42",
+      "extendedDescription": "Подробное описание препарата 42",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "капсулы"
+      }
+    },
+    {
+      "sku": "PRD-000043",
+      "name": "Витамины группы B 43",
+      "price": 173.93,
+      "category": "Витамины",
+      "subcategory": "Витамины группы B",
+      "manufacturer": "Берлин-Хеми",
+      "description": "Описание препарата 43",
+      "extendedDescription": "Подробное описание препарата 43",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "таблетки",
+        "composition": "аскорбиновая кислота"
+      }
+    },
+    {
+      "sku": "PRD-000044",
+      "name": "Иммуномодуляторы 44",
+      "price": 121.99,
+      "category": "Противовирусные препараты",
+      "subcategory": "Иммуномодуляторы",
+      "manufacturer": "Фармстандарт",
+      "description": "Описание препарата 44",
+      "extendedDescription": "Подробное описание препарата 44",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "таблетки",
+        "active": "ибупрофен"
+      }
+    },
+    {
+      "sku": "PRD-000045",
+      "name": "Комплексные витамины 45",
+      "price": 455.77,
+      "category": "Витамины",
+      "subcategory": "Комплексные витамины",
+      "manufacturer": "Фармстандарт",
+      "description": "Описание препарата 45",
+      "extendedDescription": "Подробное описание препарата 45",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "таблетки",
+        "composition": "витамины B1,B6,B12"
+      }
+    },
+    {
+      "sku": "PRD-000046",
+      "name": "Наркотические анальгетики 46",
+      "price": 222.17,
+      "category": "Обезболивающие",
+      "subcategory": "Наркотические анальгетики",
+      "manufacturer": "Сандоз",
+      "description": "Описание препарата 46",
+      "extendedDescription": "Подробное описание препарата 46",
+      "properties": {
+        "dosage": "100 мг",
+        "form": "суспензия"
+      }
+    },
+    {
+      "sku": "PRD-000047",
+      "name": "Ненаркотические анальгетики 47",
+      "price": 381.52,
+      "category": "Обезболивающие",
+      "subcategory": "Ненаркотические анальгетики",
+      "manufacturer": "KRKA",
+      "description": "Описание препарата 47",
+      "extendedDescription": "Подробное описание препарата 47",
+      "properties": {
+        "dosage": "200 мг",
+        "form": "порошок"
+      }
+    },
+    {
+      "sku": "PRD-000048",
+      "name": "Комплексные витамины 48",
+      "price": 117.93,
+      "category": "Витамины",
+      "subcategory": "Комплексные витамины",
+      "manufacturer": "Акрихин",
+      "description": "Описание препарата 48",
+      "extendedDescription": "Подробное описание препарата 48",
+      "properties": {
+        "dosage": "200 мг",
+        "form": "таблетки",
+        "composition": "поливитамины"
+      }
+    },
+    {
+      "sku": "PRD-000049",
+      "name": "Иммуномодуляторы 49",
+      "price": 423.23,
+      "category": "Противовирусные препараты",
+      "subcategory": "Иммуномодуляторы",
+      "manufacturer": "Берлин-Хеми",
+      "description": "Описание препарата 49",
+      "extendedDescription": "Подробное описание препарата 49",
+      "properties": {
+        "dosage": "500 мг",
+        "form": "порошок",
+        "active": "интерферон"
+      }
+    },
+    {
+      "sku": "PRD-000050",
+      "name": "Цефалоспорины 50",
+      "price": 212.07,
+      "category": "Антибиотики",
+      "subcategory": "Цефалоспорины",
+      "manufacturer": "Биосинтез",
+      "description": "Описание препарата 50",
+      "extendedDescription": "Подробное описание препарата 50",
+      "properties": {
+        "dosage": "250 мг",
+        "form": "таблетки",
+        "active": "азитромицин"
+      }
+    }
+  ]
+}

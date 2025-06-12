@@ -114,6 +114,25 @@ namespace Pharmacy.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Token = table.Column<string>(type: "text", nullable: false),
+                    JwtId = table.Column<string>(type: "text", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsUsed = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UsedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Pharmacies",
                 columns: table => new
                 {
@@ -173,8 +192,6 @@ namespace Pharmacy.Database.Migrations
                     Description = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     ExtendedDescription = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
                     IsGloballyDisabled = table.Column<bool>(type: "boolean", nullable: false),
-                    IsPrescriptionRequired = table.Column<bool>(type: "boolean", nullable: false),
-                    ExpirationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -381,8 +398,9 @@ namespace Pharmacy.Database.Migrations
                     StatusId = table.Column<int>(type: "integer", nullable: false),
                     PickupCode = table.Column<string>(type: "character varying(4)", maxLength: 4, nullable: true),
                     IsDelivery = table.Column<bool>(type: "boolean", nullable: false),
-                    PharmacyId = table.Column<int>(type: "integer", nullable: true),
+                    PharmacyId = table.Column<int>(type: "integer", nullable: false),
                     ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CancellationComment = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -475,7 +493,7 @@ namespace Pharmacy.Database.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ExternalPaymentId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    ExternalPaymentId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     OrderId = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     StatusId = table.Column<int>(type: "integer", nullable: false),
@@ -789,6 +807,9 @@ namespace Pharmacy.Database.Migrations
 
             migrationBuilder.DropTable(
                 name: "ProductProperties");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
                 name: "UserAddresses");

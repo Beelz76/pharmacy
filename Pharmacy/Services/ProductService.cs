@@ -418,7 +418,7 @@ public class ProductService : IProductService
         {
             if (!properties.Any(x => x.Key == field.Key && !string.IsNullOrWhiteSpace(x.Value)))
             {
-                errors.Add($"Обязательное поле \"{field.Key}\" не заполнено");
+                errors.Add($"Обязательное поле \"{field.Label}\" ({field.Key}) не заполнено");
             }
         }
 
@@ -427,13 +427,13 @@ public class ProductService : IProductService
         {
             if (!allowedFields.TryGetValue(property.Key, out var expectedType))
             {
-                errors.Add($"Недопустимое поле \"{property.Key}\"");
+                errors.Add($"Недопустимое поле \"{property.Label}\" ({property.Key})");
                 continue;
             }
 
             if (!TypeValidationHelper.IsValidType(property.Value, expectedType))
             {
-                errors.Add($"Неверный тип данных для поля \"{property.Key}\". Ожидался тип \"{expectedType}\".");
+                errors.Add($"Неверный тип данных для поля \"{property.Label}\" ({property.Key}). Ожидался тип \"{expectedType}\".");
             }
         }
 
