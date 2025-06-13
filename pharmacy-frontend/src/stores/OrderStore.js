@@ -8,7 +8,7 @@ export const useOrderStore = defineStore("order", {
     selectedAddress: null,
     selectedAddressId: null,
     isDelivery: false,
-    paymentMethod: null,
+    paymentMethod: "Online",
     deliveryComment: null,
     orderId: null,
     orderNumber: null,
@@ -47,7 +47,7 @@ export const useOrderStore = defineStore("order", {
       this.selectedAddress = null;
       this.selectedAddressId = null;
       this.isDelivery = false;
-      this.paymentMethod = null;
+      this.paymentMethod = "Online";
       this.deliveryComment = null;
     },
     resetCreatedOrder() {
