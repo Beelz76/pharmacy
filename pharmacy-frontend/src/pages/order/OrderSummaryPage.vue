@@ -85,7 +85,14 @@
         </div>
 
         <div class="pt-4 border-t text-right text-xl font-bold text-gray-900">
-          Итого: {{ totalPrice.toFixed(2) }} ₽
+          <div v-if="isDelivery" class="text-sm font-normal mb-1">
+            Доставка: {{ deliveryPrice.toFixed(2) }} ₽
+          </div>
+          Итого:
+          {{
+            (isDelivery ? totalPrice + deliveryPrice : totalPrice).toFixed(2)
+          }}
+          ₽
         </div>
       </div>
     </div>
@@ -148,6 +155,7 @@ const deliveryComment = orderStore.deliveryComment;
 const cartItems = cartStore.items;
 const totalPrice = cartStore.totalPrice;
 const hasAccountPhone = computed(() => !!accountStore.account?.phone);
+const deliveryPrice = 200;
 
 const fullPharmacyAddress = computed(() =>
   selectedPharmacy ? selectedPharmacy.address : ""
@@ -223,7 +231,7 @@ const submitOrder = async () => {
     orderStore.setCreatedOrder({
       id,
       number,
-      total: totalPrice,
+      total: isDelivery ? totalPrice + deliveryPrice : totalPrice,
     });
 
     if (paymentMethod === "OnDelivery") {

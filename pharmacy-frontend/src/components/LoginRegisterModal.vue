@@ -230,6 +230,19 @@
               :digitsOnly="true"
               size="large"
             />
+            <el-form-item prop="agreedToPolicy" class="!mt-2">
+              <el-checkbox v-model="form.agreedToPolicy" class="!text-sm">
+                Согласен(а) с
+                <router-link
+                  to="/privacy-policy"
+                  target="_blank"
+                  class="text-primary-600 hover:underline"
+                >
+                  политикой конфиденциальности
+                </router-link>
+                и обработкой персональных данных
+              </el-checkbox>
+            </el-form-item>
           </template>
 
           <el-form-item>
@@ -320,6 +333,7 @@ const form = reactive({
   firstName: "",
   patronymic: "",
   phone: "",
+  agreedToPolicy: false,
   newPassword: "",
   confirmPassword: "",
 });
@@ -386,6 +400,15 @@ const rules = {
         return cb();
       },
       trigger: "blur",
+    },
+  ],
+  agreedToPolicy: [
+    {
+      validator(_, val, cb) {
+        if (isLogin.value) return cb();
+        return val ? cb() : cb(new Error("Необходимо согласие с политикой"));
+      },
+      trigger: "change",
     },
   ],
 };

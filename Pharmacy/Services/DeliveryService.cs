@@ -31,6 +31,7 @@ public class DeliveryService : IDeliveryService
             entity.OrderId,
             entity.Order.Number,
             AddressExtensions.FormatAddress(entity.UserAddress)!,
+            entity.Price,
             entity.Comment,
             entity.DeliveryDate
         );
@@ -44,6 +45,7 @@ public class DeliveryService : IDeliveryService
         {
             OrderId = request.OrderId,
             UserAddressId = request.UserAddressId,
+            Price = request.Price,
             Comment = request.Comment,
             DeliveryDate = request.DeliveryDate
         };
@@ -62,6 +64,7 @@ public class DeliveryService : IDeliveryService
 
         delivery.UserAddressId = request.UserAddressId;
         delivery.Comment = request.Comment;
+        delivery.Price = request.Price;
         delivery.DeliveryDate = request.DeliveryDate;
 
         await _repository.UpdateAsync(delivery);
@@ -103,6 +106,7 @@ public class DeliveryService : IDeliveryService
                 d.OrderId,
                 d.Order.Number,
                 AddressExtensions.FormatAddress(d.UserAddress.Address)!,
+                d.Price,
                 d.Comment,
                 d.DeliveryDate
             ))

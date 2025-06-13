@@ -5,6 +5,8 @@ public record OrderDto(
     string Number,
     DateTime CreatedAt,
     decimal TotalPrice,
+    decimal DeliveryPrice,
+    decimal FinalPrice,
     string Status,
     string? PickupCode,
     bool IsDelivery,

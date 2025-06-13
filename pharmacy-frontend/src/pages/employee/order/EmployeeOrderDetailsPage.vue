@@ -110,7 +110,10 @@
             <div
               class="px-6 py-4 border-t bg-gray-50 text-right font-bold text-xl text-gray-900"
             >
-              Итого: {{ order.totalPrice.toFixed(2) }} ₽
+              <div v-if="order.isDelivery" class="text-sm font-normal mb-1">
+                Доставка: {{ order.deliveryPrice.toFixed(2) }} ₽
+              </div>
+              Итого: {{ order.finalPrice.toFixed(2) }} ₽
             </div>
             <div
               v-if="order?.status === 'Cancelled' && order.cancellationComment"

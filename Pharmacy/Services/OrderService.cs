@@ -129,6 +129,8 @@ public class OrderService : IOrderService
         
         var orderItemDetails = new List<(string Name, int Quantity, decimal Price)>();
         decimal totalPrice = 0;
+        decimal deliveryPrice = request.IsDelivery ? 200 : 0;
+
 
         var transactionResult = await _transactionRunner.ExecuteAsync(async () =>
         {
@@ -178,13 +180,14 @@ public class OrderService : IOrderService
 
             await _cartRepository.RemoveRangeAsync(cartItems);
 
-            await _paymentService.CreateInitialPaymentAsync(order.Id, totalPrice, request.PaymentMethod);
+            await _paymentService.CreateInitialPaymentAsync(order.Id, totalPrice + deliveryPrice, request.PaymentMethod);
 
             if (request.IsDelivery && request.UserAddressId.HasValue)
             {
                 await _deliveryService.CreateAsync(new CreateDeliveryRequest(
                     order.Id,
                     request.UserAddressId.Value,
+                    deliveryPrice,
                     request.DeliveryComment,
                     null));
             }
@@ -213,7 +216,7 @@ public class OrderService : IOrderService
                         <tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr>
                         {itemsTable}
                     </table>
-                    <p style='font-size: 16px; color: #333;'><strong>Итого:</strong> {totalPrice:C}<br/>
+                    <p style='font-size: 16px; color: #333;'><strong>Итого:</strong> {(totalPrice + deliveryPrice):C}<br/>
                     <strong>Адрес:</strong> {addressString}<br/>
                     <strong>Оплата:</strong> {(request.PaymentMethod == PaymentMethodEnum.Online ? "Онлайн" : "При получении")}</p>
                 </div>";
@@ -326,6 +329,8 @@ public class OrderService : IOrderService
             order.Number,
             order.CreatedAt,
             order.TotalPrice,
+            order.Delivery?.Price ?? 0,
+            order.TotalPrice + (order.Delivery?.Price ?? 0),
             order.Status.Description,
             order.PickupCode,
             order.Pharmacy.Name,
@@ -427,6 +432,8 @@ public class OrderService : IOrderService
                 o.Number,
                 o.CreatedAt,
                 o.TotalPrice,
+                o.Delivery != null ? o.Delivery.Price : 0,
+                o.TotalPrice + (o.Delivery != null ? o.Delivery.Price : 0),
                 o.Status.Description,
                 o.PickupCode,
                 o.IsDelivery,
@@ -768,6 +775,7 @@ public class OrderService : IOrderService
 
         var orderItemDetails = new List<(string Name, int Quantity, decimal Price)>();
         decimal totalPrice = 0;
+        decimal deliveryPrice = original.IsDelivery ? 200 : 0;
 
         var transactionResult = await _transactionRunner.ExecuteAsync(async () =>
         {
@@ -819,13 +827,14 @@ public class OrderService : IOrderService
                 await _pharmacyProductService.UpdateStockQuantityAsync(original.PharmacyId, item.ProductId, currentStock - item.Quantity);
             }
 
-            await _paymentService.CreateInitialPaymentAsync(newOrder.Id, totalPrice, (PaymentMethodEnum)original.Payment.PaymentMethodId);
+            await _paymentService.CreateInitialPaymentAsync(newOrder.Id, totalPrice + deliveryPrice, (PaymentMethodEnum)original.Payment.PaymentMethodId);
 
             if (original.IsDelivery && original.Delivery != null)
             {
                 await _deliveryService.CreateAsync(new CreateDeliveryRequest(
                     newOrder.Id,
                     original.Delivery.UserAddressId,
+                    deliveryPrice,
                     original.Delivery.Comment,
                     null));
             }
@@ -856,7 +865,7 @@ public class OrderService : IOrderService
                         <tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr>
                         {itemsTable}
                     </table>
-                    <p style='font-size: 16px; color: #333;'><strong>Итого:</strong> {totalPrice:C}<br/>
+                    <p style='font-size: 16px; color: #333;'><strong>Итого:</strong> {(totalPrice + deliveryPrice):C}<br/>
                     <strong>Адрес:</strong> {addressString}<br/>
                     <strong>Оплата:</strong> {((PaymentMethodEnum)original.Payment.PaymentMethodId == PaymentMethodEnum.Online ? "Онлайн" : "При получении")}</p>
                 </div>";

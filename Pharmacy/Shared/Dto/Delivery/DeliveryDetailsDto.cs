@@ -5,5 +5,6 @@ public record DeliveryDetailsDto(
     int OrderId,
     string OrderNumber,
     string Address,
+    decimal Price,
     string? Comment,
     DateTime? DeliveryDate);

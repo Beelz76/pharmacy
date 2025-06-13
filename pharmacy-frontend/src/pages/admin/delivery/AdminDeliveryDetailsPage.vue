@@ -40,6 +40,10 @@
           <p class="sm:col-span-2">
             <span class="font-medium">Адрес:</span> {{ delivery.address }}
           </p>
+          <p>
+            <span class="font-medium">Стоимость:</span>
+            {{ delivery.price.toFixed(2) }} ₽
+          </p>
           <p v-if="delivery.comment" class="sm:col-span-2">
             <span class="font-medium">Комментарий:</span> {{ delivery.comment }}
           </p>

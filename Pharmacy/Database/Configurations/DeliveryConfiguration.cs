@@ -15,6 +15,10 @@ public class DeliveryConfiguration : IEntityTypeConfiguration<Delivery>
         builder.Property(x => x.Comment)
             .HasMaxLength(1000);
         
+        builder.Property(x => x.Price)
+            .IsRequired()
+            .HasPrecision(18, 2);
+        
         builder.Property(x => x.DeliveryDate);
         
         builder.HasOne(x => x.Order)

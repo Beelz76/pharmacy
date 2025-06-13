@@ -7,6 +7,8 @@ public class Delivery
     public int UserAddressId { get; set; }
     public string? Comment { get; set; }
     
+    public decimal Price { get; set; }
+    
     public DateTime? DeliveryDate { get; set; }
 
     public Order Order { get; set; } = null!;
