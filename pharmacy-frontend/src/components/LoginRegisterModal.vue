@@ -231,7 +231,10 @@
               size="large"
             />
             <el-form-item prop="agreedToPolicy" class="!mt-2">
-              <el-checkbox v-model="form.agreedToPolicy" class="!text-sm">
+              <el-checkbox
+                v-model="form.agreedToPolicy"
+                class="!text-sm whitespace-normal"
+              >
                 Согласен(а) с
                 <router-link
                   to="/privacy-policy"
