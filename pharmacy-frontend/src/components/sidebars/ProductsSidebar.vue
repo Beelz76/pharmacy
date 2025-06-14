@@ -56,7 +56,7 @@
       <el-collapse-item
         v-for="filter in propertyFilters"
         :key="filter.key"
-        :name="filter.key"
+        :name="filter.label"
       >
         <template #title>
           <span class="text-sm font-medium text-gray-700">{{
@@ -105,7 +105,13 @@ const props = defineProps({
 const emit = defineEmits(["update:filters"]);
 
 const categoryStore = useCategoryStore();
-const propertyFilters = computed(() => categoryStore.propertyFilters);
+const propertyFilters = computed(() =>
+  categoryStore.propertyFilters.map((f) => ({
+    key: f.key ?? f.Key,
+    label: f.label ?? f.Label ?? f.key ?? f.Key,
+    values: f.values ?? f.Values ?? [],
+  }))
+);
 
 const localFilters = reactive({
   propertyFilters: {},

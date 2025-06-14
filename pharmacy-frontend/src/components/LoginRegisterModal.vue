@@ -130,6 +130,7 @@
               type="password"
               placeholder="Новый пароль"
               class="!h-11 !rounded-md"
+              show-password
             />
           </el-form-item>
           <el-form-item prop="confirmPassword">
@@ -138,6 +139,7 @@
               type="password"
               placeholder="Подтверждение пароля"
               class="!h-11 !rounded-md"
+              show-password
               @paste.prevent
             />
           </el-form-item>

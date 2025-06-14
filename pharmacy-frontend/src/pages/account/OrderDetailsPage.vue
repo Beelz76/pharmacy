@@ -97,7 +97,7 @@
               <p
                 class="text-right font-semibold text-gray-800 whitespace-nowrap"
               >
-                {{ item.price.toFixed(2) }} ₽
+                {{ item.price.toFixed(2) }} ₽ / шт.
               </p>
             </li>
           </ul>

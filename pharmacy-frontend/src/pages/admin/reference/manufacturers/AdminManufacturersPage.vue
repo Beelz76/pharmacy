@@ -108,6 +108,8 @@ function edit(row) {
   dialogVisible.value = true;
 }
 
+const formRef = ref();
+
 async function save() {
   const valid = await formRef.value.validate().catch(() => false);
   if (!valid) return;
