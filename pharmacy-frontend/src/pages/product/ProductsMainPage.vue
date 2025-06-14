@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ProductCard from "../../components/cards/ProductCard.vue";
 import { useProducts } from "../../composables/useProducts";
@@ -118,6 +118,20 @@ const changeSort = (val) => {
   fetch();
 };
 
+onMounted(async () => {
+  if (route.params.slug) {
+    await categoryStore.fetchCategoryBySlug(route.params.slug);
+  } else {
+    categoryStore.resetCategory();
+  }
+
+  props.filters.categoryIds = categoryStore.selectedCategoryId
+    ? [categoryStore.selectedCategoryId]
+    : [];
+
+  fetch();
+});
+
 watch(
   () => route.params.slug,
   async (slug) => {
@@ -134,8 +148,7 @@ watch(
     pageNumber.value = 1;
     router.replace({ query: { ...route.query, page: 1 } });
     fetch();
-  },
-  { immediate: true }
+  }
 );
 
 watch(
@@ -145,8 +158,18 @@ watch(
     pageNumber.value = 1;
     router.replace({ query: { ...route.query, page: 1 } });
     fetch();
-  },
-  { immediate: true }
+  }
+);
+
+watch(
+  () => route.query.page,
+  (val) => {
+    const newPage = Number(val) || 1;
+    if (newPage !== pageNumber.value) {
+      pageNumber.value = newPage;
+      fetch();
+    }
+  }
 );
 
 watch(
@@ -156,6 +179,6 @@ watch(
     router.replace({ query: { ...route.query, page: 1 } });
     fetch();
   },
-  { immediate: false, deep: true }
+  { deep: true }
 );
 </script>
