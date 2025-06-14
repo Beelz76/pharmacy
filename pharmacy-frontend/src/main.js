@@ -10,7 +10,6 @@ import "./assets/main.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import { mask } from "vue-the-mask";
-import "leaflet/dist/leaflet.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 const app = createApp(App);

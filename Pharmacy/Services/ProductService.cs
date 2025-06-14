@@ -325,8 +325,7 @@ public class ProductService : IProductService
         {
             relevantCategoryIds.Add(category.ParentCategoryId.Value);
         }
-
-        // include child categories when filtering top level category
+        
         var childIds = await _productCategoryService.GetAllSubcategoryIdsAsync(category.Id);
         relevantCategoryIds.AddRange(childIds);
 

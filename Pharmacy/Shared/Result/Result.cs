@@ -9,7 +9,7 @@ public class Result
     {
         if (isSuccess && error != Error.None || !isSuccess && error == Error.None)
         {
-            throw new ArgumentException("Invalid error state", nameof(error));
+            throw new ArgumentException("Недопустимое состояние ошибки", nameof(error));
         }
 
         IsSuccess = isSuccess;
@@ -43,7 +43,7 @@ public class Result<T> : Result
     
     public T Value => IsSuccess
         ? _value!
-        : throw new InvalidOperationException("Cannot access value when operation failed.");
+        : throw new InvalidOperationException("Невозможно получить доступ к значению при сбое операции");
     
     public T? ValueOrDefault => _value;
 

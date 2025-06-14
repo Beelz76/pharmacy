@@ -6,7 +6,7 @@ namespace Pharmacy.Shared.Result;
 public sealed record Error
 {
     public static readonly Error None = new(HttpStatusCode.OK, ErrorTypeEnum.None, string.Empty);
-    public static readonly Error NullValue = new(HttpStatusCode.BadRequest, ErrorTypeEnum.Failure, "Null value was provided");
+    public static readonly Error NullValue = new(HttpStatusCode.BadRequest, ErrorTypeEnum.Failure, "Обнаружено null значение");
     
     public Error(HttpStatusCode statusCode, ErrorTypeEnum type, string message, List<string>? details = null)
     {
