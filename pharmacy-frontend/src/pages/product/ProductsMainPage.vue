@@ -63,9 +63,8 @@
       <el-pagination
         layout="prev, pager, next"
         :total="totalCount"
-        :current-page="pageNumber"
         :page-size="pageSize"
-        @current-change="onPageChange"
+        v-model:current-page="pageNumber"
       />
     </div>
   </div>
