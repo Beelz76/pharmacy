@@ -63,8 +63,9 @@
       <el-pagination
         layout="prev, pager, next"
         :total="totalCount"
+        :current-page="pageNumber"
         :page-size="pageSize"
-        v-model:current-page="pageNumber"
+        @current-change="onPageChange"
       />
     </div>
   </div>
@@ -89,8 +90,6 @@ const sort = ref("datetime_desc");
 
 const { products, totalCount, pageNumber, pageSize, loading, fetchProducts } =
   useProducts();
-
-pageNumber.value = Number(route.query.page) || 1;
 
 const fetch = () => {
   const [sortBy, sortOrder] = sort.value.split("_");
@@ -123,6 +122,8 @@ onMounted(async () => {
   } else {
     categoryStore.resetCategory();
   }
+
+  pageNumber.value = Number(route.query.page) || 1;
 
   props.filters.categoryIds = categoryStore.selectedCategoryId
     ? [categoryStore.selectedCategoryId]
