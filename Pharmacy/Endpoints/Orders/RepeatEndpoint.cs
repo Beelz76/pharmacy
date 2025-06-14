@@ -36,7 +36,7 @@ public class RepeatEndpoint : EndpointWithoutRequest
         var result = await _orderService.RepeatAsync(orderId, userId.Value);
         if (result.IsSuccess)
         {
-            await SendOkAsync(result.Value, ct);
+            await SendOkAsync(ct);
         }
         else
         {

@@ -21,8 +21,7 @@ export async function cancelOrder(orderId, comment = null) {
 
 export async function repeatOrder(orderId) {
   try {
-    const res = await api.post(`/orders/${orderId}/repeat`);
-    return res.data;
+    await api.post(`/orders/${orderId}/repeat`);
   } catch (err) {
     console.error(`Ошибка при повторе заказа #${orderId}:`, err);
     throw err;

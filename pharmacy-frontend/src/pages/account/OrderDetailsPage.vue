@@ -198,11 +198,13 @@ import {
   repeatOrder,
 } from "/src/services/OrderService";
 import { useOrderStore } from "../../stores/OrderStore";
+import { useCartStore } from "../../stores/CartStore";
 import { statusClass } from "../../utils/statusClass";
 import { toSlug } from "../../utils/slugify";
 
 const router = useRouter();
 const orderStore = useOrderStore();
+const cart = useCartStore();
 const route = useRoute();
 const order = ref(null);
 const loading = ref(false);
@@ -259,12 +261,9 @@ const goProduct = (id, name) => {
 const repeat = async () => {
   try {
     repeatLoading.value = true;
-    const data = await repeatOrder(order.value.id);
-    router.push({
-      name: "OrderDetails",
-      params: { id: data.id },
-      query: route.query,
-    });
+    await repeatOrder(order.value.id);
+    await cart.fetchCart();
+    router.push({ name: "Cart" });
   } catch (e) {
     console.error("Ошибка повторного заказа", e);
   } finally {
