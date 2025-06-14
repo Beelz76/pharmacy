@@ -319,15 +319,16 @@ public class ProductService : IProductService
 
         var category = categoryResult.Value;
 
-        List<int> relevantCategoryIds;
-        if (category.ParentCategoryId is null)
+        var relevantCategoryIds = new List<int> { category.Id };
+
+        if (category.ParentCategoryId is not null)
         {
-            relevantCategoryIds = new List<int> { category.Id };
+            relevantCategoryIds.Add(category.ParentCategoryId.Value);
         }
-        else
-        {
-            relevantCategoryIds = new List<int> { category.Id, category.ParentCategoryId.Value };
-        }
+
+        // include child categories when filtering top level category
+        var childIds = await _productCategoryService.GetAllSubcategoryIdsAsync(category.Id);
+        relevantCategoryIds.AddRange(childIds);
 
         var products = await _repository.Query()
             .Where(p => relevantCategoryIds.Contains(p.CategoryId))
@@ -346,11 +347,25 @@ public class ProductService : IProductService
             }
         }
 
-        var fields = await _productCategoryService.GetAllFieldsIncludingParentAsync(categoryId);
+        var fieldDict = new Dictionary<string, CategoryFieldDto>();
+        foreach (var id in relevantCategoryIds.Distinct())
+        {
+            var fieldsResult = await _productCategoryService.GetAllFieldsIncludingParentAsync(id);
+            if (fieldsResult.IsSuccess)
+            {
+                foreach (var field in fieldsResult.Value)
+                {
+                    if (!fieldDict.ContainsKey(field.Key))
+                    {
+                        fieldDict[field.Key] = field;
+                    }
+                }
+            }
+        }
 
         var finalResult = result.Select(r =>
         {
-            var field = fields.Value.FirstOrDefault(x => x.Key == r.Key);
+            fieldDict.TryGetValue(r.Key, out var field);
             var label = field?.Label ?? r.Key;
             return new FilterOptionDto(
                 r.Key,

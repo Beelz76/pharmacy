@@ -225,7 +225,12 @@
 
     <div v-else class="text-center py-16 text-gray-500">Товар не найден</div>
 
-    <el-dialog v-model="showModal" width="600px" align-center>
+    <el-dialog
+      v-model="showModal"
+      width="600px"
+      align-center
+      :lock-scroll="false"
+    >
       <img :src="activeImage" class="w-full h-auto object-cover" />
     </el-dialog>
   </div>

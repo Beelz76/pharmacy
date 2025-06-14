@@ -53,6 +53,7 @@
       title="Производитель"
       width="500px"
       :close-on-click-modal="false"
+      :lock-scroll="false"
     >
       <el-form label-width="120px" :model="form" :rules="rules" ref="formRef">
         <el-form-item label="Название" prop="name">

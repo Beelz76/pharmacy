@@ -59,6 +59,7 @@
       :title="form.id ? 'Редактирование категории' : 'Новая категория'"
       width="700px"
       :close-on-click-modal="false"
+      :lock-scroll="false"
     >
       <!-- Основная информация -->
       <div class="mb-6">

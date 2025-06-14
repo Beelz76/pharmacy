@@ -109,6 +109,7 @@
       width="800px"
       title="Аптека"
       :close-on-click-modal="false"
+      :lock-scroll="false"
     >
       <div class="h-96 mb-4">
         <MapComponent

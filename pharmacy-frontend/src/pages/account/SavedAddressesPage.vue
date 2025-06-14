@@ -42,7 +42,13 @@
       </div>
 
       <!-- Диалог редактирования -->
-      <el-dialog v-model="editing" width="800px" align-center title="Адрес">
+      <el-dialog
+        v-model="editing"
+        width="800px"
+        align-center
+        title="Адрес"
+        :lock-scroll="false"
+      >
         <div class="h-96 mb-3">
           <MapComponent
             ref="mapRef"
@@ -130,7 +136,7 @@ function startAdd() {
   addressComment.value = "";
 }
 
-function editAddress(addr) {
+async function editAddress(addr) {
   editing.value = true;
   editingId.value = addr.id;
   newAddress.value = {
@@ -159,6 +165,8 @@ function editAddress(addr) {
   entrance.value = addr.entrance || "";
   floor.value = addr.floor || "";
   addressComment.value = addr.comment || "";
+  await nextTick();
+  mapRef.value?.resize();
   mapRef.value?.flyToCoordinates(
     addr.address.latitude,
     addr.address.longitude,
