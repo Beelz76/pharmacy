@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using Pharmacy.Shared.Dto;
+using Pharmacy.Shared.Dto.YooKassa;
 using Pharmacy.Shared.Result;
 
 namespace Pharmacy.ExternalServices;
@@ -52,6 +53,34 @@ public class YooKassaHttpClient
         {
             _logger.LogError(ex, "Ошибка при создании платежа");
             return Result.Failure<YooKassaPaymentResult>(Error.Failure("Ошибка при обращении к ЮKassa"));
+        }
+    }
+    
+    public async Task<Result<YooKassaPaymentInfo>> GetPaymentInfoAsync(string paymentId)
+    {
+        var httpRequest = new HttpRequestMessage(HttpMethod.Get, $"payments/{paymentId}");
+        try
+        {
+            var response = await _httpClient.SendAsync(httpRequest);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Ошибка при получении платежа: {Body}", responseBody);
+                return Result.Failure<YooKassaPaymentInfo>(Error.Failure("Ошибка при обращении к ЮKassa"));
+            }
+
+            var result = JsonSerializer.Deserialize<YooKassaPaymentInfo>(responseBody, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            })!;
+
+            return Result.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обращении к ЮKassa");
+            return Result.Failure<YooKassaPaymentInfo>(Error.Failure("Ошибка при обращении к ЮKassa"));
         }
     }
 }

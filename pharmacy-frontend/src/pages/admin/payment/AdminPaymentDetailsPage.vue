@@ -51,7 +51,10 @@
           </p>
         </div>
 
-        <div class="mt-6 text-right">
+        <div class="mt-6 flex justify-end gap-4">
+          <el-button type="primary" @click="sync">
+            <i class="fas fa-sync-alt mr-2"></i>Сверить статус
+          </el-button>
           <el-button type="primary" @click="goOrder(payment.orderId)">
             <i class="fas fa-receipt mr-2"></i>Перейти к заказу
           </el-button>
@@ -64,7 +67,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getPaymentById } from "/src/services/PaymentService";
+import {
+  getPaymentById,
+  syncPaymentStatus,
+} from "/src/services/PaymentService";
+import { ElMessage } from "element-plus";
 
 const router = useRouter();
 const route = useRoute();
@@ -85,4 +92,14 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+const sync = async () => {
+  try {
+    const res = await syncPaymentStatus(payment.value.id);
+    if (res.status) {
+      payment.value.status = res.status;
+      ElMessage.success("Статус обновлён");
+    }
+  } catch {}
+};
 </script>

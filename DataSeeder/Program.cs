@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using DataSeeder;
 using Microsoft.EntityFrameworkCore;
 using Pharmacy.Database;
 using Pharmacy.Database.Entities;
@@ -113,25 +114,28 @@ async Task<ProductCategory> EnsureCategoryAsync(CategoryDto dto, int? parentId)
     return existing;
 }
 
-record SeedData(List<ManufacturerDto> Manufacturers, List<CategoryDto> Categories, List<ProductDto> Products);
-record ManufacturerDto(string Name, string Country);
-record CategoryDto
+namespace DataSeeder
 {
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public List<FieldDto>? Fields { get; set; }
-    public List<CategoryDto>? Subcategories { get; set; }
-}
-record FieldDto(string Key, string Label, string Type, bool Required, bool Filterable);
-record ProductDto
-{
-    public string Sku { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public string Category { get; set; } = string.Empty;
-    public string Subcategory { get; set; } = string.Empty;
-    public string Manufacturer { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string ExtendedDescription { get; set; } = string.Empty;
-    public Dictionary<string, string> Properties { get; set; } = new();
+    record SeedData(List<ManufacturerDto> Manufacturers, List<CategoryDto> Categories, List<ProductDto> Products);
+    record ManufacturerDto(string Name, string Country);
+    record CategoryDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public List<FieldDto>? Fields { get; set; }
+        public List<CategoryDto>? Subcategories { get; set; }
+    }
+    record FieldDto(string Key, string Label, string Type, bool Required, bool Filterable);
+    record ProductDto
+    {
+        public string Sku { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public string Category { get; set; } = string.Empty;
+        public string Subcategory { get; set; } = string.Empty;
+        public string Manufacturer { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string ExtendedDescription { get; set; } = string.Empty;
+        public Dictionary<string, string> Properties { get; set; } = new();
+    }
 }

@@ -12,4 +12,5 @@ public interface IPaymentService
     Task<Result> SetExternalPaymentIdAsync(int orderId, string externalPaymentId);
     Task<Result<PaymentDetailsDto>> GetByIdAsync(int id);
     Task<Result<PaginatedList<PaymentDetailsDto>>> GetPaginatedAsync(PaymentFilters filters, int pageNumber, int pageSize);
+    Task<Result<PaymentStatusEnum>> SyncStatusWithYooKassaAsync(int paymentId);
 }

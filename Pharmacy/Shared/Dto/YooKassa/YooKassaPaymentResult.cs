@@ -1,4 +1,4 @@
-﻿namespace Pharmacy.Shared.Dto;
+﻿namespace Pharmacy.Shared.Dto.YooKassa;
 
 public class YooKassaPaymentResult
 {

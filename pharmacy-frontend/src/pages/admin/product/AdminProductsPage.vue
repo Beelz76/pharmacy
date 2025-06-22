@@ -107,6 +107,7 @@
         >
           <tr>
             <th class="px-6 py-5 font-semibold">ID</th>
+            <th class="px-6 py-5 font-semibold">Номер</th>
             <th class="px-6 py-5 font-semibold">Название</th>
             <th class="px-6 py-5 font-semibold">Категория</th>
             <th class="px-6 py-5 font-semibold">Цена</th>
@@ -117,6 +118,7 @@
         <tbody class="divide-y divide-gray-100">
           <tr v-for="p in products" :key="p.id">
             <td class="px-6 py-4">{{ p.id }}</td>
+            <td class="px-6 py-4">{{ p.sku }}</td>
             <td class="px-6 py-4">{{ p.name }}</td>
             <td class="px-6 py-4">{{ p.categoryName }}</td>
             <td class="px-6 py-4">{{ p.price.toFixed(2) }}</td>
@@ -137,12 +139,12 @@
             </td>
           </tr>
           <tr v-if="!loading && products.length === 0">
-            <td colspan="6" class="text-center py-6 text-gray-500">
+            <td colspan="7" class="text-center py-6 text-gray-500">
               Товары не найдены
             </td>
           </tr>
           <tr v-if="loading">
-            <td colspan="6" class="text-center py-6 text-gray-500">
+            <td colspan="7" class="text-center py-6 text-gray-500">
               Загрузка...
             </td>
           </tr>

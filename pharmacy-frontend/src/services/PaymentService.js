@@ -17,3 +17,8 @@ export async function getPaymentById(id) {
 export async function updatePaymentStatus(orderId, newStatus) {
   await api.put("/payments/status", { orderId, newStatus });
 }
+
+export async function syncPaymentStatus(id) {
+  const res = await api.post(`/payments/${id}/sync`);
+  return res.data;
+}

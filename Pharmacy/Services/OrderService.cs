@@ -12,6 +12,7 @@ using Pharmacy.Shared.Dto.Cart;
 using Pharmacy.Shared.Dto.Delivery;
 using Pharmacy.Shared.Dto.Order;
 using Pharmacy.Shared.Dto.Payment;
+using Pharmacy.Shared.Dto.YooKassa;
 using Pharmacy.Shared.Enums;
 using Pharmacy.Shared.Result;
 

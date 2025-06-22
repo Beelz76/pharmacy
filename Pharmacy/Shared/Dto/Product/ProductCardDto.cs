@@ -2,6 +2,7 @@
 
 public record ProductCardDto(
     int Id,
+    string Sku,
     string Name,
     string Description,
     decimal Price,

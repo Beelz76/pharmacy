@@ -3,6 +3,7 @@ using Pharmacy.Database.Entities;
 using Pharmacy.Database.Repositories.Interfaces;
 using Pharmacy.DateTimeProvider;
 using Pharmacy.Extensions;
+using Pharmacy.ExternalServices;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Dto;
 using Pharmacy.Shared.Dto.Payment;
@@ -15,11 +16,13 @@ public class PaymentService : IPaymentService
 {
     private readonly IPaymentRepository _paymentRepository;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly YooKassaHttpClient _yooKassaClient;
 
-    public PaymentService(IPaymentRepository paymentRepository, IDateTimeProvider dateTimeProvider)
+    public PaymentService(IPaymentRepository paymentRepository, IDateTimeProvider dateTimeProvider, YooKassaHttpClient yooKassaClient)
     {
         _paymentRepository = paymentRepository;
         _dateTimeProvider = dateTimeProvider;
+        _yooKassaClient = yooKassaClient;
     }
 
     public async Task CreateInitialPaymentAsync(int orderId, decimal amount, PaymentMethodEnum method)
@@ -158,5 +161,49 @@ public class PaymentService : IPaymentService
             .ToListAsync();
 
         return Result.Success(new PaginatedList<PaymentDetailsDto>(items, totalCount, pageNumber, pageSize));
+    }
+    
+    public async Task<Result<PaymentStatusEnum>> SyncStatusWithYooKassaAsync(int paymentId)
+    {
+        var payment = await _paymentRepository.GetByIdWithDetailsAsync(paymentId);
+        if (payment is null)
+        {
+            return Result.Failure<PaymentStatusEnum>(Error.NotFound("Платёж не найден"));
+        }
+
+        if (string.IsNullOrWhiteSpace(payment.ExternalPaymentId))
+        {
+            return Result.Failure<PaymentStatusEnum>(Error.Failure("Внешний ID платежа отсутствует"));
+        }
+
+        var infoResult = await _yooKassaClient.GetPaymentInfoAsync(payment.ExternalPaymentId);
+        if (infoResult.IsFailure)
+        {
+            return Result.Failure<PaymentStatusEnum>(infoResult.Error);
+        }
+
+        var yooStatus = infoResult.Value.Status;
+        var newStatus = yooStatus switch
+        {
+            "succeeded" => PaymentStatusEnum.Completed,
+            "canceled" => PaymentStatusEnum.Cancelled,
+            "pending" => PaymentStatusEnum.Pending,
+            "waiting_for_capture" => PaymentStatusEnum.Pending,
+            _ => PaymentStatusEnum.Failed
+        };
+
+        if (payment.StatusId != (int)newStatus)
+        {
+            payment.StatusId = (int)newStatus;
+            payment.UpdatedAt = _dateTimeProvider.UtcNow;
+            if (newStatus == PaymentStatusEnum.Completed)
+            {
+                payment.TransactionDate = _dateTimeProvider.UtcNow;
+            }
+
+            await _paymentRepository.UpdateAsync(payment);
+        }
+
+        return Result.Success(newStatus);
     }
 }

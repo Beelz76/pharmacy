@@ -257,6 +257,7 @@ public class ProductService : IProductService
             .Select(p => new
             {
                 p.Id,
+                p.Sku,
                 p.Name,
                 p.Description,
                 p.Price,
@@ -278,6 +279,7 @@ public class ProductService : IProductService
 
         var items = pageItems.Select(p => new ProductCardDto(
             p.Id,
+            p.Sku,
             p.Name,
             p.Description,
             p.Price,
