@@ -11,7 +11,7 @@
         ></i>
       </button>
 
-      <router-link to="/products/catalog" class="hover:underline"
+      <router-link :to="catalogLink" class="hover:underline"
         >Каталог /
       </router-link>
 
@@ -274,13 +274,22 @@ const isFavorite = computed(() =>
   product.value ? favoritesStore.ids.includes(product.value.id) : false
 );
 
+const catalogLink = computed(() => ({
+  path: "/products/catalog",
+  query: route.query.page ? { page: route.query.page } : {},
+}));
+
 const categoryLink = computed(() =>
   product.value
     ? {
         name: "ProductsByCategory",
         params: { slug: toSlug(product.value.category.name) },
+        query: route.query.page ? { page: route.query.page } : {},
       }
-    : { name: "Products" }
+    : {
+        name: "Products",
+        query: route.query.page ? { page: route.query.page } : {},
+      }
 );
 
 const manufacturerLink = computed(() => ({

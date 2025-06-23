@@ -125,9 +125,12 @@ onMounted(async () => {
 
   pageNumber.value = Number(route.query.page) || 1;
 
-  props.filters.categoryIds = categoryStore.selectedCategoryId
+  const newCatIds = categoryStore.selectedCategoryId
     ? [categoryStore.selectedCategoryId]
     : [];
+  if (JSON.stringify(props.filters.categoryIds) !== JSON.stringify(newCatIds)) {
+    props.filters.categoryIds = newCatIds;
+  }
 
   fetch();
 });
@@ -141,9 +144,14 @@ watch(
       categoryStore.resetCategory();
     }
 
-    props.filters.categoryIds = categoryStore.selectedCategoryId
+    const newCatIds = categoryStore.selectedCategoryId
       ? [categoryStore.selectedCategoryId]
       : [];
+    if (
+      JSON.stringify(props.filters.categoryIds) !== JSON.stringify(newCatIds)
+    ) {
+      props.filters.categoryIds = newCatIds;
+    }
 
     pageNumber.value = 1;
     router.replace({ query: { ...route.query, page: 1 } });

@@ -114,12 +114,14 @@ import { ref, watch, computed } from "vue";
 import { useFavoritesStore } from "/src/stores/FavoritesStore";
 import { useCartStore } from "/src/stores/CartStore";
 import { toSlug } from "/src/utils/slugify";
+import { useRoute } from "vue-router";
 
 const props = defineProps({ product: Object });
 const defaultImage = "https://via.placeholder.com/300x200?text=No+Image";
 
 const favoritesStore = useFavoritesStore();
 const cartStore = useCartStore();
+const route = useRoute();
 
 const isFavorite = computed(() =>
   favoritesStore.ids.includes(props.product.id)
@@ -127,9 +129,10 @@ const isFavorite = computed(() =>
 const cartQuantity = computed(
   () => cartStore.quantityById[props.product.id] || 0
 );
-const productLink = computed(
-  () => `/products/${props.product.id}-${toSlug(props.product.name)}`
-);
+const productLink = computed(() => ({
+  path: `/products/${props.product.id}-${toSlug(props.product.name)}`,
+  query: route.query.page ? { page: route.query.page } : {},
+}));
 
 const editableQuantity = computed({
   get: () => cartQuantity.value || 1,
