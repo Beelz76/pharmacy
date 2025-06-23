@@ -27,18 +27,31 @@ const route = useRoute();
 const router = useRouter();
 
 watch(
-  () => route.query,
-  (q) => {
-    filters.value.manufacturerIds = q.manufacturerIds
-      ? Array.isArray(q.manufacturerIds)
-        ? q.manufacturerIds.map((m) => Number(m))
-        : [Number(q.manufacturerIds)]
+  () => [route.query.manufacturerIds, route.query.countries],
+  ([manIds, countries]) => {
+    const newManIds = manIds
+      ? Array.isArray(manIds)
+        ? manIds.map((m) => Number(m))
+        : [Number(manIds)]
       : [];
-    filters.value.countries = q.countries
-      ? Array.isArray(q.countries)
-        ? q.countries
-        : [q.countries]
+    const newCountries = countries
+      ? Array.isArray(countries)
+        ? countries
+        : [countries]
       : [];
+
+    if (
+      JSON.stringify(newManIds) !==
+      JSON.stringify(filters.value.manufacturerIds)
+    ) {
+      filters.value.manufacturerIds = newManIds;
+    }
+
+    if (
+      JSON.stringify(newCountries) !== JSON.stringify(filters.value.countries)
+    ) {
+      filters.value.countries = newCountries;
+    }
   },
   { immediate: true }
 );
