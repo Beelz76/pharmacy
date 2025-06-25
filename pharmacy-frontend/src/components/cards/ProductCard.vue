@@ -129,10 +129,15 @@ const isFavorite = computed(() =>
 const cartQuantity = computed(
   () => cartStore.quantityById[props.product.id] || 0
 );
-const productLink = computed(() => ({
-  path: `/products/${props.product.id}-${toSlug(props.product.name)}`,
-  query: route.query.page ? { page: route.query.page } : {},
-}));
+const productLink = computed(() => {
+  const query = {};
+  if (route.query.page) query.page = route.query.page;
+  if (route.query.sort) query.sort = route.query.sort;
+  return {
+    path: `/products/${props.product.id}-${toSlug(props.product.name)}`,
+    query,
+  };
+});
 
 const editableQuantity = computed({
   get: () => cartQuantity.value || 1,

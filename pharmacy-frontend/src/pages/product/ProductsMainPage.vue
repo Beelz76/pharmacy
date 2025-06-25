@@ -86,7 +86,7 @@ const route = useRoute();
 const router = useRouter();
 const categoryStore = useCategoryStore();
 const searchQuery = ref(route.query.search || "");
-const sort = ref("datetime_desc");
+const sort = ref(route.query.sort || "datetime_desc");
 
 const { products, totalCount, pageNumber, pageSize, loading, fetchProducts } =
   useProducts();
@@ -112,7 +112,7 @@ const onPageChange = (page) => {
 const changeSort = (val) => {
   sort.value = val;
   pageNumber.value = 1;
-  router.replace({ query: { ...route.query, page: 1 } });
+  router.replace({ query: { ...route.query, page: 1, sort: val } });
   fetch();
 };
 
@@ -124,6 +124,7 @@ onMounted(async () => {
   }
 
   pageNumber.value = Number(route.query.page) || 1;
+  sort.value = route.query.sort || "datetime_desc";
 
   const newCatIds = categoryStore.selectedCategoryId
     ? [categoryStore.selectedCategoryId]
@@ -166,6 +167,17 @@ watch(
     pageNumber.value = 1;
     router.replace({ query: { ...route.query, page: 1 } });
     fetch();
+  }
+);
+
+watch(
+  () => route.query.sort,
+  (newSort) => {
+    const val = newSort || "datetime_desc";
+    if (val !== sort.value) {
+      sort.value = val;
+      fetch();
+    }
   }
 );
 

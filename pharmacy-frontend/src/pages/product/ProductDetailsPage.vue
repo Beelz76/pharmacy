@@ -274,33 +274,43 @@ const isFavorite = computed(() =>
   product.value ? favoritesStore.ids.includes(product.value.id) : false
 );
 
-const catalogLink = computed(() => ({
-  path: "/products/catalog",
-  query: route.query.page ? { page: route.query.page } : {},
-}));
+const catalogLink = computed(() => {
+  const query = {};
+  if (route.query.page) query.page = route.query.page;
+  if (route.query.sort) query.sort = route.query.sort;
+  return { path: "/products/catalog", query };
+});
 
 const categoryLink = computed(() =>
   product.value
     ? {
         name: "ProductsByCategory",
         params: { slug: toSlug(product.value.category.name) },
-        query: route.query.page ? { page: route.query.page } : {},
+        query: {
+          ...(route.query.page ? { page: route.query.page } : {}),
+          ...(route.query.sort ? { sort: route.query.sort } : {}),
+        },
       }
     : {
         name: "Products",
-        query: route.query.page ? { page: route.query.page } : {},
+        query: {
+          ...(route.query.page ? { page: route.query.page } : {}),
+          ...(route.query.sort ? { sort: route.query.sort } : {}),
+        },
       }
 );
 
-const manufacturerLink = computed(() => ({
-  path: "/products/catalog",
-  query: { manufacturerIds: product.value?.manufacturer.id },
-}));
+const manufacturerLink = computed(() => {
+  const query = { manufacturerIds: product.value?.manufacturer.id };
+  if (route.query.sort) query.sort = route.query.sort;
+  return { path: "/products/catalog", query };
+});
 
-const countryLink = computed(() => ({
-  path: "/products/catalog",
-  query: { countries: product.value?.manufacturer.country },
-}));
+const countryLink = computed(() => {
+  const query = { countries: product.value?.manufacturer.country };
+  if (route.query.sort) query.sort = route.query.sort;
+  return { path: "/products/catalog", query };
+});
 
 onMounted(async () => {
   try {
