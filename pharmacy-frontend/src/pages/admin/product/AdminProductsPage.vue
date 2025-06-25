@@ -201,6 +201,7 @@ onMounted(async () => {
   manufacturers.value = await getManufacturers();
   pageNumber.value = Number(route.query.page) || 1;
   pageSize.value = Number(route.query.size) || pageSize.value;
+  sort.value = route.query.sort || sort.value;
   filters.value.id = route.query.productId
     ? Number(route.query.productId)
     : null;
@@ -226,6 +227,11 @@ watch(pageNumber, (val) => {
   router.replace({
     query: { ...route.query, page: val, size: pageSize.value },
   });
+  fetch();
+});
+
+watch(sort, (val) => {
+  router.replace({ query: { ...route.query, sort: val } });
   fetch();
 });
 
