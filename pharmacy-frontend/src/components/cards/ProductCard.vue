@@ -23,13 +23,13 @@
       <!-- Изображение -->
       <router-link
         :to="productLink"
-        class="relative h-52 flex items-center justify-center overflow-hidden"
+        class="relative h-48 flex items-center justify-center overflow-hidden"
       >
         <img
           v-if="product.imageUrl"
           :src="product.imageUrl || defaultImage"
           alt="image"
-          class="w-full h-full object-cover"
+          class="w-full h-full object-contain p-2"
         />
         <i v-else class="fas fa-image text-4xl text-gray-400"></i>
 
