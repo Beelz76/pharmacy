@@ -22,7 +22,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(x => x.Description)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(200);
 
         builder.Property(x => x.ExtendedDescription)
             .IsRequired()

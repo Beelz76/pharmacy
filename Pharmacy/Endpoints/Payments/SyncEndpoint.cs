@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using Pharmacy.Extensions;
 using Pharmacy.Services.Interfaces;
 using Pharmacy.Shared.Enums;
 
@@ -27,7 +28,7 @@ public class SyncEndpoint : EndpointWithoutRequest
         var result = await _service.SyncStatusWithYooKassaAsync(id);
         if (result.IsSuccess)
         {
-            await SendOkAsync(new { status = result.Value.ToString() }, ct);
+            await SendOkAsync(new { status = result.Value.GetDescription() }, ct);
         }
         else
         {
